@@ -1,9 +1,9 @@
 {
   "id": "ops",
   "name": "Ops",
-  "description": "Una mesa táctica holográfica en 3D: el servidor es la base con su cúpula de escudo, cada cuenta un sector, cada servicio una columna que sube con su CPU y cada sitio un prisma que sube con sus visitas. Las visitas caen en arco, los intentos de acceso son misiles contra la cúpula y los agentes de Claude Code son drones.",
+  "description": "Una mesa táctica holográfica en 3D: el servidor es la base con su cúpula de escudo, cada cuenta un sector, cada servicio una columna que sube con su CPU y cada sitio un prisma que sube con sus visitas. Las visitas caen en arco, los intentos de acceso son misiles contra la cúpula y los agentes de Claude Code son drones. Al fondo de la mesa, la zona de detención con las IPs bloqueadas y la antena por la que pasa el correo.",
   "author": "NERACOSU",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "Propietaria · three.js (MIT) · fuente VT323 bajo SIL OFL 1.1",
   "world": "world.js",
   "css": "theme.css",
@@ -59,6 +59,21 @@
           "solid": false,
           "title": "Barrido",
           "text": "El haz que gira: hace brillar cada columna al pasar."
+        },
+        {
+          "icon": "jail",
+          "title": "Zona de detención",
+          "text": "Al fondo a la izquierda: las IPs bloqueadas son marcadores hostiles enjaulados. Los contenedores con franjas de peligro son archivos PHP maliciosos en cuarentena."
+        },
+        {
+          "icon": "mail",
+          "title": "Comunicaciones",
+          "text": "Al fondo a la derecha, la antena: cada correo es un paquete de datos que sale de su sector o llega desde afuera; los ámbar rebotaron y vuelven con el motivo. La cola gira al pie de la antena."
+        },
+        {
+          "icon": "db",
+          "title": "Depósito de datos",
+          "text": "En el borde de cada sector con bases de datos: más alto cuanto más pesan, rojo si están al límite y con una «z» si hay conexiones dormidas. Las líneas de luz llegan a las columnas que las usan."
         }
       ]
     },
@@ -89,6 +104,21 @@
           "icon": "refresh",
           "title": "Cámara",
           "text": "Arrastre para girar la mesa, rueda para acercar, doble clic para volver. En modo director la cámara orbita sola y visita cada sector."
+        }
+      ]
+    },
+    {
+      "title": "Cuando algo aprieta",
+      "items": [
+        {
+          "color": "#ef4444",
+          "title": "Alerta roja",
+          "text": "Con el servidor al límite, el barrido y la cúpula se ponen rojos y las visitas entran en un circuito de espera sobre la base antes de aterrizar en su columna."
+        },
+        {
+          "color": "#fbbf24",
+          "title": "Cuota",
+          "text": "En la ficha del sector, en ámbar o rojo, cuando la cuenta se acerca al límite de su disco o sus inodos."
         }
       ]
     }

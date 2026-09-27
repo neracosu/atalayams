@@ -110,3 +110,9 @@ body[data-theme="ops"] #log .ev > * + * { margin-left: .4rem; }
 
 /* area libre del mundo: entre las escuadras (abajo a la izquierda) y la columna de la derecha, sobre la barra de navegacion */
 body[data-theme="ops"] #worldArea { display: block; top: 5.4rem; bottom: 5rem; left: calc(clamp(260px, 20vw, 520px) + 2rem); right: calc(clamp(280px, 22vw, 560px) + 2rem); }
+/* zona de detencion y comunicaciones: rotulos como el de la base, un poco mas chicos */
+body[data-theme="ops"] .ops-cell, body[data-theme="ops"] .ops-mast { text-align: center; pointer-events: auto; cursor: pointer; }
+body[data-theme="ops"] .ops-cell b, body[data-theme="ops"] .ops-mast b { display: block; font-family: var(--pixel); font-size: 1.1rem; letter-spacing: .18em; }
+body[data-theme="ops"] .ops-cell b { color: var(--bad); }
+body[data-theme="ops"] .ops-mast b { color: var(--ink); }
+body[data-theme="ops"] .ops-cell small, body[data-theme="ops"] .ops-mast small { display: block; font-family: var(--pixel); font-size: .9rem; letter-spacing: .08em; color: var(--ink-3); }

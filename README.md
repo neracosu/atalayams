@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.72.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.73.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">

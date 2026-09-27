@@ -14,6 +14,12 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.73.0] - 2026-09-27
+
+### Agregado
+- **Ops, completo**: al fondo de la mesa, la **zona de detención** (las IPs bloqueadas son marcadores hostiles enjaulados y los archivos en cuarentena, contenedores sellados) y la **antena de comunicaciones** (cada correo es un paquete de datos; los rebotados vuelven con el motivo y la cola gira al pie), más un **depósito de datos** en el borde de cada sector con bases, con líneas de luz a las columnas que las usan.
+- Ops: con el servidor **al límite**, alerta roja (barrido y cúpula en rojo) y las visitas dan vueltas en espera sobre la base; la **cuota** aparece en la ficha del sector.
+
 ## [0.72.0] - 2026-09-27
 
 ### Agregado
@@ -1368,7 +1374,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.72.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.73.0...HEAD
+[0.73.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.72.0...v0.73.0
 [0.72.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.71.0...v0.72.0
 [0.71.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.70.0...v0.71.0
 [0.70.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.69.0...v0.70.0
