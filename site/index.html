@@ -1,0 +1,480 @@
+<!doctype html>
+<!-- Generado desde /opt/atalaya/site con «node scripts/export-site.js» (repo de Atalaya). No edite este archivo: el próximo export lo reemplaza. Los cambios van en la fuente. -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atalaya · Monitor en vivo para vibe coders, VPS y hostings</title>
+<meta name="description" content="¿Programa con IA y publica en Vercel, Supabase, GitHub o su VPS? Atalaya lo vigila en una pantalla pixel art en vivo y le avisa antes que su cliente.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Atalaya Monitor Server · Se entera antes que su cliente">
+<meta property="og:description" content="El monitoreo de su servidor es algo serio, pero no tiene por qué ser aburrido. Servidores, hostings, WordPress, Vercel, Supabase, GitHub y Claude Code en un mundo pixel para el TV de la oficina. Con analítica sin cookies y alertas por Telegram o correo.">
+<meta property="og:image" content="https://neracosu.com/atalaya/assets/video/portada.jpg">
+<meta property="og:image:width" content="1024">
+<meta property="og:image:height" content="576">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:url" content="https://neracosu.com/atalaya/">
+<link rel="canonical" href="https://neracosu.com/atalaya/">
+<meta name="theme-color" content="#060a14">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/silkscreen.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="stylesheet" href="assets/css/arcade.css">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "SoftwareApplication",
+ "name": "Atalaya Monitor Server",
+ "url": "https://neracosu.com/atalaya/",
+ "applicationCategory": "DeveloperApplication",
+ "operatingSystem": "Linux, Windows, macOS, web",
+ "description": "Junta servidores, hostings, sitios WordPress, Vercel, Supabase, GitHub y agentes de Claude Code en una sola pantalla en vivo con temas de pixel art. Incluye analítica sin cookies, defensa con bloqueo temporal de IPs y alertas por Telegram o correo. Mira todo y solo actúa cuando usted lo decide.",
+ "image": "https://neracosu.com/atalaya/assets/video/portada.jpg",
+ "keywords": "vibe coding, vibe coders, monitoreo de servidores, monitor de Vercel, monitor de Supabase, Claude Code, alertas de caída, seguridad de servidores, cPanel, WordPress, pixel art",
+ "inLanguage": "es",
+ "offers": {
+  "@type": "Offer",
+  "price": "0",
+  "priceCurrency": "USD",
+  "description": "Atalaya Cloud en beta por invitación, sin cobro durante la beta"
+ },
+ "author": {
+  "@type": "Person",
+  "name": "Neri Rafael Colón Suárez",
+  "url": "https://neracosu.com"
+ },
+ "publisher": {
+  "@type": "Organization",
+  "name": "NERACOSU",
+  "url": "https://neracosu.com"
+ }
+}
+</script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "¿Por qué le daría mis tokens a una herramienta nueva?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Es la pregunta correcta, y no hay que confiar a ciegas. Tres cosas bajan el riesgo: los tokens que se piden son de solo lectura (en GitHub, uno fine-grained con permisos de lectura; en Vercel y Supabase, los que usted puede revocar en un clic), nunca vuelven al navegador, y si prefiere que nada salga de su casa, Atalaya VPS corre en su propio servidor. Además, el código está abierto para que lo revise."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "¿Puede cambiar o romper algo en mis servidores?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Atalaya lee; no reinicia, no escribe en sus sitios ni se conecta a sus bases. Los agentes y el plugin solo envían datos, y Atalaya solo puede pedirles dos cosas de una lista cerrada: «envíe todo ahora» y «dígame qué ocupa el espacio». En Atalaya VPS, lo que cambia algo pasa por una lista cerrada de acciones, siempre elegidas por usted: bloquear por un tiempo una IP (vence sola y nunca toca Cloudflare, su red ni su propio servidor), poner en cuarentena un archivo PHP sospechoso (se aparta sin borrarlo y se puede restaurar), activar el usuario de MySQL que solo ve las consultas en curso, instalar los hooks de Claude Code y publicar su subdominio en cPanel."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "¿Cómo me entero si no estoy mirando la pantalla?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Con las alertas por Telegram, por correo o por los dos. Usted elige qué le avisa, un horario de silencio en el que solo llega lo grave y un resumen cada mañana. Los mensajes no llevan IPs ni rutas: el motivo y un enlace a la ficha."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "¿Qué pasa si Atalaya se cae?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Sus sitios siguen exactamente igual: Atalaya no está en el camino de ninguna visita. Lo único que pierde es la pantalla mientras vuelve."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "¿Necesito saber programar?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Para Cloud, no: un asistente le pide cada dato y le dice dónde encontrarlo. Para conectar un hosting basta con pegar una línea; para WordPress, subir un plugin. Las guías lo llevan paso a paso."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "¿La analítica necesita cookies o un código en mi sitio?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No. Sale de los registros que el servidor ya guarda: nada que pegar en el sitio, ningún banner, y cuenta también a quien usa bloqueador de anuncios. No guarda IPs."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "¿Funciona si no uso Claude Code ni ninguna IA?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Sí. Claude Code es una fuente más, opcional. Todo lo demás funciona sin IA."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "¿Cuánto cuesta?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Durante la beta de Cloud, nada. Los precios se definirán con quienes la usen, y los planes mantendrán lo que ya tenga funcionando. El núcleo para su propio servidor es código abierto."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "¿Mis clientes van a ver sus datos en el TV de mi oficina?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No, mientras la pantalla esté en modo público: ahí no sale ningún nombre, dominio ni IP. El detalle aparece solo con su PIN y por el tiempo que elija."
+   }
+  }
+ ]
+}
+</script>
+</head>
+<body class="site arcade">
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<div class="born" id="born" role="note">
+  <span class="v">v__VERSION__</span>
+  <span class="age"><i class="pulse" aria-hidden="true"></i>Proyecto nuevo · <b data-age>—</b><span class="long"> desde la primera línea de código</span></span>
+  <a class="gh" href="https://github.com/neracosu/atalayams" target="_blank" rel="noopener">Código abierto: colabore en GitHub</a>
+</div>
+<header class="top" id="top">
+  <a class="logo" href="./"><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><use href="assets/favicon.svg#mark"/></svg><span class="lockup"><b>Atalaya</b><small>Monitor Server</small></span></a>
+  <nav aria-label="Secciones">
+    <a href="#en-accion">En acción</a><a href="#costo">El costo</a><a href="#personaje">Cómo usarlo</a><a href="#seguridad">Seguridad</a><a href="guias/">Guías</a><a href="#preguntas">Preguntas</a><a href="#jugador-2">Colabore</a>
+  </nav>
+  <a class="btn small primary" href="https://nube.neracosu.com/solicitud">Pedir acceso</a>
+</header>
+
+<main id="contenido">
+  <!-- PRESS START: la ciudad real de fondo, el dolor en una frase y un solo paso -->
+  <section class="attract" aria-labelledby="h-title">
+    <video class="attract-bg" data-src="assets/video/portada.webm" data-src-hd="assets/video/portada-hd.webm" data-poster-hd="assets/video/portada-hd.jpg" poster="assets/video/portada.jpg" muted loop playsinline aria-hidden="true"></video>
+    <div class="attract-shade" aria-hidden="true"></div>
+    <div class="wrap attract-in">
+      <p class="press"><span class="blink" aria-hidden="true">&#9656;</span> PRESS START</p>
+      <p class="pre">Programa con IA y tiene proyectos en cinco lugares distintos.</p>
+      <h1 id="h-title">Se entera de que algo falló <em>cuando un cliente le escribe.</em></h1>
+      <p class="lead">Atalaya junta sus servidores, hostings, WordPress, Vercel, Supabase, GitHub y agentes de Claude Code en <b>una sola pantalla en vivo</b>.
+        Parece un videojuego y trabaja como un centro de operaciones: usted lo ve primero, no su cliente.</p>
+      <div class="cta">
+        <a class="btn primary big" href="https://nube.neracosu.com/solicitud">Pedir acceso <small>30 segundos · beta sin costo</small></a>
+        <a class="btn ghost big" href="#en-accion">Verlo en acción &#9656;</a>
+      </div>
+    </div>
+    <div class="hud" aria-label="Datos reales del servidor donde nació Atalaya">
+      <div class="wrap hud-in">
+        <span class="hud-t">P1 · NACIÓ VIGILANDO UN VPS REAL</span>
+        <span><b>5</b> cuentas</span>
+        <span><b>41</b> proyectos</span>
+        <span><b>cientos</b> de intentos de acceso frenados cada semana</span>
+        <span class="hud-coin">CRÉDITOS: BETA GRATIS</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- para quien: una linea, no seis tarjetas -->
+  <section class="wrap forwho" aria-label="Para quién es">
+    <span class="lbl">HECHO PARA</span>
+    <p><a href="vibe-coding/">vibe coders y quien programa con IA</a> · freelancers y agencias con clientes en hostings distintos · quien administra VPS con cPanel, Plesk o sin panel · dueños de WordPress · equipos con Claude Code · la oficina con un TV libre</p>
+  </section>
+
+  <!-- NIVEL 01: la perdida con los numeros del visitante -->
+  <section class="lvl-sec" id="costo">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 01</span><span class="lvl-k">EL COSTO</span><span class="lvl-big" aria-hidden="true">01</span></header>
+      <div class="split">
+        <div>
+          <h2>¿Cuánto le cuesta enterarse tarde?</h2>
+          <p class="sub">Ponga sus números. La cuenta se hace en su navegador: nada sale de esta página.</p>
+          <form class="calc" id="calc">
+            <label><span>Proyectos publicados (sitios, apps, APIs)</span><input type="number" id="c-proj" min="1" max="500" value="8"></label>
+            <label><span>Minutos al día revisando paneles y correos de aviso</span><input type="number" id="c-min" min="0" max="600" value="25"></label>
+            <label><span>Problemas al mes que alguien descubre antes que usted</span><input type="number" id="c-inc" min="0" max="100" value="2"></label>
+            <label><span>Horas que le toma cada uno (arreglarlo y dar explicaciones)</span><input type="number" id="c-hrs" min="0" max="80" step="0.5" value="3"></label>
+            <label><span>Lo que vale una hora de su trabajo (USD)</span><input type="number" id="c-rate" min="1" max="1000" value="25"></label>
+          </form>
+        </div>
+        <div class="score" aria-live="polite">
+          <p class="score-t">PÉRDIDA ACUMULADA</p>
+          <div class="score-row"><small>Horas al mes</small><b id="r-h">–</b></div>
+          <div class="score-row main"><small>Le cuesta al mes</small><b id="r-m">–</b></div>
+          <div class="score-row"><small>En un año</small><b id="r-y">–</b></div>
+          <p class="note" id="r-note"></p>
+          <a class="btn primary" href="https://nube.neracosu.com/solicitud">Recuperar ese tiempo &#9656;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NIVEL 02: las fugas, con su cierre -->
+  <section class="lvl-sec alt" id="fugas">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 02</span><span class="lvl-k">LAS FUGAS</span><span class="lvl-big" aria-hidden="true">02</span></header>
+      <h2>Cinco fugas que nadie anota</h2>
+      <p class="sub">No son fallas raras. Le pasan a cualquiera que tiene más de tres proyectos, y casi siempre un viernes.</p>
+      <ol class="leakrows">
+        <li><span class="ln">01</span><div class="lp"><h3>El certificado o el dominio que vence un sábado</h3><p>Nadie ve el correo de renovación. El lunes el sitio dice «no es seguro» y el cliente ya llamó.</p></div>
+          <div class="lf"><b>CÓMO SE CIERRA</b><p>Atalaya revisa el certificado y el vencimiento del dominio de cada proyecto y le avisa con los días que faltan, también por Telegram o correo.</p></div></li>
+        <li><span class="ln">02</span><div class="lp"><h3>La base que se pausó y el despliegue que falló en silencio</h3><p>Supabase pausa los proyectos sin uso; un despliegue de Vercel falla y el sitio sigue con la versión vieja.</p></div>
+          <div class="lf"><b>CÓMO SE CIERRA</b><p>Una luz roja en el edificio del proyecto, en la pantalla que ya tiene abierta.</p></div></li>
+        <li><span class="ln">03</span><div class="lp"><h3>El archivo .env que subió al repositorio</h3><p>Un commit apurado, a veces hecho por una IA, y las llaves de la base quedan en GitHub.</p></div>
+          <div class="lf"><b>CÓMO SE CIERRA</b><p>Revisa sus repos buscando .env, llaves y volcados de base, un .gitignore que no los excluye y alertas de dependencias.</p></div></li>
+        <li><span class="ln">04</span><div class="lp"><h3>El WordPress que nadie actualiza</h3><p>PHP sin soporte, plugins viejos, el usuario «admin». Es la puerta que usan los ataques automáticos.</p></div>
+          <div class="lf"><b>CÓMO SE CIERRA</b><p>Un plugin que solo envía datos le muestra lo que está viejo y lo que es un riesgo. En un VPS, además, detecta los archivos PHP que alguien dejó en el sitio.</p></div></li>
+        <li><span class="ln">05</span><div class="lp"><h3>El agente de IA esperando permiso toda la tarde</h3><p>Dejó a Claude Code trabajando, se fue a una reunión y el agente lleva dos horas preguntando si puede seguir.</p></div>
+          <div class="lf"><b>CÓMO SE CIERRA</b><p>Cada sesión es un robot en la pantalla. Cuando pide permiso se enciende en ámbar y la cámara va hacia él.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- NIVEL 03: el gancho, grabaciones reales -->
+  <section class="lvl-sec" id="en-accion">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 03</span><span class="lvl-k">EN ACCIÓN</span><span class="lvl-big" aria-hidden="true">03</span></header>
+      <h2>El monitoreo de su servidor es algo serio. <em>No tiene por qué ser aburrido.</em></h2>
+      <p class="sub">Así se ve lo que pasa en su servidor mientras pasa. Grabado en Atalaya, tema Ciudad, en modo público. Toque cualquiera para verla en grande.</p>
+      <div class="clips">
+      <figure class="clip big"><video data-src="assets/video/preso.webm" data-poster="assets/video/preso.jpg" muted loop playsinline preload="none" aria-label="Se llevan un preso"></video>
+        <figcaption><span data-px="jail"></span><span><b>Se llevan un preso</b>La IP que ataca queda bloqueada: las patrullas escoltan al auto sospechoso hasta la cárcel, donde se queda hasta que vence su bloqueo.</span></figcaption></figure>
+      <figure class="clip"><video data-src="assets/video/cuarentena.webm" data-poster="assets/video/cuarentena.jpg" muted loop playsinline preload="none" aria-label="Atrapan un bicho"></video>
+        <figcaption><span data-px="php"></span><span><b>Atrapan un bicho</b>Un archivo PHP malicioso va a cuarentena: una patrulla lo encierra en una cápsula verde y se lo lleva a la cárcel. Se puede restaurar.</span></figcaption></figure>
+      <figure class="clip"><video data-src="assets/video/ataque.webm" data-poster="assets/video/ataque.jpg" muted loop playsinline preload="none" aria-label="Un ataque choca contra el escudo"></video>
+        <figcaption><span data-px="invader"></span><span><b>Un ataque choca contra el escudo</b>Cada intento de entrar por SSH es un invasor que revienta contra la barrera del peaje. Los que se repiten terminan bloqueados.</span></figcaption></figure>
+      <figure class="clip"><video data-src="assets/video/limite.webm" data-poster="assets/video/limite.jpg" muted loop playsinline preload="none" aria-label="El servidor al límite"></video>
+        <figcaption><span data-px="fire"></span><span><b>El servidor al límite</b>La torre se pone roja y los autos hacen fila en el peaje. Usted lo ve antes de que sus clientes lo sientan.</span></figcaption></figure>
+      <figure class="clip"><video data-src="assets/video/trafico.webm" data-poster="assets/video/trafico.jpg" muted loop playsinline preload="none" aria-label="Un pico de visitas"></video>
+        <figcaption><span data-px="web"></span><span><b>Un pico de visitas</b>Cada visita es un auto: cian las personas, gris los robots, ámbar y rojo los errores. Si un sitio recibe mucho más de lo normal, se encienden los reflectores.</span></figcaption></figure>
+      <figure class="clip"><video data-src="assets/video/escaneo.webm" data-poster="assets/video/escaneo.jpg" muted loop playsinline preload="none" aria-label="Un escaneo, custodiado"></video>
+        <figcaption><span data-px="siren"></span><span><b>Un escaneo, custodiado</b>Un robot prueba rutas vulnerables (.env, .git, paneles). Los sondeos vuelan hacia el sitio y dos patrullas lo custodian hasta que pasa.</span></figcaption></figure>
+      <figure class="clip"><video data-src="assets/video/correo.webm" data-poster="assets/video/correo.jpg" muted loop playsinline preload="none" aria-label="El correo, sobre por sobre"></video>
+        <figcaption><span data-px="mail"></span><span><b>El correo, sobre por sobre</b>Ámbar sale, violeta entra y rojo rebota: vuelve roto a su cuenta con el motivo. La oficina cuenta el último minuto.</span></figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- NIVEL 04: un dia, para imaginarse con Atalaya abierta -->
+  <section class="lvl-sec alt" id="un-dia">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 04</span><span class="lvl-k">UN DÍA CON ATALAYA</span><span class="lvl-big" aria-hidden="true">04</span></header>
+      <div class="split">
+        <div class="sticky">
+          <h2>Imagine el lunes con la pantalla ya encendida.</h2>
+          <p class="sub">Un ejemplo, no un cliente: una agencia de tres personas, doce proyectos y un TV en la pared.</p>
+        </div>
+        <ol class="day">
+          <li><time>07:40</time><div><b>Café y un vistazo.</b> La ciudad está en verde. El panel de salud marca dos actualizaciones de seguridad. Se aplican antes de que llegue el equipo.</div></li>
+          <li><time>09:15</time><div><b>El certificado de un cliente vence en 9 días.</b> La ficha lo dice con la fecha y el paso para renovarlo. Cinco minutos, no un sábado.</div></li>
+          <li><time>11:02</time><div><b>Un despliegue en Vercel falla.</b> El edificio de la tienda se pone rojo y quien lo subió lo corrige antes del almuerzo.</div></li>
+          <li><time>13:30</time><div><b>Una ola de intentos de acceso.</b> Los invasores chocan contra el escudo. Una IP que buscaba archivos .env termina en la cárcel y sale sola al día siguiente.</div></li>
+          <li><time>15:45</time><div><b>Claude Code pide permiso.</b> El robot de la laptop de Ana se enciende en ámbar. Ella lo ve en el TV al volver de una llamada y lo destraba.</div></li>
+          <li><time>17:20</time><div><b>Visita de un cliente.</b> La pantalla está en modo público: se ve viva, pero sin un solo nombre, dominio ni IP.</div></li>
+          <li><time>22:10</time><div><b>El blog de un cliente se cae.</b> Llega un aviso por Telegram con desde cuándo y qué error dio. La conversación con el cliente empieza con la respuesta, no con la sorpresa.</div></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- NIVEL 05: lo que ve, en una hoja de especificaciones -->
+  <section class="lvl-sec" id="que-ve">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 05</span><span class="lvl-k">EL INVENTARIO</span><span class="lvl-big" aria-hidden="true">05</span></header>
+      <h2>Monitoreo de servidores, Vercel, Supabase y WordPress, <em>en una pantalla que se entiende de lejos.</em></h2>
+      <dl class="specs">
+        <div><dt><span data-px="city"></span>El servidor en vivo</dt><dd>CPU, memoria, disco, red, procesos, PM2, systemd, Docker, visitas y errores por minuto.</dd></div>
+        <div><dt><span data-px="folder"></span>Mapa de proyectos</dt><dd>Une repo, despliegue, dominio y base aunque vivan en lugares distintos, con un puntaje de 0 a 100.</dd></div>
+        <div><dt><span data-px="chart"></span>Analítica sin cookies</dt><dd>Visitantes, rebote y de dónde llegan, sacado de los registros. Sin código en su sitio ni banner.</dd></div>
+        <div><dt><span data-px="invader"></span>Defensa y cárcel</dt><dd>SSH, cPHulk, fail2ban, CSF, escaneos y scraping. La IP que ataca va a la cárcel con un botón o sola.</dd></div>
+        <div><dt><span data-px="php"></span>Puertas traseras</dt><dd>Archivos PHP sospechosos, quién los buscó y cuarentena desde la pantalla.</dd></div>
+        <div><dt><span data-px="shield"></span>Salud del servidor</dt><dd>Respaldos, actualizaciones, correo, cron, puertos, certificados y accesos a cPanel y WHM.</dd></div>
+        <div><dt><span data-px="db"></span>Silos de datos</dt><dd>Las bases de cada cuenta, con tuberías a los sitios que las usan y pulsos cuando hay consultas.</dd></div>
+        <div><dt><span data-px="bot"></span>Claude Code a la vista</dt><dd>Cada sesión es un robot que camina hacia lo que hace, con sus subagentes.</dd></div>
+        <div><dt><span data-px="wp"></span>WordPress y hostings</dt><dd>Versión, plugins por actualizar y PHP sin soporte; cualquier hosting con un agente por cron.</dd></div>
+        <div><dt><span data-px="cloud"></span>Vercel, Supabase y GitHub</dt><dd>Despliegues y visitas, salud de cada base y revisión de cada repositorio.</dd></div>
+        <div><dt><span data-px="mail"></span>Alertas</dt><dd>Por Telegram y correo, con horario de silencio y un resumen cada mañana.</dd></div>
+        <div><dt><span data-px="phone"></span>Del TV al teléfono</dt><dd>Del monitor ultra ancho al celular, con pestañas en pantallas chicas.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- NIVEL 06: seguridad, para bajar la guardia (control, no vigilancia) -->
+  <section class="lvl-sec alt" id="seguridad">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 06</span><span class="lvl-k">SEGURIDAD</span><span class="lvl-big" aria-hidden="true">06</span></header>
+      <div class="split">
+        <div>
+          <h2>Mira todo. <em>Actúa solo cuando usted lo decide.</em></h2>
+          <p class="sub">Una pantalla en la pared la ve todo el que pasa, y un monitor no debería convertirse en el próximo problema. Por eso está hecho así:</p>
+        </div>
+        <ul class="trust">
+          <li><b>Modo público, filtrado en el servidor.</b> El mundo se mueve igual, pero sin nombres de clientes, dominios, rutas ni IPs. Con su PIN ve el detalle por el tiempo que elija; con la tecla <kbd>L</kbd> vuelve a público al instante.</li>
+          <li><b>Una lista cerrada de acciones.</b> No reinicia servicios ni toca sus sitios. Lo que cambia algo lo pulsa usted: bloquear por un tiempo una IP, apartar a cuarentena un archivo sospechoso y poco más (<a href="#preguntas">vea cuáles</a>).</li>
+          <li><b>Bloqueos que vencen solos.</b> Una tabla propia del firewall, con vencimiento. Nunca bloquea Cloudflare, redes privadas ni su propio servidor.</li>
+          <li><b>Secretos que no viajan.</b> Los tokens son de solo lectura, quedan en un archivo al que solo accede el servicio y nunca vuelven al navegador.</li>
+          <li><b>Código abierto.</b> El núcleo se puede leer entero en <a href="https://github.com/neracosu/atalayams" target="_blank" rel="noopener">GitHub</a>: la prueba de que solo mira.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- NIVEL 07: elija su personaje (las formas de usarlo) -->
+  <section class="lvl-sec select" id="personaje">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 07</span><span class="lvl-k">ELIJA SU PERSONAJE</span><span class="lvl-big" aria-hidden="true">07</span></header>
+      <h2>¿Dónde viven sus proyectos?</h2>
+      <p class="sub">Cuatro formas de jugar. Todas terminan en la misma pantalla, y se pueden combinar.</p>
+      <div class="chars">
+        <a class="char hot" href="https://nube.neracosu.com/solicitud?paquete=cloud">
+          <span class="char-ic" data-px="cloud"></span><span class="char-n">CLOUD</span><span class="char-r">Beta por invitación</span>
+          <span class="char-d">Sin servidor propio. Su pantalla en nube.neracosu.com, con Vercel, Supabase, GitHub, hostings, WordPress y laptops.</span>
+          <span class="stats"><span>FACILIDAD</span><i style="--v:5"></i><span>VISIÓN</span><i style="--v:3"></i></span>
+          <span class="char-go">&#9656; ELEGIR</span></a>
+        <a class="char" href="https://nube.neracosu.com/solicitud?paquete=vps">
+          <span class="char-ic" data-px="terminal"></span><span class="char-n">VPS</span><span class="char-r">Con acceso root</span>
+          <span class="char-d">cPanel/WHM, Plesk, DirectAdmin, CyberPanel o sin panel. Ve todo el servidor y sus datos no salen de él.</span>
+          <span class="stats"><span>FACILIDAD</span><i style="--v:3"></i><span>VISIÓN</span><i style="--v:5"></i></span>
+          <span class="char-go">&#9656; ELEGIR</span></a>
+        <a class="char" href="https://nube.neracosu.com/solicitud?paquete=hosting">
+          <span class="char-ic" data-px="house"></span><span class="char-n">HOSTING</span><span class="char-r">Sin root</span>
+          <span class="char-d">Una cuenta de hosting con apps Node. La pantalla completa dentro de su cuenta, sin puertos extra.</span>
+          <span class="stats"><span>FACILIDAD</span><i style="--v:3"></i><span>VISIÓN</span><i style="--v:3"></i></span>
+          <span class="char-go">&#9656; ELEGIR</span></a>
+        <a class="char" href="https://nube.neracosu.com/solicitud?paquete=equipo">
+          <span class="char-ic" data-px="laptop"></span><span class="char-n">EQUIPO</span><span class="char-r">Windows, macOS y Linux</span>
+          <span class="char-d">Un solo archivo para su computadora: ese equipo, sus sesiones de Claude Code y sus conectores de nube.</span>
+          <span class="stats"><span>FACILIDAD</span><i style="--v:4"></i><span>VISIÓN</span><i style="--v:2"></i></span>
+          <span class="char-go">&#9656; ELEGIR</span></a>
+      </div>
+      <p class="note">Y para lo que no tiene Node: un <b>agente por cron</b> para cualquier hosting o un <b>plugin para WordPress</b>, que solo envían. Durante la beta no se cobra; cada invitación trae un plan y se amplía si se le queda chico.
+        <a href="guias/">Ver las guías paso a paso</a>.</p>
+      <details class="more"><summary>Ver la tabla completa</summary>
+        <div class="table-wrap">
+          <table class="cmp">
+            <thead><tr><th></th><th>Cloud</th><th>VPS</th><th>Hosting</th><th>Equipo</th></tr></thead>
+            <tbody>
+              <tr><th>Necesita</th><td>Nada</td><td>Servidor Linux con root</td><td>Hosting con Node 20+</td><td>Su computadora</td></tr>
+              <tr><th>Métricas del servidor y procesos</th><td>No aplica</td><td>Sí</td><td>De su cuenta</td><td>De ese equipo</td></tr>
+              <tr><th>Ataques, correo, respaldos, puertos</th><td>No aplica</td><td>Sí</td><td>No</td><td>No</td></tr>
+              <tr><th>Cárcel, puertas traseras y cuarentena</th><td>No aplica</td><td>Sí</td><td>No</td><td>No</td></tr>
+              <tr><th>Analítica sin cookies</th><td>De hostings y WordPress conectados</td><td>Sí, y de los conectados</td><td>De los conectados</td><td>No</td></tr>
+              <tr><th>Alertas por Telegram y correo</th><td>Sí</td><td>Sí</td><td>Sí</td><td>Sí</td></tr>
+              <tr><th>Vercel, Supabase y GitHub</th><td>Sí</td><td>Sí</td><td>Sí</td><td>Sí</td></tr>
+              <tr><th>Claude Code</th><td>En laptops</td><td>En el servidor y laptops</td><td>En laptops</td><td>En ese equipo</td></tr>
+              <tr><th>Dónde quedan los datos</th><td>En su espacio de Atalaya Cloud</td><td>En su servidor</td><td>En su cuenta</td><td>En su computadora</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- NIVEL 08: diez mundos -->
+  <section class="lvl-sec alt" id="temas">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 08</span><span class="lvl-k">DIEZ MUNDOS</span><span class="lvl-big" aria-hidden="true">08</span></header>
+      <h2>Elija el mundo que quiere mirar.</h2>
+      <p class="sub">Cada tema cambia el mundo y los paneles, no solo los colores. Se cambian en vivo con la tecla <kbd>T</kbd>.</p>
+      <div class="themes" role="tablist" id="themeTabs"></div>
+      <figure class="shot theme-shot"><img id="themeImg" src="assets/img/theme-ciudad.webp" alt="" width="1600" height="900" loading="lazy"><figcaption id="themeCap"></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- NIVEL 09: una pantalla contra nueve rutinas -->
+  <section class="lvl-sec" id="comparar">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 09</span><span class="lvl-k">LA CUENTA</span><span class="lvl-big" aria-hidden="true">09</span></header>
+      <div class="tally big">
+        <div class="t-old"><b>9</b><span>herramientas, pestañas y rutinas que nadie mira juntas: métricas, disponibilidad, certificados, dominios, paneles de nube, escáner de secretos, wp-admin, analítica y reglas de firewall.</span></div>
+        <div class="t-arrow" aria-hidden="true"></div>
+        <div class="t-new"><b>1</b><span>pantalla abierta en el TV, con avisos escritos para personas.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- JEFE FINAL: las dudas, empezando por la mas dura -->
+  <section class="lvl-sec alt" id="preguntas">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">JEFE FINAL</span><span class="lvl-k">SUS DUDAS</span><span class="lvl-big" aria-hidden="true">10</span></header>
+      <h2>Preguntas frecuentes</h2>
+      <div class="faq">
+        <details open><summary>¿Por qué le daría mis tokens a una herramienta nueva?</summary>
+          <p>Es la pregunta correcta, y no hay que confiar a ciegas. Tres cosas bajan el riesgo: los tokens que se piden son <b>de solo lectura</b> (en GitHub, uno fine-grained con permisos de lectura; en Vercel y Supabase, los que usted puede revocar en un clic), nunca vuelven al navegador, y si prefiere que nada salga de su casa, <b>Atalaya VPS</b> corre en su propio servidor. Además, el código está abierto para que lo revise.</p></details>
+        <details><summary>¿Puede cambiar o romper algo en mis servidores?</summary>
+          <p>Atalaya lee; no reinicia, no escribe en sus sitios ni se conecta a sus bases. Los agentes y el plugin solo envían datos, y Atalaya solo puede pedirles dos cosas de una lista cerrada: «envíe todo ahora» y «dígame qué ocupa el espacio».
+            En Atalaya VPS, lo que cambia algo pasa por una lista cerrada de acciones, siempre elegidas por usted: <b>bloquear por un tiempo una IP</b> (vence sola y nunca toca Cloudflare, su red ni su propio servidor), <b>poner en cuarentena un archivo PHP sospechoso</b> (se aparta sin borrarlo y se puede restaurar), activar el usuario de MySQL que solo ve las consultas en curso, instalar los hooks de Claude Code y publicar su subdominio en cPanel.</p></details>
+        <details><summary>¿Cómo me entero si no estoy mirando la pantalla?</summary>
+          <p>Con las alertas por Telegram, por correo o por los dos. Usted elige qué le avisa, un horario de silencio en el que solo llega lo grave y un resumen cada mañana. Los mensajes no llevan IPs ni rutas: el motivo y un enlace a la ficha.</p></details>
+        <details><summary>¿Qué pasa si Atalaya se cae?</summary>
+          <p>Sus sitios siguen exactamente igual: Atalaya no está en el camino de ninguna visita. Lo único que pierde es la pantalla mientras vuelve.</p></details>
+        <details><summary>¿Necesito saber programar?</summary>
+          <p>Para Cloud, no: un asistente le pide cada dato y le dice dónde encontrarlo. Para conectar un hosting basta con pegar una línea; para WordPress, subir un plugin. Las <a href="guias/">guías</a> lo llevan paso a paso.</p></details>
+        <details><summary>¿La analítica necesita cookies o un código en mi sitio?</summary>
+          <p>No. Sale de los registros que el servidor ya guarda: nada que pegar en el sitio, ningún banner, y cuenta también a quien usa bloqueador de anuncios. No guarda IPs.</p></details>
+        <details><summary>¿Funciona si no uso Claude Code ni ninguna IA?</summary>
+          <p>Sí. Claude Code es una fuente más, opcional. Todo lo demás funciona sin IA.</p></details>
+        <details><summary>¿Cuánto cuesta?</summary>
+          <p>Durante la beta de Cloud, nada. Los precios se definirán con quienes la usen, y los planes mantendrán lo que ya tenga funcionando. El núcleo para su propio servidor es código abierto.</p></details>
+        <details><summary>¿Mis clientes van a ver sus datos en el TV de mi oficina?</summary>
+          <p>No, mientras la pantalla esté en modo público: ahí no sale ningún nombre, dominio ni IP. El detalle aparece solo con su PIN y por el tiempo que elija.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTINUE?: el cierre honesto y un solo paso -->
+  <section class="continue" id="empezar">
+    <div class="wrap">
+      <p class="press"><span class="blink" aria-hidden="true">&#9656;</span> ¿CONTINUAR?</p>
+      <h2>Pruébelo con sus proyectos.</h2>
+      <p class="lead">Atalaya nació para vigilar un VPS real con cinco cuentas y cuarenta y un proyectos, y hoy lo sigue haciendo todos los días. Lo hace <a href="/">Neri Colón</a>, con diecisiete años de oficio construyendo sistemas.
+        Sin presentación de ventas: si no le sirve, se lo digo de una vez.</p>
+      <div class="cta center">
+        <a class="btn primary big" href="https://nube.neracosu.com/solicitud">Pedir acceso <small>30 segundos · beta sin costo</small></a>
+      </div>
+      <div class="alts">
+        <a href="https://nube.neracosu.com/registro">Tengo una invitación</a>
+        <a href="https://nube.neracosu.com/solicitud?paquete=vps">Lo quiero en mi servidor</a>
+        <a href="https://nube.neracosu.com/solicitud?paquete=equipo">Lo quiero en mi computadora</a>
+        <a href="guias/">Ver las guías antes de decidir</a>
+      </div>
+      <form class="enter" id="go">
+        <label for="slug">¿Ya tiene su pantalla?</label>
+        <div class="row"><span class="prefix">nube.neracosu.com/</span><input id="slug" type="text" autocapitalize="none" spellcheck="false" placeholder="su-pantalla" required><button class="btn">Entrar</button></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- SE BUSCA JUGADOR 2: colaborar -->
+  <section class="p2" id="jugador-2" aria-labelledby="p2-t">
+    <div class="wrap">
+      <p class="press p2-press"><span class="blink" aria-hidden="true">&#9656;</span> JUGADOR 2 · PRESIONE START</p>
+      <h2 id="p2-t">Se busca Jugador 2.</h2>
+      <p class="lead">Atalaya tiene <b data-age-short>pocos días</b> de vida y crece a la vista de todos, una versión tras otra. Si leyó hasta aquí, ya piensa como alguien de este equipo: el núcleo es código abierto (AGPL-3.0) y hay lugar en el modo cooperativo.</p>
+      <div class="p2-clock" aria-label="Edad del proyecto"><span>TIEMPO DE JUEGO</span><b data-age>—</b><span>VERSIÓN <b>v__VERSION__</b></span></div>
+      <div class="coop">
+        <a href="https://github.com/neracosu/atalayams" target="_blank" rel="noopener"><span data-px="terminal"></span><b>Código</b><small>Reporte un error, proponga una mejora o envíe su primer cambio.</small></a>
+        <a href="https://github.com/neracosu/atalaya-temas" target="_blank" rel="noopener"><span data-px="city"></span><b>Temas</b><small>Dibuje su propio mundo con el kit y su simulador. No necesita un servidor.</small></a>
+        <a href="https://nube.neracosu.com/solicitud"><span data-px="rocket"></span><b>Pruébelo y cuéntenos</b><small>Úselo con sus proyectos y díganos qué le falta. Eso decide el próximo nivel.</small></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog class="lightbox" id="lightbox" aria-label="Animación ampliada">
+  <button class="lb-close" type="button" aria-label="Cerrar">&times;</button>
+  <button class="lb-nav lb-prev" type="button" aria-label="Anterior">&#8249;</button>
+  <figure><video muted loop playsinline></video><figcaption></figcaption></figure>
+  <button class="lb-nav lb-next" type="button" aria-label="Siguiente">&#8250;</button>
+</dialog>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="logo" href="./"><svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><use href="assets/favicon.svg#mark"/></svg><span class="lockup"><b>Atalaya</b><small>Monitor Server</small></span></a>
+    <nav><a href="#en-accion">En acción</a><a href="vibe-coding/">Vibe coding</a><a href="#personaje">Cómo usarlo</a><a href="guias/">Guías</a><a href="#seguridad">Seguridad</a><a href="#preguntas">Preguntas</a><a href="#jugador-2">Colabore</a><a href="https://nube.neracosu.com/registro">Crear mi pantalla</a></nav>
+    <p>Atalaya Monitor Server es un producto de <a href="/">NERACOSU</a>, hecho por Neri Colón en La Guaira, Venezuela. Pixel art dibujado en código, sin emojis.</p>
+  </div>
+</footer>
+<script type="module" src="assets/js/site.js"></script>
+</body>
+</html>

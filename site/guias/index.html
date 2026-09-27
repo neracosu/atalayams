@@ -1,0 +1,324 @@
+<!doctype html>
+<!-- Generado desde /opt/atalaya/site con «node scripts/export-site.js» (repo de Atalaya). No edite este archivo: el próximo export lo reemplaza. Los cambios van en la fuente. -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guías de Atalaya Monitor Server · Paso a paso</title>
+<meta name="description" content="Guías paso a paso de Atalaya Monitor Server: crear su pantalla en la nube, conectar Vercel, Supabase, GitHub, hostings, WordPress y Claude Code, instalarlo en su VPS, recibir alertas por Telegram o correo, usar la defensa y la analítica sin cookies.">
+<meta name="theme-color" content="#060a14">
+<link rel="canonical" href="https://neracosu.com/atalaya/guias/">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body class="site">
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<div class="born" id="born" role="note">
+  <span class="v">v__VERSION__</span>
+  <span class="age"><i class="pulse" aria-hidden="true"></i>Proyecto nuevo · <b data-age>—</b><span class="long"> desde la primera línea de código</span></span>
+  <a class="gh" href="https://github.com/neracosu/atalayams" target="_blank" rel="noopener">Código abierto: colabore en GitHub</a>
+</div>
+<header class="top">
+  <a class="logo" href="../"><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><use href="../assets/favicon.svg#mark"/></svg><span class="lockup"><b>Atalaya</b><small>Monitor Server</small></span></a>
+  <nav aria-label="Secciones">
+    <a href="../#que-es">Qué es</a><a href="../#formas">Cómo usarlo</a><a href="../#temas">Temas</a><a href="./" aria-current="page">Guías</a><a href="../#preguntas">Preguntas</a>
+  </nav>
+  <a class="btn small primary" href="../#empezar">Empezar</a>
+</header>
+
+<div class="wrap guides">
+  <nav class="toc" aria-label="Guías">
+    <h4>Primeros pasos</h4>
+    <a href="#cloud"><span data-px="cloud"></span> Su pantalla en Cloud</a>
+    <a href="#pantalla"><span data-px="city"></span> Usar la pantalla</a>
+    <h4>Conectar</h4>
+    <a href="#vercel"><span data-px="triangle"></span> Vercel</a>
+    <a href="#supabase"><span data-px="bolt"></span> Supabase</a>
+    <a href="#github"><span data-px="branch"></span> GitHub</a>
+    <a href="#agente"><span data-px="house"></span> Un hosting compartido</a>
+    <a href="#wordpress"><span data-px="wp"></span> Un sitio WordPress</a>
+    <a href="#laptop"><span data-px="laptop"></span> Claude Code en una laptop</a>
+    <h4>Vigilar</h4>
+    <a href="#alertas"><span data-px="mail"></span> Alertas por Telegram y correo</a>
+    <a href="#analitica"><span data-px="chart"></span> Analítica sin cookies</a>
+    <a href="#defensa"><span data-px="jail"></span> Defensa y cárcel</a>
+    <a href="#cuarentena"><span data-px="php"></span> Archivos sospechosos</a>
+    <h4>En su servidor</h4>
+    <a href="#vps"><span data-px="terminal"></span> Instalar Atalaya VPS</a>
+    <a href="#hosting-node"><span data-px="house"></span> Instalar Atalaya Hosting</a>
+    <a href="#equipo"><span data-px="laptop"></span> Atalaya en su computadora</a>
+    <a href="#claude-servidor"><span data-px="bot"></span> Claude Code en el servidor</a>
+    <a href="#usuarios"><span data-px="key"></span> Usuarios y PIN</a>
+    <h4>Más</h4>
+    <a href="#temas-propios"><span data-px="star"></span> Crear un tema</a>
+    <a href="#leyenda"><span data-px="scroll"></span> Qué es cada cosa</a>
+  </nav>
+
+  <main id="contenido">
+    <p class="kicker"><span data-px="pin"></span> Guías paso a paso</p>
+
+    <section class="guide" id="cloud">
+      <h2><span data-px="cloud"></span> Su pantalla en Atalaya Cloud</h2>
+      <p class="meta">5 minutos · No necesita servidor</p>
+      <p>Atalaya Cloud le da una pantalla lista en <code>nube.neracosu.com/su-nombre</code>. No ve una máquina (no tiene una): ve lo que usted le conecte.</p>
+      <ol class="steps">
+        <li><b>Consiga su código de invitación.</b><p>La beta es por invitación. Si no tiene código, <a href="https://nube.neracosu.com/solicitud?paquete=cloud">escriba</a> y se lo enviamos.</p></li>
+        <li><b>Abra <a href="https://nube.neracosu.com/registro">Crear mi pantalla</a></b> y pegue el código.</li>
+        <li><b>Elija la dirección.</b><p>Minúsculas, números y guiones, por ejemplo <code>mi-estudio</code>. No se puede cambiar después.</p></li>
+        <li><b>Cree su usuario y un PIN de 6 dígitos.</b><p>Con ellos entrará desde el TV, la computadora o el teléfono. Usted es el <b>dueño</b>: el único que puede ver el modo privado y conectar cosas.</p></li>
+        <li><b>Siga el asistente.</b><p>Se abre solo. En <b>Extras</b> conecta Vercel, Supabase, GitHub y sus laptops con Claude Code. Cada campo dice dónde encontrar el dato.</p></li>
+        <li><b>Conecte sus hostings y sitios WordPress</b><p>desde el menú de la pantalla › <b>Conectar un hosting compartido</b>. Las guías de <a href="#agente">hosting</a> y <a href="#wordpress">WordPress</a> lo explican.</p></li>
+      </ol>
+      <div class="tip"><span data-px="info"></span><span>Lo que conecte aparece en uno o dos minutos como un distrito nuevo, con sus edificios. Puede volver al asistente cuando quiera: menú › <b>Asistente de configuración</b>.</span></div>
+    </section>
+
+    <section class="guide" id="pantalla">
+      <h2><span data-px="city"></span> Usar la pantalla</h2>
+      <p class="meta">Para el TV, el monitor o el teléfono</p>
+      <ol class="steps">
+        <li><b>Déjela en modo público cuando otros la vean.</b><p>El mundo se mueve igual, pero no muestra nombres, dominios, rutas ni IPs. Es el modo con el que arranca.</p></li>
+        <li><b>Pase a modo privado con su PIN</b><p>(tecla <kbd>P</kbd> o el botón PÚBLICO arriba). Elija por cuánto tiempo. Con <kbd>L</kbd> vuelve a público al instante.</p></li>
+        <li><b>Haga clic en cualquier cosa</b><p>para abrir su ficha: un edificio, un distrito, un robot, la torre de control o un indicador. Pasar el mouse explica qué es.</p></li>
+        <li><b>Déjela sola en el TV con el modo director</b><p>(tecla <kbd>D</kbd>): la cámara recorre los distritos y va hacia el agente que pide permiso.</p></li>
+        <li><b>Cambie el tema</b><p>con <kbd>T</kbd> o menú › <b>Tema</b>: para esta pantalla, o para todas si es el dueño.</p></li>
+      </ol>
+      <div class="keys">
+        <div><kbd>T</kbd> cambiar de tema</div><div><kbd>D</kbd> modo director</div><div><kbd>P</kbd> modo privado</div><div><kbd>L</kbd> volver a público</div>
+        <div><kbd>F</kbd> pantalla completa</div><div><kbd>?</kbd> leyenda</div><div><kbd>Esc</kbd> cerrar</div><div>Doble clic: vista general</div>
+      </div>
+      <div class="tip"><span data-px="phone"></span><span>En el teléfono, el mundo ocupa el centro (se mueve con el dedo y se acerca pellizcando) y abajo hay pestañas: Mundo, Agentes, Métricas y Novedades.</span></div>
+    </section>
+
+    <section class="guide" id="vercel">
+      <h2><span data-px="triangle"></span> Conectar Vercel</h2>
+      <p class="meta">3 minutos · Proyectos, despliegues y visitas</p>
+      <ol class="steps">
+        <li><b>Cree un token</b><p>en <a href="https://vercel.com/account/tokens" rel="noopener">vercel.com/account/tokens</a>. Póngale un nombre que reconozca, como «Atalaya», y el alcance de su cuenta o de su equipo.</p></li>
+        <li><b>Si sus proyectos están en un equipo, copie su ID</b><p>(empieza con <code>team_</code>), en la configuración del equipo.</p></li>
+        <li><b>En Atalaya:</b><p>menú › <b>Asistente de configuración</b> › <b>Extras</b> › <b>Vercel</b>. Ponga un nombre corto (por ejemplo <code>personal</code>), pegue el token y, si corresponde, el ID del equipo. Guarde.</p></li>
+        <li><b>Opcional, para ver las visitas en vivo (plan Pro de Vercel):</b><p>al guardar, Atalaya le muestra la dirección de su Drain. En Vercel › Team Settings › <b>Drains</b> › Add Drain › Logs › Custom Endpoint, pegue esa dirección y el mismo secreto que escribió en Atalaya.</p></li>
+      </ol>
+      <div class="tip"><span data-px="lock"></span><span>El token queda en su espacio y nunca vuelve al navegador. Si deja de usar Atalaya, bórrelo en Vercel y deja de valer al instante.</span></div>
+    </section>
+
+    <section class="guide" id="supabase">
+      <h2><span data-px="bolt"></span> Conectar Supabase</h2>
+      <p class="meta">3 minutos por proyecto · Salud de cada base</p>
+      <ol class="steps">
+        <li><b>Copie el «Project ref»</b><p>de su proyecto: Settings › General. Son unas 20 letras y números.</p></li>
+        <li><b>Cree una Secret key</b><p>en Settings › API Keys (empieza con <code>sb_secret_</code>). Atalaya la usa solo para leer las métricas del proyecto.</p></li>
+        <li><b>Opcional: un token de gestión</b><p>en <a href="https://supabase.com/dashboard/account/tokens" rel="noopener">supabase.com/dashboard/account/tokens</a>, para saber si el proyecto quedó en pausa.</p></li>
+        <li><b>En Atalaya:</b><p>menú › Asistente de configuración › Extras › <b>Supabase</b>. Ponga un nombre corto, el ref, un nombre para mostrar y la llave. Guarde. Las métricas aparecen en un minuto.</p></li>
+      </ol>
+    </section>
+
+    <section class="guide" id="github">
+      <h2><span data-px="branch"></span> Conectar GitHub</h2>
+      <p class="meta">3 minutos · Une cada proyecto con su repo y lo revisa</p>
+      <ol class="steps">
+        <li><b>Cree un token fine-grained</b><p>en github.com › Settings › Developer settings › <b>Personal access tokens</b> › Fine-grained tokens.</p></li>
+        <li><b>Dele acceso a sus repos con permisos solo de lectura:</b><p><b>Metadata</b> y <b>Contents</b>, y si quiere las alertas de seguridad, <b>Dependabot alerts</b>. Nada de escritura.</p></li>
+        <li><b>En Atalaya:</b><p>menú › Asistente de configuración › Extras › <b>GitHub</b>. Nombre corto, pegue el token (empieza con <code>github_pat_</code>) y guarde.</p></li>
+        <li><b>Abra el panel «Proyectos»</b><p>y pulse <b>Revisar</b> en un proyecto (o en todos). Atalaya busca archivos .env y llaves subidos, revisa el .gitignore, el CI y las alertas de dependencias.</p></li>
+      </ol>
+    </section>
+
+    <section class="guide" id="agente">
+      <h2><span data-px="house"></span> Conectar un hosting compartido</h2>
+      <p class="meta">5 minutos · cPanel, Hostinger, GoDaddy, Namecheap y otros</p>
+      <p>Un agente pequeño corre por cron cada minuto, lee solo esa cuenta y envía los datos a su pantalla. No se instala nada en <code>public_html</code>, no usa base de datos y no abre puertos.</p>
+      <ol class="steps">
+        <li><b>En Atalaya:</b><p>menú › <b>Conectar un hosting compartido</b>. Escriba un nombre corto (por ejemplo <code>cliente-godaddy</code>) y pulse <b>Generar código</b>. El código vale 24 horas y sirve una sola vez.</p></li>
+        <li><b>Si el hosting tiene Terminal</b><p>(cPanel › Avanzado › Terminal, o SSH), pegue el comando que le mostró Atalaya y pulse Enter. Se ve así:</p>
+          <pre class="cmd"><code>curl -fsSL https://nube.neracosu.com/su-pantalla/install/agent.sh | sh -s -- https://nube.neracosu.com/su-pantalla CODIGO</code></pre></li>
+        <li><b>Si no tiene Terminal:</b><p>en cPanel › <b>Trabajos de cron</b> (o hPanel › Avanzado › Cron Jobs) cree una tarea <b>cada minuto</b> (<code>* * * * *</code>) con el mismo comando. En su primera ejecución el agente se instala y esa tarea se borra sola.</p></li>
+        <li><b>Espere uno o dos minutos.</b><p>Aparece un distrito nuevo con sus dominios como edificios, visitas en vivo con país, errores de PHP, cuota de disco, bases, certificados, correo y tareas cron (con los secretos tapados).</p></li>
+      </ol>
+      <div class="tip"><span data-px="trash"></span><span>Para quitarlo del hosting: <code>curl -fsSL https://nube.neracosu.com/su-pantalla/install/agent.sh | sh -s -- --uninstall</code>. En la pantalla, el mismo menú tiene <b>Quitar</b>.</span></div>
+    </section>
+
+    <section class="guide" id="wordpress">
+      <h2><span data-px="wp"></span> Conectar un sitio WordPress</h2>
+      <p class="meta">2 minutos · Sin terminal ni cron · WordPress 5.6+ y PHP 7.4+</p>
+      <ol class="steps">
+        <li><b>En Atalaya:</b><p>menú › Conectar un hosting compartido › <b>Conectar un sitio WordPress</b>. Escriba un nombre corto y pulse <b>Descargar plugin</b>: baja un .zip ya configurado para su pantalla.</p></li>
+        <li><b>En WordPress:</b><p>Plugins › Añadir nuevo › <b>Subir plugin</b>, elija el .zip y pulse <b>Activar</b>. Se conecta solo.</p></li>
+        <li><b>Listo.</b><p>Verá la versión y las actualizaciones pendientes del núcleo, plugins y temas, PHP y su fin de soporte, y avisos concretos: depuración visible, <code>debug.log</code> descargable, usuario «admin», registro abierto con un rol peligroso, editor de archivos activo, WP-Cron atrasado. También la <a href="#analitica">analítica sin cookies</a> del sitio.</p></li>
+      </ol>
+      <div class="tip"><span data-px="info"></span><span><b>¿El plugin ya está instalado?</b> En el mismo lugar (menú › Conectar un hosting compartido › Conectar un sitio WordPress) pulse <b>Ya lo tengo instalado: ver código</b>. Copie la dirección y el código, y péguelos en wp-admin › Ajustes › <b>Atalaya</b>.</span></div>
+      <div class="tip"><span data-px="shield"></span><span>El plugin no registra rutas públicas: solo envía. El código que trae el .zip vence en 24 horas; si lo instala después, genere uno nuevo.</span></div>
+    </section>
+
+    <section class="guide" id="laptop">
+      <h2><span data-px="laptop"></span> Claude Code en una laptop</h2>
+      <p class="meta">2 minutos · macOS, Linux o Windows con WSL</p>
+      <ol class="steps">
+        <li><b>En Atalaya:</b><p>menú › Asistente de configuración › Extras › <b>Claude Code en una laptop</b>. Escriba un nombre para el equipo (por ejemplo <code>laptop-ana</code>) y pulse <b>Generar comando</b>.</p></li>
+        <li><b>En esa computadora,</b><p>abra una terminal y pegue el comando. Instala unos hooks de Claude Code que avisan a su pantalla qué está haciendo cada sesión.</p></li>
+        <li><b>Abra Claude Code como siempre.</b><p>Cada sesión aparece como un robot; cuando pide permiso o le hace una pregunta, se le enciende un halo ámbar.</p></li>
+      </ol>
+      <div class="tip"><span data-px="info"></span><span>Los hooks solo agregan avisos: nunca bloquean a Claude ni cambian lo que hace. El token del comando se muestra una sola vez.</span></div>
+    </section>
+
+    <section class="guide" id="alertas">
+      <h2><span data-px="mail"></span> Alertas por Telegram y correo</h2>
+      <p class="meta">5 minutos · Lo grave le llega aunque nadie mire la pantalla</p>
+      <ol class="steps">
+        <li><b>En Atalaya:</b><p>menú › <b>Alertas por Telegram y correo</b>. Puede usar uno de los dos o ambos.</p></li>
+        <li><b>Para Telegram:</b><p>cree un bot con <b>@BotFather</b>, pegue su token en Atalaya y escríbale al bot <code>/start</code> con el código que le muestra la pantalla. Así Atalaya reconoce su chat y nadie más puede engancharse. Puede sumar más chats o un grupo.</p></li>
+        <li><b>Para correo:</b><p>elija su proveedor: hay ajustes listos para <b>Gmail</b>, <b>Outlook / Microsoft 365</b>, Yahoo, Zoho y <b>el correo de su hosting</b>, o ponga cualquier servidor SMTP. Para Gmail hace falta una contraseña de aplicación; la pantalla le da el enlace para crearla. Se guarda solo si el correo de prueba sale bien.</p></li>
+        <li><b>Elija qué le avisa:</b><p>seguridad (puertas traseras, archivos expuestos, fuerza bruta, entradas a los paneles desde IPs nuevas), cárcel, caídas, saturación y, si quiere, tráfico. Los certificados por vencer avisan solos, una vez por nivel. Ponga un <b>horario de silencio</b>, en el que solo llega lo grave, y la hora del <b>resumen de cada mañana</b>.</p></li>
+      </ol>
+      <div class="tip"><span data-px="lock"></span><span>Los mensajes no llevan IPs ni rutas: el sitio, el motivo y un enlace directo a su ficha. El mismo aviso no se repite en 30 minutos.</span></div>
+    </section>
+
+    <section class="guide" id="analitica">
+      <h2><span data-px="chart"></span> Analítica sin cookies</h2>
+      <p class="meta">Sin instalar nada · Atalaya VPS, hostings conectados y plugin de WordPress</p>
+      <p>Atalaya saca la analítica de los registros que el servidor ya guarda. No hay que pegar código en el sitio ni mostrar un banner de cookies, y cuenta también a quien usa bloqueador de anuncios.</p>
+      <ol class="steps">
+        <li><b>Abra la ficha de un sitio o app</b><p>con un clic en su edificio. La tarjeta <b>Analítica · 7 días</b> muestra los visitantes, la comparación con la semana anterior y una barra por día.</p></li>
+        <li><b>Pulse Ver analítica completa.</b><p>Elija hoy, 7 días, 30 días, 90 días o 12 meses: visitantes, páginas vistas, páginas por visita y rebote, comparados con el período anterior.</p></li>
+        <li><b>Mire de dónde llegan:</b><p>buscadores, redes sociales, asistentes de IA (ChatGPT, Perplexity...), otros sitios, directo y campañas utm. Más abajo, las páginas más vistas y de entrada, países, dispositivos, horas y las páginas que no existen que ven sus visitantes.</p></li>
+      </ol>
+      <div class="tip"><span data-px="lock"></span><span>No guarda IPs: cada visitante del día es una huella corta que se descarta al cambiar el día. En modo público no se ven las páginas, los sitios que enlazan ni las campañas.</span></div>
+    </section>
+
+    <section class="guide" id="defensa">
+      <h2><span data-px="jail"></span> Defensa y cárcel</h2>
+      <p class="meta">Atalaya VPS · Dueño en modo privado</p>
+      <p>Cuando un sitio recibe un escaneo, fuerza bruta o scraping, queda <b>en vigilancia</b> y las patrullas vuelan a custodiarlo. Desde ahí puede detener a quien ataca.</p>
+      <ol class="steps">
+        <li><b>Bloquear con un botón:</b><p>abra la ficha del sitio en vigilancia y pulse <b>Bloquear esta IP</b>. El bloqueo es temporal (24 horas de fábrica) y las patrullas escoltan al auto hasta la cárcel.</p></li>
+        <li><b>O encienda la defensa automática</b><p>en el panel de Defensa web (viene apagada). Bloquea sola a quien encontró una ruta expuesta, hace fuerza bruta, scraping o sondea varios sitios, y con el servidor al límite frena a los atacantes antes de la caída. Ahí mismo ajusta la duración y la lista blanca.</p></li>
+        <li><b>Abra la cárcel</b><p>con un clic en su edificio o en «En la cárcel» del panel de Defensa: cada preso con su motivo, el sitio que atacó y cuánto le queda, y el botón <b>Liberar</b>.</p></li>
+        <li><b>Revise el expediente</b><p>con un clic en cualquier IP: país y navegador, historial de bloqueos, las puertas traseras que buscó, los sitios donde la vio la defensa, sus entradas a los paneles y sus últimas peticiones.</p></li>
+      </ol>
+      <div class="tip"><span data-px="shield"></span><span>Los bloqueos van a una tabla propia del firewall, aparte de fail2ban y cPHulk, y vencen solos. Nunca se bloquea Cloudflare, redes privadas, el propio servidor, la lista blanca ni a los usuarios de Atalaya.</span></div>
+    </section>
+
+    <section class="guide" id="cuarentena">
+      <h2><span data-px="php"></span> Archivos PHP sospechosos</h2>
+      <p class="meta">Atalaya VPS · Posibles puertas traseras</p>
+      <p>Cada 30 minutos Atalaya revisa los archivos PHP nuevos de sus sitios. Si uno está en una carpeta de subidas u oculta, trae código de webshell o tiene un nombre al azar, aparecen <b>bichos rojos</b> sobre el edificio del sitio.</p>
+      <ol class="steps">
+        <li><b>Abra la ficha del sitio.</b><p>Verá la ruta, el motivo, el tamaño y la fecha, y <b>quién lo buscó</b> en los registros (pedir la ruta exacta delata a quien lo puso). Junto a cada IP, <b>Llevar a la cárcel</b>.</p></li>
+        <li><b>Pulse Poner en cuarentena</b><p>para sacar el archivo del sitio a una carpeta protegida, sin borrarlo. Una patrulla encierra los bichos en una cápsula verde y se la lleva a la cárcel. Si es suyo, pulse <b>Marcar como revisado</b>.</p></li>
+        <li><b>Revise su historia</b><p>en la ficha de la cárcel › Archivos en cuarentena: dónde estaba, por qué se marcó y quién lo buscó. Desde ahí puede <b>Restaurar</b> (vuelve a su lugar con su dueño y permisos) o borrarlo para siempre.</p></li>
+      </ol>
+    </section>
+
+    <section class="guide" id="vps">
+      <h2><span data-px="terminal"></span> Instalar Atalaya VPS</h2>
+      <p class="meta">10 minutos · Linux con root · cPanel/WHM, Plesk, DirectAdmin, CyberPanel o sin panel</p>
+      <p>Atalaya VPS ve todo el servidor: cuentas, procesos, servicios, contenedores, bases, logs, ataques, correo, respaldos y agentes de Claude Code. Se instala como servicio de solo lectura y sus datos no salen de su servidor.</p>
+      <ol class="steps">
+        <li><b>Pida acceso.</b><p>Le enviamos una invitación personal para su servidor.</p></li>
+        <li><b>Pegue un comando como root.</b><p>Instala lo que falte, verifica el paquete y crea el servicio.</p></li>
+        <li><b>Siga el asistente web.</b><p>Usuario, PIN, nombre y dirección de la pantalla. En cPanel crea el subdominio con su certificado por usted.</p></li>
+      </ol>
+      <div class="tip"><span data-px="key"></span><span><b>La guía completa llega con su invitación</b>, en una página con su comando ya armado para copiar y pegar. <a href="https://nube.neracosu.com/solicitud?paquete=vps">Pedir acceso</a></span></div>
+    </section>
+
+    <section class="guide" id="hosting-node">
+      <h2><span data-px="house"></span> Instalar Atalaya Hosting</h2>
+      <p class="meta">10 minutos · Hosting compartido con Node 20+, sin root</p>
+      <p>Para una cuenta de hosting compartido que permite apps Node (en cPanel, <b>Setup Node.js App</b>). La pantalla completa vive dentro de su cuenta, sin puertos extra.</p>
+      <ol class="steps">
+        <li><b>Pida acceso.</b><p>O genere la invitación desde otra Atalaya: menú › Conectar un hosting compartido.</p></li>
+        <li><b>Pegue un comando en la Terminal de su hosting.</b><p>Deja la app lista en su subdominio.</p></li>
+        <li><b>Abra su subdominio y siga el asistente.</b><p>Un clic conecta esa misma cuenta; después puede sumar otros hostings.</p></li>
+      </ol>
+      <div class="tip"><span data-px="key"></span><span><b>La guía completa llega con su invitación</b>, en una página con su comando ya armado para copiar y pegar. <a href="https://nube.neracosu.com/solicitud?paquete=hosting">Pedir acceso</a></span></div>
+    </section>
+
+    <section class="guide" id="equipo">
+      <h2><span data-px="laptop"></span> Atalaya en su computadora</h2>
+      <p class="meta">3 minutos · Windows, macOS o Linux · Edición Equipo</p>
+      <p>Un solo archivo que trae todo lo necesario. Muestra esa computadora, sus sesiones de Claude Code y los conectores de nube que agregue. Solo se abre desde ese equipo: nadie más en la red puede verla.</p>
+      <ol class="steps">
+        <li><b>Consiga el archivo para su sistema.</b><p>Con un Atalaya VPS lo descarga desde su pantalla (menú › Atalaya para su computadora); si no, lo recibe con su invitación.</p></li>
+        <li><b>Descomprímalo y ábralo.</b><p>No se instala nada más.</p></li>
+        <li><b>Siga el asistente</b><p>que se abre en el navegador: usuario, PIN y, si quiere, Vercel, Supabase o GitHub.</p></li>
+      </ol>
+      <div class="tip"><span data-px="bot"></span><span><b>En Windows ve todas sus sesiones de Claude Code</b>: las de la terminal de VS Code, Cursor o JetBrains, las de la extensión del IDE y las de <b>WSL</b>. Cada distribución encendida (Ubuntu, Debian...) aparece como su propio distrito. Solo lee las que ya están corriendo: nunca enciende una apagada.</span></div>
+      <div class="tip"><span data-px="info"></span><span>¿Sus hostings y sitios WordPress también? Necesitan una dirección pública para enviar sus datos: úselos con <a href="#cloud">Atalaya Cloud</a> o <a href="#vps">Atalaya VPS</a>.</span></div>
+      <div class="tip"><span data-px="key"></span><span><b>La guía completa llega con su invitación</b>, en una página con su comando ya armado para copiar y pegar. <a href="https://nube.neracosu.com/solicitud?paquete=equipo">Pedir acceso</a></span></div>
+    </section>
+
+    <section class="guide" id="claude-servidor">
+      <h2><span data-px="bot"></span> Claude Code en el servidor</h2>
+      <p class="meta">Solo en Atalaya VPS</p>
+      <p>Atalaya ya ve las sesiones de Claude Code de cada cuenta del servidor. Con los hooks, además se entera al instante cuando un agente pide permiso.</p>
+      <ol class="steps">
+        <li><b>Desde el asistente:</b><p>Extras › Claude Code en este servidor › <b>Instalar hooks</b>.</p></li>
+        <li><b>O por terminal, como root:</b><pre class="cmd"><code>node /opt/atalaya/hooks/install.js</code></pre><p>Para quitarlos, el mismo comando con <code>--uninstall</code>. Deja respaldo de la configuración anterior.</p></li>
+      </ol>
+    </section>
+
+    <section class="guide" id="usuarios">
+      <h2><span data-px="key"></span> Usuarios y PIN</h2>
+      <p class="meta">Atalaya VPS y Hosting</p>
+      <p>Hay dos roles: <b>dueño</b> (modo privado, análisis y conexiones) y <b>solo ver</b> (ideal para el TV de la oficina, siempre en público).</p>
+      <pre class="cmd"><code>node cli.js user add ana             # dueño
+node cli.js user add tv --viewer     # solo ver
+node cli.js user pin ana             # cambiar PIN (cierra sus sesiones)
+node cli.js user del tv              # borrar (sus pantallas se cortan al instante)
+node cli.js sessions revoke          # cerrar todas las sesiones</code></pre>
+      <div class="tip warn"><span data-px="warn"></span><span>El PIN se escribe cuando el comando lo pide, nunca como argumento: así no queda en el historial de la terminal. Evite PIN obvios como 111111 o 123456.</span></div>
+    </section>
+
+    <section class="guide" id="temas-propios">
+      <h2><span data-px="star"></span> Crear un tema</h2>
+      <p class="meta">Para quien diseña o programa</p>
+      <ol class="steps">
+        <li><b>Pida acceso al kit de temas.</b><p>Es un repositorio aparte con los temas actuales como ejemplo y un simulador que reproduce una pantalla real en modo público. No necesita un servidor.</p></li>
+        <li><b>Copie un tema parecido al que quiere.</b><p>Cada tema es una carpeta con su manifiesto (<code>theme.json</code>), su mundo (<code>world.js</code>) y su estilo (<code>theme.css</code>).</p></li>
+        <li><b>Dibuje en código.</b><p>El pixel art se define como matrices de caracteres, así que no hace falta un editor de imágenes. Pixel en íconos y personajes; texto nítido y legible.</p></li>
+        <li><b>Envíelo.</b><p>Los temas se cargan en caliente: cuando se suma a Atalaya, todas las pantallas lo pueden elegir.</p></li>
+      </ol>
+    </section>
+
+    <section class="guide" id="leyenda">
+      <h2><span data-px="scroll"></span> Qué es cada cosa en la Ciudad</h2>
+      <table class="legend">
+        <tr><th>Distrito</th><td>Una cuenta de cPanel, un usuario, un hosting, un WordPress o una cuenta de nube</td></tr>
+        <tr><th>Edificio</th><td>Un servicio, un contenedor o un proyecto de Vercel. Altura = memoria, techo naranja = CPU, ventanas = visitas</td></tr>
+        <tr><th>Edificio bajo</th><td>Un sitio servido directo (WordPress, PHP, estático, en construcción)</td></tr>
+        <tr><th>Luz del techo</th><td>Verde en línea, ámbar parcial o desplegando, roja caído</td></tr>
+        <tr><th>Robot</th><td>Una sesión de Claude Code; camina a la estación de lo que hace</td></tr>
+        <tr><th>Halo ámbar</th><td>El agente espera su permiso o su respuesta</td></tr>
+        <tr><th>Autopista y peaje</th><td>Por la autopista llegan las visitas desde Internet; el peaje es el firewall</td></tr>
+        <tr><th>Autos que viajan</th><td>Visitas reales, con país (rojo = error del servidor)</td></tr>
+        <tr><th>Invasores</th><td>Intentos fallidos de acceso que revientan contra la barrera del peaje</td></tr>
+        <tr><th>Auto con sirena</th><td>Un robot buscando rutas vulnerables en un sitio; si la ruta respondió, el edificio queda en rojo con «EXPUESTO»</td></tr>
+        <tr><th>Sobres</th><td>Correo que sale, entra o rebota</td></tr>
+        <tr><th>Torre de control</th><td>El servidor: su salud, sus servicios clave y los países de las visitas. En rojo con ondas de calor: el servidor está al límite</td></tr>
+        <tr><th>Atasco en el peaje</th><td>El servidor no da abasto y las visitas esperan su turno. Autos grises junto a un edificio: ese sitio se quedó sin procesos PHP</td></tr>
+        <tr><th>Cárcel</th><td>Las IPs bloqueadas, cada una como un auto oscuro tras las rejas. En el patio, las cápsulas verdes de los archivos en cuarentena</td></tr>
+        <tr><th>Bichos rojos</th><td>Un archivo PHP sospechoso en ese sitio; si se agitan con sirena, alguien lo buscó</td></tr>
+        <tr><th>Silo</th><td>Las bases de datos de una cuenta; las tuberías llevan a los sitios que las usan</td></tr>
+        <tr><th>Oficina de correos</th><td>Por ahí pasa el correo del servidor: el que sale, el que entra y el que rebota</td></tr>
+      </table>
+      <p class="note">Cada tema tiene su propia leyenda: dentro de la pantalla, pulse <kbd>?</kbd>.</p>
+    </section>
+
+    <section class="close" style="padding-top:8px">
+      <h2>¿Le quedó alguna duda?</h2>
+      <p>Escríbale a Neri desde <a href="https://nube.neracosu.com/solicitud">el formulario de contacto</a> y le responde una persona, no un bot.</p>
+      <div class="cta" style="justify-content:center"><a class="btn primary" href="https://nube.neracosu.com/registro">Crear mi pantalla</a><a class="btn" href="../">Volver al inicio</a></div>
+    </section>
+  </main>
+</div>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="logo" href="../"><svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><use href="../assets/favicon.svg#mark"/></svg><span class="lockup"><b>Atalaya</b><small>Monitor Server</small></span></a>
+    <nav><a href="../#que-es">Qué es</a><a href="../#formas">Cómo usarlo</a><a href="./">Guías</a><a href="../#seguridad">Seguridad</a><a href="../#preguntas">Preguntas</a><a href="https://nube.neracosu.com/registro">Crear mi pantalla</a></nav>
+    <p>Atalaya Monitor Server es un producto de <a href="/">NERACOSU</a>, hecho por Neri Colón en La Guaira, Venezuela. Pixel art dibujado en código, sin emojis.</p>
+  </div>
+</footer>
+<script type="module" src="../assets/js/site.js"></script>
+</body>
+</html>

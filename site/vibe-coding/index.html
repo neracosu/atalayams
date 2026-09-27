@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoreo para vibe coders: su app hecha con IA, vigilada · Atalaya</title>
+<meta name="description" content="Hizo su app con IA y la publicó en Vercel, Supabase o GitHub. Atalaya le muestra en vivo despliegues fallidos, base pausada, .env subido y certificados.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Hizo su app con IA. ¿Quién la vigila ahora?">
+<meta property="og:description" content="Monitoreo en vivo para vibe coders: Vercel, Supabase, GitHub y Claude Code en una pantalla pixel art que le avisa antes que su cliente. Beta sin costo.">
+<meta property="og:image" content="https://neracosu.com/atalaya/assets/video/escaneo.jpg">
+<meta property="og:url" content="https://neracosu.com/atalaya/vibe-coding/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://neracosu.com/atalaya/vibe-coding/">
+<meta name="theme-color" content="#04060c">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="stylesheet" href="../assets/css/arcade.css">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "WebPage",
+   "@id": "https://neracosu.com/atalaya/vibe-coding/",
+   "name": "Monitoreo para vibe coders",
+   "description": "Cómo vigilar una app hecha con IA publicada en Vercel, Supabase y GitHub: despliegues fallidos, base pausada, secretos subidos al repositorio, certificados y agentes de Claude Code, en una sola pantalla en vivo.",
+   "inLanguage": "es",
+   "isPartOf": { "@type": "WebSite", "name": "Atalaya Monitor Server", "url": "https://neracosu.com/atalaya/" },
+   "about": { "@type": "SoftwareApplication", "name": "Atalaya Monitor Server", "applicationCategory": "DeveloperApplication", "operatingSystem": "Web, Linux, Windows, macOS", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Atalaya Cloud en beta por invitación, sin cobro durante la beta" } }
+  },
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Atalaya", "item": "https://neracosu.com/atalaya/" },
+    { "@type": "ListItem", "position": 2, "name": "Vibe coding", "item": "https://neracosu.com/atalaya/vibe-coding/" }
+   ]
+  },
+  {
+   "@type": "FAQPage",
+   "mainEntity": [
+    { "@type": "Question", "name": "¿Sirve si hice mi app con Lovable, Bolt, v0, Cursor o Claude Code?", "acceptedAnswer": { "@type": "Answer", "text": "Sí, si la app quedó publicada en Vercel, con la base en Supabase o el código en GitHub. Atalaya mira esos servicios, no la herramienta con que se escribió el código." } },
+    { "@type": "Question", "name": "¿Necesito saber de servidores para usarlo?", "acceptedAnswer": { "@type": "Answer", "text": "No. Con Atalaya Cloud no instala nada: crea su pantalla, pega los tokens de solo lectura que le pide el asistente y listo. El asistente le dice dónde encontrar cada dato." } },
+    { "@type": "Question", "name": "¿Qué permisos le doy a Atalaya?", "acceptedAnswer": { "@type": "Answer", "text": "Solo de lectura: en GitHub, un token fine-grained con permisos de lectura; en Vercel y Supabase, tokens que usted puede revocar en un clic. Los tokens nunca vuelven al navegador." } },
+    { "@type": "Question", "name": "¿Cuánto cuesta?", "acceptedAnswer": { "@type": "Answer", "text": "Durante la beta de Atalaya Cloud no se cobra. El núcleo para instalar en su propio servidor es código abierto." } }
+   ]
+  }
+ ]
+}
+</script>
+</head>
+<body class="site arcade">
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<div class="born" id="born" role="note">
+  <span class="v">v__VERSION__</span>
+  <span class="age"><i class="pulse" aria-hidden="true"></i>Proyecto nuevo · <b data-age>—</b><span class="long"> desde la primera línea de código</span></span>
+  <a class="gh" href="https://github.com/neracosu/atalayams" target="_blank" rel="noopener">Código abierto: colabore en GitHub</a>
+</div>
+<header class="top">
+  <a class="logo" href="../"><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><use href="../assets/favicon.svg#mark"/></svg><span class="lockup"><b>Atalaya</b><small>Monitor Server</small></span></a>
+  <nav aria-label="Secciones">
+    <a href="#riesgos">Los riesgos</a><a href="#stack">Su stack</a><a href="#empezar">Cómo empezar</a><a href="#preguntas">Preguntas</a><a href="../">Atalaya</a><a href="../guias/">Guías</a>
+  </nav>
+  <a class="btn small primary" href="https://nube.neracosu.com/solicitud?paquete=cloud">Pedir acceso</a>
+</header>
+
+<main id="contenido">
+  <section class="attract" aria-labelledby="h-title">
+    <video class="attract-bg" data-src="../assets/video/escaneo.webm" poster="../assets/video/escaneo.jpg" muted loop playsinline aria-hidden="true"></video>
+    <div class="attract-shade" aria-hidden="true"></div>
+    <div class="wrap attract-in">
+      <p class="press"><span class="blink" aria-hidden="true">&#9656;</span> MODO VIBE CODING</p>
+      <p class="pre">La IA le ayudó a construirla en un fin de semana.</p>
+      <h1 id="h-title">Hizo su app con IA. <em>¿Quién la vigila ahora?</em></h1>
+      <p class="lead">Atalaya es el monitoreo para <b>vibe coders</b>: junta Vercel, Supabase, GitHub y sus agentes de Claude Code en una sola pantalla en vivo. Un despliegue que falla, una base pausada
+        o una llave que quedó en el repositorio saltan a la vista, antes de que se entere su primer usuario.</p>
+      <div class="cta">
+        <a class="btn primary big" href="https://nube.neracosu.com/solicitud?paquete=cloud">Pedir acceso <small>30 segundos · beta sin costo · sin servidor</small></a>
+        <a class="btn ghost big" href="#riesgos">Ver los riesgos &#9656;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- la verdad incomoda del vibe coding, sin asustar de mas -->
+  <section class="lvl-sec" id="riesgos">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 01</span><span class="lvl-k">LO QUE LA IA NO LE AVISA</span><span class="lvl-big" aria-hidden="true">01</span></header>
+      <h2>La IA escribe el código. <em>Nadie se queda mirando la app.</em></h2>
+      <p class="sub">El vibe coding acorta semanas a horas. Lo que no acorta es lo que pasa después de publicar: estos son los sustos más comunes, y cómo Atalaya los pone en su pantalla.</p>
+      <ol class="leakrows">
+        <li><span class="ln">01</span><div class="lp"><h3>El .env que se fue al repositorio</h3><p>El asistente creó el archivo de llaves y un commit apurado lo subió a GitHub. Si el repo es público, alguien ya tiene la llave de su base.</p></div>
+          <div class="lf"><b>EN ATALAYA</b><p>La revisión del repo busca archivos .env y de llaves subidos, un .gitignore que no los excluye y alertas de dependencias, y le dice qué hacer primero.</p></div></li>
+        <li><span class="ln">02</span><div class="lp"><h3>El despliegue que falló en silencio</h3><p>Vercel no pudo construir la última versión y el sitio sigue con la vieja. Usted cree que el arreglo ya está en línea.</p></div>
+          <div class="lf"><b>EN ATALAYA</b><p>Cada despliegue se ve en vivo: en construcción, listo o fallido. Si falla, el edificio del proyecto se pone rojo y le llega un aviso.</p></div></li>
+        <li><span class="ln">03</span><div class="lp"><h3>La base de Supabase que se pausó</h3><p>Los proyectos sin actividad se pausan solos. El día que alguien entra, la app no carga y nadie sabe por qué.</p></div>
+          <div class="lf"><b>EN ATALAYA</b><p>El estado de cada proyecto de Supabase (activo, pausado o iniciando), sus conexiones y su tamaño, junto a la app que lo usa.</p></div></li>
+        <li><span class="ln">04</span><div class="lp"><h3>El dominio o el certificado que vence</h3><p>Compró el dominio el día del lanzamiento y el aviso de renovación llegó a un correo que nadie revisa.</p></div>
+          <div class="lf"><b>EN ATALAYA</b><p>El vencimiento del dominio y del certificado de cada proyecto, con los días que faltan, en la ficha y por Telegram o correo.</p></div></li>
+        <li><span class="ln">05</span><div class="lp"><h3>Los errores que ven sus usuarios</h3><p>Una ruta devuelve error 500 desde el último cambio y nadie lo reportó: simplemente se fueron.</p></div>
+          <div class="lf"><b>EN ATALAYA</b><p>Las visitas llegan en vivo como autos por la autopista; los errores del servidor, en rojo. Un pico de errores se nota de lejos.</p></div></li>
+        <li><span class="ln">06</span><div class="lp"><h3>El agente esperando su permiso</h3><p>Dejó a Claude Code trabajando y se fue a almorzar. Lleva una hora preguntando si puede ejecutar un comando.</p></div>
+          <div class="lf"><b>EN ATALAYA</b><p>Cada sesión es un robot en la pantalla. Cuando pide permiso se enciende en ámbar y la cámara va hacia él.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- el stack tipico -->
+  <section class="lvl-sec alt" id="stack">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 02</span><span class="lvl-k">SU STACK</span><span class="lvl-big" aria-hidden="true">02</span></header>
+      <div class="split">
+        <div>
+          <h2>Da igual con qué la escribió. <em>Importa dónde vive.</em></h2>
+          <p class="sub">Lovable, Bolt, v0, Cursor o Claude Code: si la app quedó en Vercel, con la base en Supabase y el código en GitHub, Atalaya la ve completa. Une las piezas de cada proyecto en una sola ficha, aunque vivan en servicios distintos.</p>
+        </div>
+        <ul class="trust">
+          <li><b>Vercel.</b> Proyectos, despliegues en vivo, dominios y, si conecta un Drain, cada visita con su estado.</li>
+          <li><b>Supabase.</b> Estado del proyecto, conexiones y tamaño de la base, unidos a la app que la usa.</li>
+          <li><b>GitHub.</b> Sus repositorios dentro de cada proyecto y, a pedido, la revisión de secretos subidos, .gitignore, integración continua y dependencias.</li>
+          <li><b>Claude Code.</b> Sus sesiones y subagentes, en su laptop o en el servidor, con lo que está haciendo cada uno.</li>
+          <li><b>Y si crece.</b> Hostings, WordPress o su propio VPS, en la misma pantalla cuando los necesite.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- lo que se ve -->
+  <section class="lvl-sec" id="en-accion">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 03</span><span class="lvl-k">EN ACCIÓN</span><span class="lvl-big" aria-hidden="true">03</span></header>
+      <h2>El monitoreo es algo serio. <em>No tiene por qué ser aburrido.</em></h2>
+      <p class="sub">Cada proyecto es un edificio y cada visita un auto. Toque una animación para verla en grande.</p>
+      <div class="clips">
+        <figure class="clip"><video data-src="../assets/video/trafico.webm" data-poster="../assets/video/trafico.jpg" muted loop playsinline preload="none" aria-label="Un pico de visitas"></video>
+          <figcaption><span data-px="web"></span><span><b>Su app, en vivo</b>Cada visita es un auto: cian las personas, gris los robots, rojo los errores. Si llega un pico, se encienden los reflectores.</span></figcaption></figure>
+        <figure class="clip"><video data-src="../assets/video/escaneo.webm" data-poster="../assets/video/escaneo.jpg" muted loop playsinline preload="none" aria-label="Un escaneo, custodiado"></video>
+          <figcaption><span data-px="siren"></span><span><b>Robots buscando su .env</b>Apenas publica, llegan robots probando rutas como .env y .git. Atalaya los muestra y, en un VPS, los manda a la cárcel.</span></figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- como empezar: pasos chicos -->
+  <section class="lvl-sec alt" id="empezar">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 04</span><span class="lvl-k">CÓMO EMPEZAR</span><span class="lvl-big" aria-hidden="true">04</span></header>
+      <h2>Cinco minutos, <em>sin servidor.</em></h2>
+      <ol class="day">
+        <li><time>00:30</time><div><b>Pida acceso.</b> Nombre, correo o WhatsApp y qué quiere vigilar. Le llega un código de invitación.</div></li>
+        <li><time>01:30</time><div><b>Cree su pantalla.</b> Elija su dirección en nube.neracosu.com, su usuario y un PIN.</div></li>
+        <li><time>04:00</time><div><b>Conecte su stack.</b> El asistente le pide tokens de solo lectura de Vercel, Supabase y GitHub y le dice dónde encontrar cada uno.</div></li>
+        <li><time>05:00</time><div><b>Déjela abierta.</b> En una pestaña, en el TV o en el teléfono, con alertas por Telegram o correo para cuando no la mire.</div></li>
+      </ol>
+      <div class="cta" style="margin-top:2.4rem">
+        <a class="btn primary big" href="https://nube.neracosu.com/solicitud?paquete=cloud">Pedir acceso <small>beta sin costo</small></a>
+        <a class="btn ghost big" href="../guias/#cloud">Ver la guía paso a paso</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="lvl-sec" id="preguntas">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">JEFE FINAL</span><span class="lvl-k">SUS DUDAS</span><span class="lvl-big" aria-hidden="true">05</span></header>
+      <h2>Preguntas de vibe coders</h2>
+      <div class="faq">
+        <details open><summary>¿Sirve si hice mi app con Lovable, Bolt, v0, Cursor o Claude Code?</summary>
+          <p>Sí, si la app quedó publicada en Vercel, con la base en Supabase o el código en GitHub. Atalaya mira esos servicios, no la herramienta con que se escribió el código.</p></details>
+        <details><summary>¿Necesito saber de servidores para usarlo?</summary>
+          <p>No. Con Atalaya Cloud no instala nada: crea su pantalla, pega los tokens de solo lectura que le pide el asistente y listo. El asistente le dice dónde encontrar cada dato.</p></details>
+        <details><summary>¿Qué permisos le doy a Atalaya?</summary>
+          <p>Solo de lectura: en GitHub, un token fine-grained con permisos de lectura; en Vercel y Supabase, tokens que usted puede revocar en un clic. Los tokens nunca vuelven al navegador, y el código de Atalaya está abierto para que lo revise.</p></details>
+        <details><summary>¿Cuánto cuesta?</summary>
+          <p>Durante la beta de Atalaya Cloud no se cobra. El núcleo para instalar en su propio servidor es código abierto.</p></details>
+      </div>
+      <p class="note" style="margin-top:2rem">¿Quiere ver todo lo que hace Atalaya, también en servidores y hostings? <a href="../">Vaya a la página principal</a>.</p>
+    </div>
+  </section>
+
+  <section class="p2" id="jugador-2" aria-labelledby="p2-t">
+    <div class="wrap">
+      <p class="press p2-press"><span class="blink" aria-hidden="true">&#9656;</span> JUGADOR 2 · PRESIONE START</p>
+      <h2 id="p2-t">¿Programa con IA? Construya esto con nosotros.</h2>
+      <p class="lead">Atalaya tiene <b data-age-short>pocos días</b> de vida y es código abierto. Un tema nuevo, un conector más, un error encontrado: cada aporte se ve en la próxima versión.</p>
+      <div class="coop">
+        <a href="https://github.com/neracosu/atalayams" target="_blank" rel="noopener"><span data-px="terminal"></span><b>Código</b><small>Abra un issue o envíe su primer cambio.</small></a>
+        <a href="https://github.com/neracosu/atalaya-temas" target="_blank" rel="noopener"><span data-px="city"></span><b>Temas</b><small>Dibuje su propio mundo con el kit y su simulador.</small></a>
+        <a href="https://nube.neracosu.com/solicitud?paquete=cloud"><span data-px="rocket"></span><b>Pruébelo y cuéntenos</b><small>Úselo con su app y díganos qué le falta.</small></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog class="lightbox" id="lightbox" aria-label="Animación ampliada">
+  <button class="lb-close" type="button" aria-label="Cerrar">&times;</button>
+  <button class="lb-nav lb-prev" type="button" aria-label="Anterior">&#8249;</button>
+  <figure><video muted loop playsinline></video><figcaption></figcaption></figure>
+  <button class="lb-nav lb-next" type="button" aria-label="Siguiente">&#8250;</button>
+</dialog>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="logo" href="../"><svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><use href="../assets/favicon.svg#mark"/></svg><span class="lockup"><b>Atalaya</b><small>Monitor Server</small></span></a>
+    <nav><a href="../">Atalaya</a><a href="../#en-accion">En acción</a><a href="../guias/">Guías</a><a href="#preguntas">Preguntas</a><a href="https://nube.neracosu.com/registro">Crear mi pantalla</a></nav>
+    <p>Atalaya Monitor Server es un producto de <a href="/">NERACOSU</a>, hecho por Neri Colón en La Guaira, Venezuela. Pixel art dibujado en código, sin emojis.</p>
+  </div>
+</footer>
+<script type="module" src="../assets/js/site.js"></script>
+</body>
+</html>

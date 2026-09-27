@@ -652,6 +652,7 @@ server/webdefense.js, watch.js, saturation.js  sondeos web, vigilancia (escaneo,
 server/alerts.js    alertas por Telegram y correo; seclog.js, registro de seguridad; defs.js, definiciones firmadas
 server/collectors/dbactivity.js  actividad de las bases (conexiones y consultas, sin datos)
 exe/                arranque del ejecutable único (edición Equipo); se arma con scripts/build-exe.js
+site/               sitio del proyecto (neracosu.com/atalaya), el mismo que ve el público; se arma con scripts/export-site.js
 agent/              agente POSIX para hosting compartido
 wordpress/          plugin «Atalaya Monitor Server · Agente»
 app.js              entrada de Atalaya Hosting
@@ -676,12 +677,30 @@ node scripts/readme-assets.js banner       # banner animado del README
 node scripts/readme-assets.js icons        # íconos pixel del README
 node scripts/readme-assets.js capture      # capturas WebP de la pantalla real, de cada tema y del teléfono (siempre en modo público)
 node scripts/export-kit.js ../atalaya-temas  # regenera el kit de temas
+node scripts/export-site.js /ruta/salida  # arma el sitio de site/ (con sellos de caché); sin ruta, lo publica en neracosu.com/atalaya
 ```
 
 Versionado semántico; cada cambio queda en [CHANGELOG.md](CHANGELOG.md) y la pantalla lo muestra
 en *Novedades*.
 
 </details>
+
+---
+
+## El sitio del proyecto, abierto
+
+El sitio de [neracosu.com/atalaya](https://neracosu.com/atalaya/) vive en [`site/`](site/): es **el mismo** que ve el
+público, con su diseño arcade, las grabaciones reales de Atalaya y la página para
+[vibe coders](https://neracosu.com/atalaya/vibe-coding/). Si le gusta el estilo, úselo de referencia; si ve algo que
+se puede ver mejor (el diseño, los textos, la velocidad, la accesibilidad), proponga el cambio con un pull request.
+
+```sh
+node scripts/export-site.js /tmp/sitio        # arma el sitio con sus sellos de caché
+cd /tmp/sitio && python3 -m http.server 8080  # y ábralo en http://localhost:8080
+```
+
+Las animaciones de `site/assets/video/` salen del simulador del [kit de temas](https://github.com/neracosu/atalaya-temas),
+en modo público: no muestran nombres, dominios ni IPs.
 
 ---
 
