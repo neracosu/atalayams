@@ -3,7 +3,7 @@
   "name": "Ops",
   "description": "Una mesa táctica holográfica en 3D: el servidor es la base con su cúpula de escudo, cada cuenta un sector, cada servicio una columna que sube con su CPU y cada sitio un prisma que sube con sus visitas. Las visitas caen en arco, los intentos de acceso son misiles contra la cúpula y los agentes de Claude Code son drones. Al fondo de la mesa, la zona de detención con las IPs bloqueadas y la antena por la que pasa el correo.",
   "author": "NERACOSU",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "license": "Propietaria · three.js (MIT) · fuente VT323 bajo SIL OFL 1.1",
   "world": "world.js",
   "css": "theme.css",
@@ -40,19 +40,19 @@
       "title": "La mesa",
       "items": [
         {
-          "icon": "shield",
           "title": "Base y cúpula",
-          "text": "El servidor, en el centro. La cúpula es el escudo: se enciende en rojo cuando choca un misil y en ámbar si falla un servicio clave."
+          "text": "El servidor, en el centro. La cúpula es el escudo: se enciende en rojo cuando choca un misil y en ámbar si falla un servicio clave.",
+          "art": "dome"
         },
         {
-          "icon": "web",
           "title": "Sectores",
-          "text": "Cada cuenta es un sector con su color, su nombre y, debajo, su cuenta de cPanel (en privado) o cuántos servicios y sitios tiene. Clic en el nombre para verlo."
+          "text": "Cada cuenta es un sector con su color, su nombre y, debajo, su cuenta de cPanel (en privado) o cuántos servicios y sitios tiene. Clic en el nombre para verlo.",
+          "art": "sector"
         },
         {
-          "color": "#9fd356",
           "title": "Columnas y prismas",
-          "text": "Columna: un servicio, más alta con más CPU. Prisma hexagonal: un sitio, más alto con más visitas. Verde bien, ámbar a medias, rojo parpadeando caído. Encima, su cartel."
+          "text": "Columna: un servicio, más alta con más CPU. Prisma hexagonal: un sitio, más alto con más visitas. Verde bien, ámbar a medias, rojo parpadeando caído. Encima, su cartel.",
+          "art": "column"
         },
         {
           "color": "#d9e3c8",
@@ -61,19 +61,22 @@
           "text": "El haz que gira: hace brillar cada columna al pasar."
         },
         {
-          "icon": "jail",
           "title": "Zona de detención",
-          "text": "Al fondo a la izquierda: las IPs bloqueadas son marcadores hostiles enjaulados. Los contenedores con franjas de peligro son archivos PHP maliciosos en cuarentena."
+          "text": "Al fondo a la izquierda: las IPs bloqueadas son marcadores hostiles enjaulados. Los contenedores con franjas de peligro son archivos PHP maliciosos en cuarentena.",
+          "art": [
+            "hostile",
+            "container"
+          ]
         },
         {
-          "icon": "mail",
           "title": "Comunicaciones",
-          "text": "Al fondo a la derecha, la antena: cada correo es un paquete de datos que sale de su sector o llega desde afuera; los ámbar rebotaron y vuelven con el motivo. La cola gira al pie de la antena."
+          "text": "Al fondo a la derecha, la antena: cada correo es un paquete de datos que sale de su sector o llega desde afuera; los ámbar rebotaron y vuelven con el motivo. La cola gira al pie de la antena.",
+          "art": "antenna"
         },
         {
-          "icon": "db",
           "title": "Depósito de datos",
-          "text": "En el borde de cada sector con bases de datos: más alto cuanto más pesan, rojo si están al límite y con una «z» si hay conexiones dormidas. Las líneas de luz llegan a las columnas que las usan."
+          "text": "En el borde de cada sector con bases de datos: más alto cuanto más pesan, rojo si están al límite y con una «z» si hay conexiones dormidas. Las líneas de luz llegan a las columnas que las usan.",
+          "art": "depot"
         }
       ]
     },
@@ -86,14 +89,14 @@
           "text": "Visitas reales que caen en arco sobre su columna. Gris: robots. Ámbar: error del visitante. Rojo: error del servidor."
         },
         {
-          "icon": "invader",
           "title": "Misiles",
-          "text": "Intentos de acceso fallidos que se estrellan contra la cúpula; si la IP queda bloqueada, aparece «NEUTRALIZADO»."
+          "text": "Intentos de acceso fallidos que se estrellan contra la cúpula; si la IP queda bloqueada, aparece «NEUTRALIZADO».",
+          "art": "missile"
         },
         {
-          "icon": "bot",
           "title": "Drones",
-          "text": "Las sesiones de Claude Code sobre su sector (ESC-01, ESC-02…). Ámbar con «ESPERA PERMISO»: lo esperan a usted."
+          "text": "Las sesiones de Claude Code sobre su sector (ESC-01, ESC-02…). Ámbar con «ESPERA PERMISO»: lo esperan a usted.",
+          "art": "drone"
         }
       ]
     },

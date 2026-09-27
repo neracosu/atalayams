@@ -4,6 +4,9 @@ import { animate } from '../vendor/anime.esm.min.js';
 import { px } from './pixicons.js';
 import { signCanvas, robotCanvas, iconCanvas } from './sprites.js';
 import { esc } from './hud.js';
+import { SKINS, BASE_NAMES } from './fxskins.js';
+import { ART } from './legendart.js';
+import { POLICE_CAR, FLY_POLICE, PROBE_CAR, CAR_COLORS, BUG, paintCanvas } from './pixeldata.js';
 
 const tip = document.getElementById('tip');
 let timer = null, visible = false, lastXY = { x: 0, y: 0 };
@@ -83,9 +86,55 @@ const USO = `<section><h4>Cómo usarlo</h4>
         <p class="lhelp"><b>Arrastre</b> para moverse · <b>rueda</b> o pellizco para acercar · <b>clic</b> en cualquier cosa para ver su detalle · <b>doble clic</b> vuelve a la vista general.<br>
         Teclas: <kbd>D</kbd> director · <kbd>T</kbd> tema · <kbd>P</kbd> modo privado · <kbd>L</kbd> modo público · <kbd>F</kbd> pantalla completa · <kbd>?</kbd> esta leyenda · <kbd>Esc</kbd> cerrar.</p>
       </section>`;
+// arte del tema para la leyenda: dibujos de su propio mundo (legendart.js) o su elenco (fxskins.js)
+const norm = f => { const w = Math.max(...f.map(r => r.length)); return f.map(r => r.padEnd(w, '.')); };
+function artOf(theme, a) { return typeof a === 'string' ? (ART[theme] || {})[a] : a && a.rows ? a : null; }
+function spriteOf(theme, key) {
+  const S = SKINS[theme];
+  if (S && !S.none && S[key]) return { rows: S[key][0], pal: S.pal };
+  const base = { police: [POLICE_CAR[0], CAR_COLORS], fly: [FLY_POLICE[0], CAR_COLORS], probe: [PROBE_CAR[0], CAR_COLORS], queue: [PROBE_CAR[0].map(r => r.replace(/[Rr]/g, '.')), { ...CAR_COLORS, g: '#64748b', d: '#334155' }], bug: [BUG[0], { k: '#111827', r: '#ef4444', w: '#fde68a' }] }[key];
+  return base ? { rows: base[0], pal: base[1] } : null;
+}
+// lienzo pixel del tamano justo para el hueco del icono (51 px de ancho, repartido si son varios)
+function pixelCanvas(a, n = 1) {
+  const rows = norm(a.rows), w = rows[0].length, h = rows.length;
+  const k = Math.max(1, Math.min(4, Math.floor(Math.min(48 / n / w, 36 / h))));
+  const cv = paintCanvas(rows, a.pal, k); cv.className = 'lart';
+  return cv;
+}
+function iconHtml(it) {
+  if (it.art || it.sprite) {
+    const list = [].concat(it.art || []).map(a => ({ art: a })).concat([].concat(it.sprite || []).map(k => ({ sprite: k })));
+    return list.map((x, i) => `<i data-art="${esc(typeof x.art === 'object' ? JSON.stringify(x.art) : x.art || '')}" data-sprite="${esc(x.sprite || '')}" data-n="${list.length}"></i>`).join('');
+  }
+  if (it.glyph) return `<span class="lglyph">${esc(it.glyph)}</span>`; // temas de solo texto (Terminal)
+  return it.icon ? `<span class="linv">${px(it.icon, 'big')}</span>` : it.color ? dot(it.color, it.solid !== false) : '';
+}
+// los que vigilan: el elenco del tema (patrullas, captura, sondeos, fila y archivo malicioso), con sus nombres
+function castSection(theme) {
+  const S = SKINS[theme];
+  if (S && S.none) return '';
+  const N = (S && S.names) || BASE_NAMES;
+  const T = {
+    police: 'Vigila un sitio que están escaneando o raspando: se queda a su lado hasta que pasa la amenaza.',
+    fly: 'Sale del servidor y vuela a capturar: lleva a la cárcel la IP bloqueada y, en una cápsula, el archivo malicioso. Si una IP sale libre, la acompaña a la salida.',
+    probe: 'Un robot que llega a sondear una ruta vulnerable (/.env, /.git, wp-login…). Si rebota, muestra su código; si la ruta respondió, el sitio queda marcado <b>EXPUESTO</b>.',
+    queue: 'Fila de espera junto a un sitio con un pico de visitas.',
+    bug: 'Un archivo PHP sospechoso en un sitio. Cuando se captura, viaja a la cuarentena en una cápsula.',
+  };
+  return `<section><h4>Los que vigilan</h4>${Object.keys(T).map(k => row(`<i data-sprite="${k}" data-n="1"></i>`, esc(N[k]), T[k])).join('')}</section>`;
+}
+function hydrate(body, theme) {
+  body.querySelectorAll('i[data-art], i[data-sprite]').forEach(el => {
+    let a = null;
+    if (el.dataset.sprite) a = spriteOf(theme, el.dataset.sprite);
+    else if (el.dataset.art) { try { a = el.dataset.art.startsWith('{') ? JSON.parse(el.dataset.art) : artOf(theme, el.dataset.art); } catch { a = null; } }
+    if (a) el.replaceWith(pixelCanvas(a, +el.dataset.n || 1)); else el.remove();
+  });
+}
 function themeLegend(m) {
   return m.legend.map(sec => `<section><h4>${esc(sec.title)}</h4>${(sec.items || []).map(it =>
-    row(it.icon ? `<span class="linv">${px(it.icon, 'big')}</span>` : it.color ? dot(it.color, it.solid !== false) : '', esc(it.title), esc(it.text))).join('')}</section>`).join('') + USO;
+    row(iconHtml(it), esc(it.title), esc(it.text))).join('')}</section>`).join('') + castSection(m.id) + USO;
 }
 export function openLegend(manifest) {
   const id = manifest && manifest.legend ? manifest.id : 'ciudad';
@@ -94,7 +143,7 @@ export function openLegend(manifest) {
     dlg.dataset.built = id;
     const body = dlg.querySelector('.lbody');
     dlg.querySelector('header h3').textContent = manifest && manifest.legend ? `Leyenda · ${manifest.name}` : 'Leyenda de Atalaya';
-    if (manifest && manifest.legend) body.innerHTML = themeLegend(manifest);
+    if (manifest && manifest.legend) { body.innerHTML = themeLegend(manifest); hydrate(body, id); }
     else body.innerHTML = `
       <section><h4>El mundo</h4>
         ${row('<i data-c="robot"></i>', 'Robot = una sesión de Claude Code', 'Cada agente que está trabajando en el servidor. Los robots pequeños son sus subagentes. Encima llevan <b>…</b> si piensan, <b>!</b> si lo esperan a usted y <b>z</b> si están en pausa. Un halo ámbar significa que <b>espera su permiso</b>.')}
@@ -117,11 +166,23 @@ export function openLegend(manifest) {
         ${row(dot('#4ade80'), 'Cometa verde', 'Un acceso SSH correcto.')}
         ${row(`<span class="linv">${px('mail', 'big')}</span>`, 'Sobre', 'Correo: amarillo sale, violeta entra, rojo rebotó.')}
       </section>
+      <section><h4>Defensa, correo y bases</h4>
+        ${row('<i data-art="jail" data-n="1"></i>', 'Cárcel', 'Las IPs <b>bloqueadas</b>: las que se bloquearon a mano en el firewall y las que atrapó la defensa de Atalaya. La patrulla voladora las trae escoltadas. Clic: cada una, con su motivo y cuándo sale.')}
+        ${row('<i data-art="capsule" data-n="1"></i>', 'Cápsula de cuarentena', 'Un archivo PHP malicioso atrapado: la patrulla lo encierra en una cápsula y lo lleva a la cárcel. No puede hacer daño y se puede restaurar.')}
+        ${row('<i data-art="post" data-n="1"></i>', 'Oficina de correos', 'Por aquí pasa el correo del servidor: los sobres salen, llegan o rebotan con su motivo. Si la cola se atasca, las cartas se apilan en la puerta.')}
+        ${row('<i data-art="silo" data-n="1"></i>', 'Silos y tuberías', 'Las bases de datos de cada distrito: más altos cuanto más pesan, rojos al límite. Las tuberías llegan a los edificios que las usan y los pulsos corren con cada consulta.')}
+      </section>
+      <section><h4>Cuando algo aprieta</h4>
+        ${row(dot('#ef4444'), 'Torre en rojo y fila', 'Con el servidor al límite, la torre de control se pone roja y los autos hacen fila antes de entrar a la ciudad.')}
+        ${row(dot('#fbbf24'), 'Línea de cuota', 'Bajo el nombre de un distrito, en ámbar o rojo, cuando la cuenta se acerca al límite de su disco o sus inodos.')}
+      </section>
+      ${castSection('ciudad')}
       <section><h4>Qué es cada servicio</h4>
         <div class="lsigns">${['shop', 'hotel', 'calendar', 'card', 'chat', 'support', 'gear', 'clock', 'mail', 'chart', 'trophy', 'dice', 'game', 'heart', 'ship', 'bowling', 'glass', 'web', 'wp', 'php', 'page', 'wip', 'db', 'cache', 'box']
           .map(k => `<span class="lsign"><i data-s="${k}"></i>${{ shop: 'Tienda', hotel: 'Hotel', calendar: 'Reservas', card: 'Pagos', chat: 'Mensajería', support: 'Mesa de ayuda', gear: 'Automatización', clock: 'Tarea programada', mail: 'Correo', chart: 'Prospección', trophy: 'Deportes', dice: 'Apuestas', game: 'Juego', heart: 'Salud', ship: 'Logística', bowling: 'Bowling', glass: 'Bar', web: 'Web / API', wp: 'WordPress', php: 'PHP', page: 'Sitio estático', wip: 'En construcción', db: 'Base de datos', cache: 'Caché', box: 'Contenedor' }[k]}</span>`).join('')}</div>
       </section>
       ${USO}`;
+    if (!(manifest && manifest.legend)) hydrate(body, 'ciudad');
     body.querySelectorAll('[data-i]').forEach(el => el.replaceWith(iconCanvas(el.dataset.i, 3)));
     body.querySelectorAll('[data-s]').forEach(el => el.replaceWith(signCanvas(el.dataset.s, 3)));
     body.querySelectorAll('[data-c="robot"]').forEach(el => el.replaceWith(robotCanvas('#22d3ee', 3)));

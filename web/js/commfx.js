@@ -3,6 +3,7 @@
 // Cada tema dice donde esta cada cosa con world.screenOf(kind, id) -> { x, y } en pixeles de la ventana;
 // si no lo sabe, se usan las tarjetas del panel de agentes. Sobres y chispas en pixel art, textos nitidos.
 import { ENVELOPE, POLICE_CAR, FLY_POLICE, PROBE_CAR, CAR_COLORS, BUG, paintCanvas } from './pixeldata.js';
+import { SKINS } from './fxskins.js';
 
 const COLORS = { task: '#22d3ee', result: '#4ade80', message: '#c084fc', edit: '#fbbf24', read: '#38bdf8' };
 const LABEL = { task: 'encargo', result: 'resultado', message: 'mensaje' };
@@ -20,15 +21,37 @@ export class CommFx {
     for (const [k, c] of Object.entries(COLORS)) this.env[k] = paintCanvas(ENVELOPE, { x: c }, 1);
     this.still = matchMedia('(prefers-reduced-motion: reduce)').matches;
     // autos de perfil (2 cuadros: las luces alternan); se dibujan al doble, sin suavizar
-    this.cars = { police: POLICE_CAR.map(f => paintCanvas(f, CAR_COLORS, 1)), fly: FLY_POLICE.map(f => paintCanvas(f, CAR_COLORS, 1)), probe: PROBE_CAR.map(f => paintCanvas(f, CAR_COLORS, 1)),
-      queue: PROBE_CAR.map(f => paintCanvas(f.map(r => r.replace(/[Rr]/g, '.')), { ...CAR_COLORS, g: '#64748b', d: '#334155' }, 1)) };
+    // el elenco de la ciudad (autos de policia); cada tema puede traer el suyo (web/js/fxskins.js)
+    this.base = { cars: { police: POLICE_CAR.map(f => paintCanvas(f, CAR_COLORS, 1)), fly: FLY_POLICE.map(f => paintCanvas(f, CAR_COLORS, 1)), probe: PROBE_CAR.map(f => paintCanvas(f, CAR_COLORS, 1)),
+      queue: PROBE_CAR.map(f => paintCanvas(f.map(r => r.replace(/[Rr]/g, '.')), { ...CAR_COLORS, g: '#64748b', d: '#334155' }, 1)) },
+      bug: BUG.map(f => paintCanvas(f, { k: '#111827', r: '#ef4444', w: '#fde68a' }, 1)), capsule: { fill: 'rgba(74, 222, 128, .18)', stroke: '#4ade80', lid: '#bbf7d0', label: '#4ade80' } };
+    this.skinCache = new Map();
     this.sat = null; // servidor al limite (del estado)
-    this.bug = BUG.map(f => paintCanvas(f, { k: '#111827', r: '#ef4444', w: '#fde68a' }, 1));
     this.patrols = new Map(); // sitio vigilado -> { w, phase: out | on | back, t0, park }
     this.resize = () => { const d = Math.min(2, devicePixelRatio || 1); this.dpr = d; this.cv.width = innerWidth * d; this.cv.height = innerHeight * d; };
     this.resize(); addEventListener('resize', this.resize);
     this.raf = 0;
   }
+
+  // el elenco del tema activo: sus personajes en vez de los autos de la ciudad (none: el tema no dibuja vehiculos)
+  get skin() {
+    const id = document.body.dataset.theme || 'ciudad';
+    if (!this.skinCache.has(id)) {
+      let W = null; try { W = this.getWorld(); } catch { W = null; }
+      const S = (W && W.fxSkin) || SKINS[id]; // un tema del kit puede traer su propio elenco (mismo formato que fxskins.js)
+      if (!S) this.skinCache.set(id, this.base);
+      else if (S.none) this.skinCache.set(id, { ...this.base, none: true });
+      else {
+        const norm = f => { const w = Math.max(...f.map(r => r.length)); return f.map(r => r.padEnd(w, '.')); };
+        const paint = frames => frames.map(f => paintCanvas(norm(f), S.pal, 1));
+        const two = fr => fr.length > 1 ? fr : [fr[0], fr[0]];
+        this.skinCache.set(id, { cars: { police: two(paint(S.police)), fly: two(paint(S.fly)), probe: two(paint(S.probe)), queue: two(paint(S.queue)) }, bug: two(paint(S.bug)), capsule: { ...this.base.capsule, ...S.capsule } });
+      }
+    }
+    return this.skinCache.get(id);
+  }
+  get cars() { return this.skin.cars; }
+  get bug() { return this.skin.bug; }
 
   // posicion en pantalla: primero el mundo del tema, despues el panel de agentes
   pos(kind, id, sid) {
@@ -99,6 +122,7 @@ export class CommFx {
   // un robot que busca una ruta vulnerable: auto oscuro con luz roja que va al edificio y rebota; si la
   // ruta respondio (archivo expuesto), el edificio queda marcado en rojo con el cartel EXPUESTO
   probe(e) {
+    if (this.skin.none) return;
     if (this.fx.filter(f => f.type === 'probe').length >= 4 && !e.exposed) return;
     const to = e.app ? this.pos('app', e.app) : e.site ? this.pos('site', e.site) : null;
     if (!to || !to.world) return;
@@ -155,6 +179,7 @@ export class CommFx {
   // vuelan en arco hasta el edificio y quedan suspendidas a sus lados con las luces encendidas; cuando la
   // amenaza se descarta, vuelven a la torre. Pico de visitas: reflectores sobre el edificio. Con su cartel.
   setWatch(list) {
+    if (this.skin.none) { this.patrols.clear(); return; }
     const now = performance.now() / 1000, keys = new Set();
     for (const w of list || []) {
       const k = w.kind + ':' + w.id; keys.add(k);
@@ -168,6 +193,7 @@ export class CommFx {
     if (this.patrols.size) this.run();
   }
   escort(kind, id) {
+    if (this.skin.none) return;
     const k = kind + ':' + id, now = performance.now() / 1000;
     const P = this.patrols.get(k);
     if (P && P.w.reason !== 'surge') { P.phase = 'back'; P.t0 = now; P.escort = true; }
@@ -186,7 +212,7 @@ export class CommFx {
     // arranca aunque el edificio este tapado por un panel (la ficha se cierra sola): se usa su posicion en el mundo
     let b = this.pos(kind, id);
     if (!b) { const w = this.getWorld(); try { b = w && w.screenOf ? w.screenOf(kind, id) : null; } catch { b = null; } }
-    if (!b || this.still) return;
+    if (!b || this.still || this.skin.none) return;
     // los bichos de ese edificio dejan de dibujarse ya (van dentro de la capsula)
     for (const [k, P] of this.patrols) if (P.w.reason === 'phpbad' && P.w.id === id) this.patrols.delete(k);
     this.fx.push({ type: 'capsule', kind, id, last: b, t: 0, dur: 16 });
@@ -209,15 +235,16 @@ export class CommFx {
     else if (t < 15) { car = arc(above, { x: jail.x, y: jail.y - 50 }, (t - 7.5) / 7.5, 160); cap = { x: car.x, y: car.y + 24 }; }
     if (cap) {
       const r = 14 + 6 * Math.min(1, grow);
-      cx.globalAlpha = 0.85; cx.fillStyle = 'rgba(74, 222, 128, .18)'; cx.strokeStyle = '#4ade80'; cx.lineWidth = 2;
+      const C = this.skin.capsule;
+      cx.globalAlpha = 0.85; cx.fillStyle = C.fill; cx.strokeStyle = C.stroke; cx.lineWidth = 2;
       cx.beginPath(); cx.ellipse(cap.x, cap.y, r * 0.7, r, 0, 0, Math.PI * 2); cx.fill(); cx.stroke();
       if (t >= 7.5) { const img = this.bug[frame2(t * 10)]; cx.drawImage(img, cap.x - img.width, cap.y - img.height, img.width * 2, img.height * 2); }
-      cx.fillStyle = '#bbf7d0'; cx.fillRect(Math.round(cap.x - 3), Math.round(cap.y - r - 3), 6, 3); // tapa
+      cx.fillStyle = C.lid; cx.fillRect(Math.round(cap.x - 3), Math.round(cap.y - r - 3), 6, 3); // tapa
       cx.globalAlpha = 1;
       if (car) { cx.strokeStyle = 'rgba(148, 163, 184, .8)'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(car.x, car.y + 8); cx.lineTo(cap.x, cap.y - r); cx.stroke(); } // cable
     }
     if (car) this.car('fly', car.x, car.y, t, (t < 5 ? above.x < home.x : jail.x < above.x));
-    if (t > 5 && t < 15) this.watchLabel({ x: (cap || b).x, y: (cap || b).y + 8 }, 'EN CUARENTENA', '#4ade80');
+    if (t > 5 && t < 15) this.watchLabel({ x: (cap || b).x, y: (cap || b).y + 8 }, 'EN CUARENTENA', this.skin.capsule.label);
   }
   // bichos caminando sobre un punto (los usa la capsula mientras los atrapa)
   drawBugs(p, t, a = 1) {
@@ -227,7 +254,7 @@ export class CommFx {
     cx.globalAlpha = 1;
   }
   release() {
-    const from = this.jailPos(); if (!from || this.still) return;
+    const from = this.jailPos(); if (!from || this.still || this.skin.none) return;
     const w = this.getWorld();
     let to = null; try { to = w && w.screenOf ? w.screenOf('gate') : null; } catch { to = null; }
     this.fx.push({ type: 'release', from, to: to || { x: from.x, y: -40 }, t: 0, dur: 6 });

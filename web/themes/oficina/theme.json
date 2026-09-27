@@ -3,7 +3,7 @@
   "name": "Oficina",
   "description": "Un piso de oficina en pixel art isométrico, al estilo de los hoteles virtuales de los 2000: salas flotando en el vacío con sus muebles y personajitos. La sala de servidores es el servidor, cada cuenta una sala con su directorio, cada servicio un escritorio con su empleado y cada sitio un puesto con laptop. Las visitas llegan como aviones de papel, los intrusos se quedan en los torniquetes, los agentes de Claude Code son compañeros que caminan por su sala los avisos salen en globos de diálogo, los bloqueados quedan retenidos en Seguridad y el correo pasa por la Mensajería.",
   "author": "NERACOSU",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "license": "Propietaria · arte propio en código",
   "world": "world.js",
   "css": "theme.css",
@@ -28,14 +28,14 @@
       "title": "El piso",
       "items": [
         {
-          "icon": "terminal",
           "title": "Sala de servidores",
-          "text": "El servidor, detrás del vidrio: las luces de los racks titilan más rápido con más CPU; una se pone ámbar si falla un servicio clave."
+          "text": "El servidor, detrás del vidrio: las luces de los racks titilan más rápido con más CPU; una se pone ámbar si falla un servicio clave.",
+          "art": "rack"
         },
         {
-          "icon": "house",
           "title": "Departamentos",
-          "text": "Cada cuenta es una sala con el remate de sus paredes y su piso en su color."
+          "text": "Cada cuenta es una sala con el remate de sus paredes y su piso en su color.",
+          "art": "room"
         },
         {
           "icon": "library",
@@ -48,19 +48,22 @@
           "text": "Por el ascensor entra todo. Los torniquetes son el cortafuegos: su luz se pone roja cuando rebotan a un intruso."
         },
         {
-          "icon": "jail",
           "title": "Seguridad",
-          "text": "Las IPs bloqueadas son retenidos de mono naranja tras las rejas de la celda. Las cajas selladas con cinta roja son archivos PHP maliciosos en cuarentena."
+          "text": "Las IPs bloqueadas son retenidos de mono naranja tras las rejas de la celda. Las cajas selladas con cinta roja son archivos PHP maliciosos en cuarentena.",
+          "art": [
+            "detainee",
+            "box"
+          ]
         },
         {
-          "icon": "mail",
           "title": "Mensajería",
-          "text": "Casilleros, la mesa de clasificar y el cartero: por aquí pasa todo el correo. Si la cola se atasca, las cartas se apilan en la mesa."
+          "text": "Casilleros, la mesa de clasificar y el cartero: por aquí pasa todo el correo. Si la cola se atasca, las cartas se apilan en la mesa.",
+          "art": "pigeonholes"
         },
         {
-          "icon": "db",
           "title": "Archivador",
-          "text": "Las bases de datos de la sala: más cajones cuanto más pesan, rojizo si están al límite, y una «z» si hay conexiones dormidas. Los cables del piso llegan a los puestos que las usan, con pulsos cuando hay consultas."
+          "text": "Las bases de datos de la sala: más cajones cuanto más pesan, rojizo si están al límite, y una «z» si hay conexiones dormidas. Los cables del piso llegan a los puestos que las usan, con pulsos cuando hay consultas.",
+          "art": "cabinet"
         }
       ]
     },
@@ -68,34 +71,34 @@
       "title": "La gente y los papeles",
       "items": [
         {
-          "color": "#4f7cc8",
           "title": "Escritorio con empleado",
-          "text": "Un servicio: teclea más rápido con más CPU y su pantalla es celeste. Pantalla ámbar: a medias (parcial). Silla vacía y pantalla roja: fuera de servicio (caído)."
+          "text": "Un servicio: teclea más rápido con más CPU y su pantalla es celeste. Pantalla ámbar: a medias (parcial). Silla vacía y pantalla roja: fuera de servicio (caído).",
+          "art": "worker"
         },
         {
-          "color": "#b8bec8",
           "title": "Puesto con laptop",
-          "text": "Un sitio servido directo; su pantalla se ilumina con cada visita."
+          "text": "Un sitio servido directo; su pantalla se ilumina con cada visita.",
+          "art": "laptop"
         },
         {
-          "color": "#ffffff",
           "title": "Aviones de papel",
-          "text": "Cada visita sale del ascensor y aterriza en su escritorio (gris si es un robot). Un papel rojo arrugado que vuela a la papelera es un error del servidor."
+          "text": "Cada visita sale del ascensor y aterriza en su escritorio (gris si es un robot). Un papel rojo arrugado que vuela a la papelera es un error del servidor.",
+          "art": "plane"
         },
         {
-          "color": "#3a1a1a",
           "title": "Intrusos",
-          "text": "Intentos de acceso fallidos: llegan a los torniquetes y los rebotan. Si la IP queda bloqueada, aparece «Acceso denegado»."
+          "text": "Intentos de acceso fallidos: llegan a los torniquetes y los rebotan. Si la IP queda bloqueada, aparece «Acceso denegado».",
+          "art": "intruder"
         },
         {
-          "icon": "bot",
           "title": "Compañeros con laptop",
-          "text": "Las sesiones de Claude Code (camisa naranja) caminan por su sala hasta los escritorios. Con la mano levantada: esperan su permiso."
+          "text": "Las sesiones de Claude Code (camisa naranja) caminan por su sala hasta los escritorios. Con la mano levantada: esperan su permiso.",
+          "art": "mate"
         },
         {
-          "icon": "mail",
           "title": "Sobres",
-          "text": "Correo entre la recepción y la sala de servidores (naranja: rebotado)."
+          "text": "Correo entre la recepción y la sala de servidores (naranja: rebotado).",
+          "art": "envelope"
         },
         {
           "icon": "chat",

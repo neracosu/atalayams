@@ -1,9 +1,9 @@
 {
   "id": "planta",
   "name": "Planta",
-  "description": "Una fábrica de automatización en 3D con la paleta de PICO-8: la central es el servidor, cada cuenta una nave con su placa que nombra todas sus máquinas, cada servicio una máquina con engranaje y tanque, cada sitio una prensa. Las visitas son piezas que viajan por las cintas y los errores terminan en la chatarra.",
+  "description": "Una fábrica de automatización en 3D con la paleta de PICO-8: la central es el servidor, cada cuenta una nave con su placa que nombra todas sus máquinas, cada servicio una máquina con engranaje y tanque, cada sitio una prensa. Las visitas son piezas que viajan por las cintas y los errores terminan en la chatarra. Junto a la central, la jaula de decomisos con los drones capturados y el despacho por donde sale el correo.",
   "author": "NERACOSU",
-  "version": "2.0.0",
+  "version": "2.1.1",
   "license": "Propietaria · three.js (MIT) · arte propio · paleta PICO-8 · fuente Silkscreen bajo SIL OFL 1.1",
   "world": "world.js",
   "css": "theme.css",
@@ -41,9 +41,9 @@
       "title": "La planta",
       "items": [
         {
-          "icon": "terminal",
           "title": "La central",
-          "text": "El servidor: su chimenea echa más humo con más CPU; los silos azul y naranja son la memoria y el disco (rojos si pasan el 85 %)."
+          "text": "El servidor: su chimenea echa más humo con más CPU; los silos azul y naranja son la memoria y el disco (rojos si pasan el 85 %).",
+          "art": "central"
         },
         {
           "icon": "library",
@@ -51,19 +51,37 @@
           "text": "Delante de cada nave: su nombre, su cuenta y la lista de todas sus máquinas con su cartel. Un clic en un nombre lo abre. Al acercarse, cada máquina lleva su nombre encima."
         },
         {
-          "icon": "house",
           "title": "Naves",
-          "text": "Cada cuenta es una nave con su color en el techo."
+          "text": "Cada cuenta es una nave con su color en el techo.",
+          "art": "hall"
         },
         {
-          "icon": "gear",
           "title": "Máquina",
-          "text": "Un servicio: el engranaje gira más rápido con más CPU, el tanque azul es la memoria y el foco dice su estado (verde en marcha, naranja lenta, rojo detenida)."
+          "text": "Un servicio: el engranaje gira más rápido con más CPU, el tanque azul es la memoria y el foco dice su estado (verde en marcha, naranja lenta, rojo detenida).",
+          "art": "machine"
         },
         {
-          "icon": "page",
           "title": "Prensa",
-          "text": "Un sitio servido directo, con el cartel de lo que es."
+          "text": "Un sitio servido directo, con el cartel de lo que es.",
+          "art": "press"
+        },
+        {
+          "title": "Jaula de decomisos",
+          "text": "Junto a la central: las IPs bloqueadas son drones capturados tras la malla. Los barriles sellados de la puerta son archivos PHP maliciosos en cuarentena.",
+          "art": [
+            "drone",
+            "barrel"
+          ]
+        },
+        {
+          "title": "Despacho",
+          "text": "Cada correo es un paquete que viaja colgado del cable entre su nave y el despacho: etiqueta verde sale, azul llega, roja fue devuelto con el motivo. La cola se apila en el palé.",
+          "art": "parcel"
+        },
+        {
+          "title": "Tanque de datos",
+          "text": "En cada nave con bases de datos: se llena según su tamaño, se pone rojo al límite y suelta una «z» si hay conexiones dormidas. Las tuberías llevan a las máquinas que las usan, con pulsos cuando hay consultas.",
+          "art": "tank"
         }
       ]
     },
@@ -71,9 +89,9 @@
       "title": "Lo que se mueve",
       "items": [
         {
-          "color": "#ffccaa",
           "title": "Piezas",
-          "text": "Cada visita entra por el portón amarillo de su nave y viaja por la cinta hasta su máquina (violeta si es un robot). Una pieza roja es un error del servidor y vuela a la chatarra, junto a la central."
+          "text": "Cada visita entra por el portón amarillo de su nave y viaja por la cinta hasta su máquina (violeta si es un robot). Una pieza roja es un error del servidor y vuela a la chatarra, junto a la central.",
+          "art": "piece"
         },
         {
           "color": "#ff004d",
@@ -81,14 +99,14 @@
           "text": "La máquina está detenida (caída): la cinta se atasca frente a ella."
         },
         {
-          "icon": "invader",
           "title": "Drones",
-          "text": "Intentos de acceso que llegan al cerco. La torreta los derriba con un láser cuando la IP queda bloqueada."
+          "text": "Intentos de acceso que llegan al cerco. La torreta los derriba con un láser cuando la IP queda bloqueada.",
+          "art": "drone"
         },
         {
-          "icon": "bot",
           "title": "Robots obreros",
-          "text": "Las sesiones de Claude Code llevan cajas entre las máquinas de su nave. Detenidos en la barrera con la luz ámbar: esperan su permiso."
+          "text": "Las sesiones de Claude Code llevan cajas entre las máquinas de su nave. Detenidos en la barrera con la luz ámbar: esperan su permiso.",
+          "art": "robot"
         }
       ]
     },
@@ -99,6 +117,21 @@
           "icon": "chart",
           "title": "Sala de control",
           "text": "Arriba, las lecturas del servidor en pantallas de cristal líquido; a la derecha, la cinta de producción (las novedades) como tickets."
+        }
+      ]
+    },
+    {
+      "title": "Cuando algo aprieta",
+      "items": [
+        {
+          "color": "#ff004d",
+          "title": "Planta saturada",
+          "text": "Con el servidor al límite, la baliza de la central gira en rojo, las cintas van lentas y las piezas esperan apiladas en el portón de cada nave."
+        },
+        {
+          "color": "#ffa300",
+          "title": "Cuota",
+          "text": "En la placa de la nave, en naranja o rojo, cuando la cuenta se acerca al límite de su disco o sus inodos."
         }
       ]
     }

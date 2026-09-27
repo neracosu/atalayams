@@ -14,6 +14,14 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.74.0] - 2026-09-27
+
+### Agregado
+- **Leyenda con el arte de cada tema**: cada elemento se explica con un dibujo de su propio mundo (el preso a rayas y el tonel de la villa, el espectro y el ataúd de la mazmorra, el cofre del acuario, el tanque de datos de la planta...) en vez de un icono genérico, y una sección nueva, **«Los que vigilan»**, muestra el elenco del tema con sus nombres. En Terminal, glifos de texto. La leyenda de la Ciudad y la de Ciudad 3D suman la cárcel, la cuarentena, el correo, los silos, la saturación y la cuota. Un tema del kit puede traer su arte (`"art"` con filas y paleta en su `theme.json`).
+- **Planta, completa**: la **jaula de decomisos** junto a la central (las IPs bloqueadas son drones capturados y los archivos en cuarentena, barriles sellados), el **despacho** (cada correo es un paquete que viaja por cable; los devueltos vuelven con el motivo y la cola se apila en el palé) y un **tanque de datos** en cada nave con bases, con tuberías a las máquinas que las usan.
+- Planta: con el servidor **al límite**, baliza roja en la central, cintas lentas y piezas esperando en el portón; la **cuota** aparece en la placa de la nave.
+- **Cada tema con su propio elenco**: las patrullas, las escoltas a la cárcel, los que llegan a sondear, la fila de espera y los archivos maliciosos ya no son autos de policía en todos lados. En la Villa son guardias con lanza, búhos guardianes, ladrones encapuchados y ratas; en el Castillo, centinelas, gárgolas, espectros y arañas; en la Oficina, guardias de seguridad, un dron, intrusos de capucha y cucarachas; en el Raid, paladines, un dragoncito, esbirros y slimes; en el Acuario, caballitos de mar, tortugas, tiburones y erizos; en Ops, blindados, drones y marcadores hostiles; en la Planta, montacargas y drones. La cápsula de cuarentena toma los colores de cada tema. En Terminal no se dibujan vehículos. Un tema del kit puede traer su propio elenco (`fxSkin`).
+
 ## [0.73.0] - 2026-09-27
 
 ### Agregado
@@ -1374,7 +1382,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.73.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.74.0...HEAD
+[0.74.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.73.0...v0.74.0
 [0.73.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.72.0...v0.73.0
 [0.72.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.71.0...v0.72.0
 [0.71.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.70.0...v0.71.0

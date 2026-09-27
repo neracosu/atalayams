@@ -13,12 +13,13 @@
 import { Stage3D, THREE, color, clamp, billboard, groupsOf, layoutKeyOf, packRows, iconURL, plaqueList } from '../../js/stage3d.js';
 import { signCanvas, robotCanvas } from '../../js/sprites.js';
 import { esc, fmtBytes } from '../../js/hud.js';
-import { accountCaption } from '../../js/accounts.js';
+import { accountCaption, forEdition } from '../../js/accounts.js';
 import { healthLine } from '../../js/layout.js';
 
 // PICO-8
 const K = { black: '#000000', navy: '#1d2b53', plum: '#7e2553', green: '#008751', brown: '#ab5236', dgray: '#5f574f', lgray: '#c2c3c7', white: '#fff1e8', red: '#ff004d', orange: '#ffa300', yellow: '#ffec27', lime: '#00e436', blue: '#29adff', lav: '#83769c', pink: '#ff77a8', peach: '#ffccaa' };
 const SP = 2.3, COLS = 6, FONT_K = 0.36, EL = 0.8;
+const JW = 3.6, DW = 3, TANK_W = 1.4; // jaula de decomisos, despacho del correo y tanque de datos de una nave
 
 function tileTex() {
   const cv = document.createElement('canvas'); cv.width = cv.height = 32;
@@ -49,8 +50,17 @@ export default class Planta3D extends Stage3D {
     this.fov = 30; this.fitScale = 1; this.orbitSpeed = 0;
     this.machines = new Map(); this.halls = new Map(); this.bots = new Map();
     this.layoutKey = ''; this.scrap = 0;
+    this.cage = null; this.dock = null; this.mailLog = []; this.jam = false; this.jamQ = 0;
     this.view = { az: Math.PI / 2, el: EL, dist: 50, tx: 0, ty: 0, tz: 0, zoom: 1 };
     this.orbit = { ...this.view }; this.goal = { ...this.view };
+  }
+
+  // jaula de decomisos (carcel), despacho (correo) y central (de ahi salen las patrullas)
+  screenOf(kind, id) {
+    if (kind === 'jail') return this.cage ? this.screenAt(new THREE.Vector3(this.cage.x, 1, this.cage.z)) : null;
+    if (kind === 'mail') return this.dock ? this.screenAt(new THREE.Vector3(this.dock.x, 1.2, this.dock.z)) : null;
+    if ((kind === 'gate' || kind === 'tower') && this.central) return this.screenAt(this.central.gunPos);
+    return super.screenOf(kind, id);
   }
 
   async build() {
@@ -66,30 +76,40 @@ export default class Planta3D extends Stage3D {
 
   // ------------------------------------------------------------------ la planta
   layout(state) {
-    const key = layoutKeyOf(state);
+    const jailOn = !!state.jail, mailOn = !!state.mail && forEdition('TORRE DE CONTROL') === 'TORRE DE CONTROL';
+    const silos = new Set(((state.silos && state.silos.list) || []).map(x => x.account));
+    const key = layoutKeyOf(state) + (jailOn ? '|J' : '') + (mailOn ? '|M' : '') + '|' + [...silos].sort().join(',');
     if (key === this.layoutKey) return;
     if (key !== this.realKey) { this.realKey = key; this.refits = 0; }
     this.layoutKey = key;
     this.plant.clear();
+    for (const o of [this.cage, this.dock]) if (o) o.label.remove();
+    this.cage = null; this.dock = null; this.jamQ = 0; this.beacon = null;
     for (const h of this.halls.values()) h.plaque.remove();
     for (const m of this.machines.values()) m.label.remove();
     if (this.centralLabel) this.centralLabel.remove();
     this.halls.clear(); this.machines.clear();
     this.pickables = this.pickables.filter(p => p.userData.kind === 'session');
     const list = groupsOf(state);
-    list.forEach(h => { h.cols = Math.min(h.items.length, clamp(Math.ceil(Math.sqrt(h.items.length * 1.6)), 2, COLS)); h.rows = Math.ceil(h.items.length / h.cols); h.w = h.cols * SP + 1.6; h.d = h.rows * SP + 0.6; });
+    list.forEach(h => { h.cols = Math.min(h.items.length, clamp(Math.ceil(Math.sqrt(h.items.length * 1.6)), 2, COLS)); h.rows = Math.ceil(h.items.length / h.cols); h.tank = silos.has(h.a.id); h.w = h.cols * SP + 1.6 + (h.tank ? TANK_W : 0); h.d = h.rows * SP + 0.6; });
     const plaqueE = h => (FONT_K * 1.3 * this.plaqueLines(h.items.length, h.w, FONT_K) + 0.5) / Math.sin(EL);
-    const CW = 7; // la central abre la primera fila
+    const CW = 7 + (jailOn ? JW + 1.6 : 0) + (mailOn ? DW + 1.6 : 0); // la central (y la jaula y el despacho) abren la primera fila
     const plaqueD = g => (g.plaqueU = this.plaqueUnits(g.a.id, plaqueE(g)));
     const best = packRows(list, { w: h => h.w, h: h => h.d + plaqueD(h) + 1, gap: 1.6, lead: CW + 1.6, aspect: this.areaAspect() * Math.sin(EL) });
     let z = 0;
     best.rows.forEach((row, ri) => {
       let x = -best.widths[ri] / 2;
-      if (ri === 0) { this.buildCentral(x + CW / 2, z + 3); x += CW + 1.6; }
+      if (ri === 0) {
+        this.buildCentral(x + 3.5, z + 3); x += 7 + 1.6;
+        if (jailOn) { this.buildCage(x + JW / 2, z + 3); x += JW + 1.6; }
+        if (mailOn) { this.buildDock(x + DW / 2, z + 3); x += DW + 1.6; }
+      }
       for (const h of row) { h.x = x + h.w / 2; h.z = z + h.d / 2; x += h.w + 1.6; this.buildHall(h); }
       z += best.heights[ri];
     });
     this.extent = { w: best.W, z0: -1, z1: z };
+    if (state.jail) this.drawCage(state.jail);
+    this.updateTanks(state.silos);
     this.fit(true);
   }
   fit(snap) {
@@ -134,6 +154,134 @@ export default class Planta3D extends Stage3D {
     this.centralLabel.d.dataset.go = 'system:root';
   }
 
+  // ------------------------------------------------------------------ jaula, despacho y tanques
+  // Jaula de decomisos: las IPs bloqueadas son drones capturados tras la malla (hasta 6); los archivos en
+  // cuarentena, barriles de residuos peligrosos sellados junto a la puerta
+  buildCage(x, z) {
+    const g = new THREE.Group(); g.position.set(x, 0, z);
+    const mat = c => new THREE.MeshStandardMaterial({ color: color(c), roughness: 0.7, flatShading: true });
+    const slab = new THREE.Mesh(new THREE.BoxGeometry(JW, 0.14, 3.2), mat(K.dgray)); slab.position.y = 0.07;
+    const mesh = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(JW - 0.4, 2, 2.4, 6, 4, 4)), new THREE.LineBasicMaterial({ color: color(K.lgray) }));
+    mesh.position.set(0, 1.14, -0.3);
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(JW - 0.2, 0.12, 2.6), mat(K.red)); roof.position.set(0, 2.2, -0.3);
+    const hit = new THREE.Mesh(new THREE.BoxGeometry(JW, 2.4, 3.2), new THREE.MeshBasicMaterial({ visible: false })); hit.position.y = 1.2;
+    hit.userData = { kind: 'jail', id: 'all' };
+    const drones = new THREE.Group(), barrels = new THREE.Group();
+    g.add(slab, mesh, roof, hit, drones, barrels);
+    this.plant.add(g); this.pickables.push(hit);
+    const label = this.label('w3-plaque w3-cage', '<b style="border-color:#ff004d">Decomisos</b><small></small>', new THREE.Vector3(x, 0.05, z + 1.9));
+    label.d.dataset.go = 'jail:all';
+    this.cage = { g, x, z, drones, barrels, label, n: -1, q: -1 };
+  }
+  cageLine() { const c = this.cage; if (!c) return ''; const n = Math.max(0, c.n), q = Math.max(0, c.q); return (n ? `${n} dron${n === 1 ? '' : 'es'} capturado${n === 1 ? '' : 's'}` : 'vacía') + (q ? ` · ${q} barril${q === 1 ? '' : 'es'}` : ''); }
+  drawCage(J) {
+    const c = this.cage; if (!c || !J) return;
+    const n = J.n || 0, q = J.quarantine || 0;
+    if (n !== c.n) {
+      if (c.n >= 0 && n > c.n) this.float(new THREE.Vector3(c.x, 3, c.z), 'Dron capturado', 'warn');
+      c.n = n; c.drones.clear();
+      const dm = new THREE.MeshStandardMaterial({ color: color(K.red), emissive: color(K.red), emissiveIntensity: 0.3, flatShading: true });
+      for (let i = 0; i < Math.min(6, n); i++) {
+        const d = new THREE.Group(); d.add(new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.14, 0.4), dm));
+        for (const [dx, dz] of [[-0.26, -0.26], [0.26, -0.26], [-0.26, 0.26], [0.26, 0.26]]) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.03, 8), new THREE.MeshBasicMaterial({ color: color(K.lgray) })); r.position.set(dx, 0.09, dz); d.add(r); }
+        d.position.set(-1 + (i % 3) * 1, 0.5 + Math.floor(i / 3) * 0.9, -0.3); d.userData.ph = i; d.userData.y0 = d.position.y;
+        c.drones.add(d);
+      }
+    }
+    if (q !== c.q) {
+      c.q = q; c.barrels.clear();
+      for (let i = 0; i < Math.min(4, q); i++) {
+        const b = new THREE.Group();
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.56, 12), new THREE.MeshStandardMaterial({ color: color(K.plum), flatShading: true })); body.position.y = 0.28;
+        const band = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.23, 0.12, 12), new THREE.MeshBasicMaterial({ color: color(K.yellow) })); band.position.y = 0.3;
+        b.add(body, band); b.position.set(-1.25 + i * 0.52, 0.14, 1.25); b.userData = { kind: 'jail', id: 'all' };
+        c.barrels.add(b);
+      }
+    }
+    c.label.d.querySelector('small').textContent = this.cageLine();
+  }
+  // Despacho: cada correo es un paquete que viaja colgado de un cable entre su nave y el despacho; la cola
+  // se apila en el pale de la puerta
+  buildDock(x, z) {
+    const g = new THREE.Group(); g.position.set(x, 0, z);
+    const mat = c => new THREE.MeshStandardMaterial({ color: color(c), roughness: 0.7, flatShading: true });
+    const shed = new THREE.Mesh(new THREE.BoxGeometry(DW - 0.4, 1.8, 2), mat(K.lav)); shed.position.set(0, 0.9, -0.5);
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(DW - 0.2, 0.14, 2.2), mat(K.navy)); roof.position.set(0, 1.87, -0.5);
+    const door = new THREE.Mesh(new THREE.BoxGeometry(1, 1.1, 0.05), mat(K.dgray)); door.position.set(0, 0.55, 0.52);
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.6, 6), mat(K.lgray)); mast.position.set(DW / 2 - 0.4, 2.6, -0.5);
+    const pallet = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.14, 0.8), mat(K.brown)); pallet.position.set(0, 0.07, 1.2);
+    shed.userData = roof.userData = { kind: 'mail', id: 'all' };
+    const pile = new THREE.Group();
+    g.add(shed, roof, door, mast, pallet, pile);
+    this.plant.add(g); this.pickables.push(shed, roof);
+    const label = this.label('w3-plaque w3-dock', '<b style="border-color:#83769c">Despacho</b><small></small>', new THREE.Vector3(x, 0.05, z + 1.9));
+    label.d.dataset.go = 'mail:all';
+    this.dock = { g, x, z, pile, label, pileN: -1, hook: new THREE.Vector3(x + DW / 2 - 0.4, 3.4, z - 0.5) };
+  }
+  postLine() {
+    const now = this.t; this.mailLog = this.mailLog.filter(x => now - x.t < 60);
+    const n = d => this.mailLog.filter(x => x.dir === d).length;
+    const parts = [[n('out'), 'salen'], [n('in'), 'llegan'], [n('bounce'), 'rebotan']].filter(x => x[0]).map(x => `${x[0]} ${x[1]}`);
+    return parts.length ? parts.join(' · ') : 'sin paquetes';
+  }
+  parcel(c) {
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.26, 0.26), new THREE.MeshStandardMaterial({ color: color(K.peach), flatShading: true })));
+    const tag = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.08, 0.28), new THREE.MeshBasicMaterial({ color: color(c) })); g.add(tag);
+    return g;
+  }
+  drawPost() {
+    const D = this.dock; if (!D) return;
+    const sm = D.label.d.querySelector('small'), line = this.postLine(); if (sm.textContent !== line) sm.textContent = line;
+    const q = this.mailQueue || 0, want = q > 1000 ? 8 : q > 100 ? 5 : q > 20 ? 3 : 0;
+    if (want === D.pileN) return;
+    D.pileN = want; D.pile.clear();
+    for (let i = 0; i < want; i++) { const p = this.parcel(q > 1000 ? K.red : K.blue); p.position.set(-0.3 + (i % 2) * 0.38, 0.28 + Math.floor(i / 2) * 0.27, 1.2); D.pile.add(p); }
+  }
+  letter(dir, e) {
+    this.mailLog.push({ t: this.t, dir }); if (this.mailLog.length > 3000) this.mailLog.shift();
+    this.drawPost();
+    this.mailLast = this.mailLast || {};
+    if (this.t - (this.mailLast[dir] || -9) < 0.35 || this.fx.length > 220) return;
+    this.mailLast[dir] = this.t;
+    const H = e.account && this.halls.get(e.account), D = this.dock;
+    const home = H ? new THREE.Vector3(H.x, 1.6, H.z - H.d / 2) : this.central.chimneyTop.clone().setY(2.6);
+    const hook = D.hook.clone(), sky = hook.clone().add(new THREE.Vector3(4, 6, -8));
+    const p = this.parcel(dir === 'bounce' ? K.red : dir === 'in' ? K.blue : K.lime);
+    const leg = (a, b, sag = 0.8) => new THREE.QuadraticBezierCurve3(a, a.clone().lerp(b, 0.5).setY(Math.min(a.y, b.y) + 1.4 - sag), b);
+    const mid = hook.clone().add(new THREE.Vector3(1.5, 1.5, -1.5));
+    const legs = dir === 'in' ? [leg(sky, hook, -2), leg(hook, home)] : dir === 'bounce' ? [leg(home, hook), leg(hook, mid, -1), leg(mid, hook, -1), leg(hook, home)] : [leg(home, hook), leg(hook, sky, -2)];
+    const SHORT = { auth: 'SIN AUTENTICAR', nouser: 'NO EXISTE', full: 'BUZÓN LLENO', spam: 'SPAM', domain: 'DOMINIO', rate: 'DEMASIADOS' };
+    const secs = 1.3;
+    this.addFx(p, f => {
+      const i = Math.floor(f.age / secs); if (i >= legs.length) return false;
+      if (i !== f.leg) { f.leg = i; if (dir === 'bounce' && i === 2) this.float(hook.clone().setY(hook.y + 0.8), `Devuelto: ${SHORT[e.cat] || 'sin motivo'}`, 'warn'); }
+      p.position.copy(legs[i].getPoint((f.age % secs) / secs)); p.rotation.y = Math.sin(f.age * 3) * 0.3;
+      return true;
+    });
+  }
+  // tanque de datos de la nave: sus bases; se llena segun el tamano, rojo al limite; tuberias con pulsos a las maquinas
+  buildTank(H) {
+    const x = H.x + H.w / 2 - TANK_W / 2 - 0.15, z = H.z - H.d / 2 + 0.9;
+    const shell = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 2.2, 14, 1, true), new THREE.MeshStandardMaterial({ color: color(K.lgray), transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false }));
+    shell.position.set(x, 1.22, z);
+    const fillM = new THREE.MeshStandardMaterial({ color: color(K.blue), emissive: color(K.blue), emissiveIntensity: 0.3 });
+    const fill = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.44, 1, 14), fillM); fill.geometry.translate(0, 0.5, 0); fill.position.set(x, 0.14, z); fill.scale.y = 0.4;
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.4, 14), new THREE.MeshStandardMaterial({ color: color(K.dgray), flatShading: true })); cap.position.set(x, 2.52, z);
+    shell.userData = cap.userData = { kind: 'databases', id: H.a.id };
+    const pipes = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: color(K.blue), transparent: true, opacity: 0.7 }));
+    this.plant.add(shell, fill, cap, pipes); this.pickables.push(shell, cap);
+    H.tankO = { x, z, fill, fillM, pipes, fillK: 0.3, want: 0.4, hot: false, data: null };
+  }
+  updateTanks(S) {
+    const hotAll = !!(S && S.hot >= 0.85);
+    for (const x of (S && S.list) || []) {
+      const H = this.halls.get(x.account); if (!H || !H.tankO) continue;
+      const T = H.tankO; T.data = x;
+      T.want = x.size > 2 * 1073741824 ? 2 : x.size > 200 * 1048576 ? 1.4 : 0.8; T.hot = hotAll || (x.busy || 0) >= 85;
+    }
+  }
+
   buildHall(H) {
     const { a, items } = H;
     const floorM = new THREE.MeshStandardMaterial({ color: color(a.color).lerp(color('#2a2a33'), 0.82), roughness: 1 });
@@ -163,7 +311,8 @@ export default class Planta3D extends Stage3D {
       H.belts.push({ z: bz, tex, jam: false });
     }
     items.forEach((it, i) => this.addMachine(it, H, H.x - H.w / 2 + 0.8 + SP / 2 + (i % H.cols) * SP, H.z - H.d / 2 + 0.3 + SP * 0.35 + Math.floor(i / H.cols) * SP, Math.floor(i / H.cols)));
-    H.plaque = this.label('w3-plaque', `<b style="border-color:${a.color}">${esc(a.label)}</b><small>${esc(H.caption)}</small><div class="fishlist"></div>`, new THREE.Vector3(H.x, 0.05, H.z + H.d / 2 + 0.25));
+    if (H.tank) this.buildTank(H);
+    H.plaque = this.label('w3-plaque', `<b style="border-color:${a.color}">${esc(a.label)}</b><small>${esc(H.caption)}</small><small class="q" hidden style="font-weight:700"></small><div class="fishlist"></div>`, new THREE.Vector3(H.x, 0.05, H.z + H.d / 2 + 0.25));
     H.plaque.d.dataset.go = 'district:' + a.id;
     this.halls.set(a.id, H);
     this.fillPlaque(H);
@@ -234,6 +383,21 @@ export default class Planta3D extends Stage3D {
     const hl = healthLine(state), he = this.centralLabel && this.centralLabel.d.querySelector('.hl');
     if (he && hl) { he.textContent = hl.text; he.style.color = hl.color; }
     this.syncBots(state.sessions || []);
+    // jaula, despacho y tanques
+    this.drawCage(state.jail);
+    this.mailQueue = state.mailQueue; this.drawPost();
+    this.updateTanks(state.silos);
+    // servidor al limite: baliza en la central, cintas lentas y piezas esperando en el porton de cada nave
+    const jam = !!(state.saturation && state.saturation.level === 'bad');
+    if (jam && !this.jam && this.central) this.float(this.central.chimneyTop.clone().setY(6), '¡Planta saturada!', 'crit', 4);
+    this.jam = jam;
+    // cuota al limite: una linea en la placa de la nave
+    for (const a of state.accounts) {
+      const H = this.halls.get(a.id); if (!H) continue;
+      const el = H.plaque.d.querySelector('.q'); if (!el) continue;
+      const txt = a.quota ? `${String(a.quota.what).toUpperCase()} AL ${a.quota.pct} %` : '';
+      el.textContent = txt; el.hidden = !txt; el.style.color = a.quota && a.quota.level === 'bad' ? K.red : K.orange;
+    }
   }
 
   syncBots(sessions) {
@@ -267,6 +431,7 @@ export default class Planta3D extends Stage3D {
         if (!m || this.fx.length > 240) return;
         return this.piece(m, e.status >= 500, e.bot);
       }
+      case 'mail': return this.dock ? this.letter(e.dir, e) : undefined;
       case 'attack': return this.drone(false);
       case 'block': return this.drone(true, priv ? e.ip : null);
       case 'login': return this.central && this.float(this.central.gunPos.clone().setY(4), priv && e.user ? `Entró ${e.user}` : 'Entró el operador', 'ok');
@@ -296,6 +461,21 @@ export default class Planta3D extends Stage3D {
     const cube = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.22), new THREE.MeshStandardMaterial({ color: color(bad ? K.red : bot ? K.lav : K.peach), emissive: color(bad ? K.red : K.black), emissiveIntensity: 0.4 }));
     const y = 0.34, start = H.gate.clone().setY(y), onBelt = new THREE.Vector3(H.x - H.w / 2 + 0.3, y, belt.z), at = new THREE.Vector3(m.x, y, belt.z), into = new THREE.Vector3(m.x, 0.5, m.z + 0.2);
     const pts = [start, onBelt, at];
+    if (this.jam && !bot) {
+      if (this.jamQ >= 24) return;
+      // espera apilada en el porton de la nave antes de entrar a la cinta
+      const slot = (H.waitN = (H.waitN || 0) + 1) - 1; this.jamQ++;
+      this.jamNext = Math.max(this.jamNext || 0, this.t) + 0.6;
+      const hold = this.jamNext - this.t, spot = start.clone().add(new THREE.Vector3(-0.5 - (slot % 3) * 0.28, (Math.floor(slot / 3) % 4) * 0.24, 0));
+      const path = new THREE.CatmullRomCurve3([spot, ...pts, new THREE.Vector3(m.x, 0.5, m.z + 0.2)], false, 'centripetal'), secs = 2.2 + Math.abs(m.x - H.x) / 6;
+      this.addFx(cube, f => {
+        if (f.age < hold) { cube.position.copy(spot); return true; }
+        if (!f.left) { f.left = true; this.jamQ = Math.max(0, this.jamQ - 1); H.waitN = Math.max(0, (H.waitN || 1) - 1); }
+        const k = (f.age - hold) / secs; if (k >= 1) { if (m.site) m.press = 1; else m.hits = Math.min(m.hits + 0.3, 1.5); return false; }
+        cube.position.copy(path.getPoint(k)); return true;
+      });
+      return;
+    }
     if (m.data.status === 'down') { this.travel(cube, new THREE.CatmullRomCurve3(pts, false, 'centripetal'), 2 + Math.abs(m.x - H.x) / 6, () => { belt.jam = 1; }); return; }
     const path = new THREE.CatmullRomCurve3([...pts, into], false, 'centripetal');
     this.travel(cube, path, 2.2 + Math.abs(m.x - H.x) / 6, () => {
@@ -349,8 +529,38 @@ export default class Planta3D extends Stage3D {
     let focus = null;
     if (this.orbit.zoom > 1.5) { let best = 1e9; for (const H of this.halls.values()) { const k = Math.hypot(H.x - this.orbit.tx, H.z - this.orbit.tz); if (k < best) { best = k; focus = H; } } }
     this.refitPlaques([...this.halls.values()], Math.sin(EL));
-    this.sizePlaques([...this.halls.values()].map(H => [H.plaque, H.w]).concat(this.centralLabel ? [[this.centralLabel, 7, 150]] : []), FONT_K);
-    for (const H of this.halls.values()) for (const b of H.belts) { b.tex.offset.x -= dt * (b.jam ? 0.1 : 0.8); b.jam = Math.max(0, (b.jam || 0) - dt * 0.3); }
+    this.sizePlaques([...this.halls.values()].map(H => [H.plaque, H.w]).concat(this.centralLabel ? [[this.centralLabel, 7, 150]] : []).concat(this.cage ? [[this.cage.label, JW]] : []).concat(this.dock ? [[this.dock.label, DW]] : []), FONT_K);
+    for (const H of this.halls.values()) for (const b of H.belts) { b.tex.offset.x -= dt * (b.jam ? 0.1 : this.jam ? 0.25 : 0.8); b.jam = Math.max(0, (b.jam || 0) - dt * 0.3); }
+    // baliza de la central al limite
+    if (this.central) {
+      if (!this.beacon) { this.beacon = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), new THREE.MeshBasicMaterial({ color: color(K.orange) })); this.beacon.position.set(this.central.x - 0.8, 2.6, this.central.z); this.plant.add(this.beacon); }
+      if (!this.beacon.parent) this.plant.add(this.beacon);
+      this.beacon.visible = this.jam; if (this.jam) this.beacon.material.color.set(blink ? K.red : K.orange);
+    }
+    // jaula: los drones capturados zumban; los barriles se sacuden de a ratos
+    if (this.cage) {
+      this.cage.drones.children.forEach(d => { d.position.y = d.userData.y0 + Math.sin(this.t * 3 + d.userData.ph) * 0.06; d.rotation.y = Math.sin(this.t + d.userData.ph) * 0.4; });
+      this.cage.barrels.children.forEach((b, i) => { const u = (this.t * 0.6 + i * 0.37) % 1; b.rotation.z = u < 0.08 ? Math.sin(u * 150) * 0.1 : 0; });
+    }
+    // tanques de datos: nivel, rojo al limite, tuberias con pulsos a las maquinas que usan sus bases
+    this.zT = (this.zT || 0) - dt; const zNow = this.zT <= 0; if (zNow) this.zT = 1.8;
+    for (const H of this.halls.values()) {
+      const T = H.tankO; if (!T) continue;
+      T.fill.scale.y += (T.want - T.fill.scale.y) * Math.min(1, dt * 2);
+      const c = T.hot ? (blink ? K.red : K.orange) : K.blue; T.fillM.color.set(c); T.fillM.emissive.set(c);
+      const x = T.data, pos = [];
+      for (const l of (x && x.links) || []) {
+        const m = this.machines.get(l.id); if (!m || m.H !== H) continue;
+        const py = 1.35, a = [T.x, py, T.z], b = [m.x, py, T.z], c2 = [m.x, py, m.z - 0.3], d = [m.x, 1.05, m.z - 0.3];
+        pos.push(...a, ...b, ...b, ...c2, ...c2, ...d);
+        if (l.active) {
+          const n = Math.min(3, 1 + l.active), L1 = Math.abs(T.x - m.x), L2 = Math.abs(T.z - (m.z - 0.3)), L = L1 + L2 || 1;
+          for (let i = 0; i < n; i++) { const u = ((this.t * (0.4 + (l.busy || 0) / 200) + i / n) % 1) * L; const px = u < L1 ? T.x + Math.sign(m.x - T.x) * u : m.x, pz = u < L1 ? T.z : T.z + Math.sign(m.z - 0.3 - T.z) * (u - L1); pos.push(px - 0.1, py, pz, px + 0.1, py, pz, px, py - 0.1, pz, px, py + 0.1, pz); }
+        }
+      }
+      T.pipes.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      if (zNow && x && x.sleep >= 10) this.float(new THREE.Vector3(T.x, 3.1, T.z), 'z', 'dim', 1.8);
+    }
     for (const m of this.machines.values()) {
       const st = m.data.status;
       m.lamp.material.color.set(st === 'down' ? (blink ? K.red : '#3b0010') : st === 'degraded' ? K.orange : K.lime);
@@ -388,6 +598,9 @@ export default class Planta3D extends Stage3D {
     if (kind === 'session') { const b = this.bots.get(id); if (b) return { x: b.x, y: 0.5, z: b.z, zoom: 3.4 }; }
     if (kind === 'district') { const H = this.halls.get(id); if (H) return { x: H.x, y: 0.5, z: H.z + 1, zoom: this.zoomFor(H) }; }
     if ((kind === 'system' || kind === 'security') && this.central) return { x: this.central.x, y: 1, z: this.central.z + 1, zoom: 2.8 };
+    if (kind === 'jail' && this.cage) return { x: this.cage.x, y: 1, z: this.cage.z + 0.5, zoom: 3.4 };
+    if (kind === 'mail' && this.dock) return { x: this.dock.x, y: 1, z: this.dock.z + 0.5, zoom: 3.4 };
+    if (kind === 'databases') { const H = this.halls.get(id); if (H) return { x: H.x, y: 0.5, z: H.z + 1, zoom: this.zoomFor(H) }; }
     return null;
   }
   tipFor(u) {
@@ -399,6 +612,13 @@ export default class Planta3D extends Stage3D {
     }
     if (u.kind === 'session') { const b = this.bots.get(u.id); return b && { title: 'Robot obrero · agente de Claude Code', body: esc(b.s.activity || ''), meta: b.s.waitKind ? 'Espera su permiso en la barrera' : { working: 'Trabajando', thinking: 'Pensando', idle: 'En pausa' }[b.s.state] || '', hint: 'Clic para ver la línea de tiempo' }; }
     if (u.kind === 'district') { const H = this.halls.get(u.id); return H && { title: H.a.label, body: `Una nave con ${H.items.length} máquinas y prensas. Su placa, delante, las nombra a todas.`, meta: H.caption, hint: 'Clic para ver la nave' }; }
+    if (u.kind === 'jail') return { title: 'Jaula de decomisos', body: 'Las IPs <b>bloqueadas</b> son drones capturados tras la malla: los que se bloquearon a mano en el firewall y los que atrapó la defensa de Atalaya. Los <b>barriles sellados</b> son archivos PHP maliciosos en cuarentena: no pueden hacer daño y se pueden restaurar.', meta: this.cageLine(), hint: 'Clic para ver cada uno' };
+    if (u.kind === 'mail') return { title: 'Despacho', body: 'Cada correo es un paquete que viaja colgado del cable: etiqueta <b>verde</b> sale, <b>azul</b> llega, <b>roja</b> fue devuelto con el motivo. Los paquetes del palé son la cola de correo.', meta: this.postLine() + ' (último minuto)', hint: 'Clic para ver el correo' };
+    if (u.kind === 'databases') {
+      const H = this.halls.get(u.id), x = H && H.tankO && H.tankO.data; if (!x) return { title: 'Tanque de datos', body: 'Las bases de datos de la nave.', hint: 'Clic para ver sus bases' };
+      const mb = n => n > 1073741824 ? (n / 1073741824).toFixed(1) + ' GB' : Math.round(n / 1048576) + ' MB';
+      return { title: 'Tanque de datos · bases', body: `${x.n} base${x.n === 1 ? '' : 's'} MySQL, ${mb(x.size)}. ${x.conns ? `<b>${x.conns}</b> conexión(es)${x.active ? `, <b>${x.active}</b> con consultas en curso` : ''}${x.sleep >= 10 ? `, <b>${x.sleep} dormidas</b> (las «z»)` : ''}.` : 'Sin conexiones ahora.'} Las tuberías llevan a las máquinas que las usan.`, meta: x.busy ? `ocupado el ${x.busy}% de los últimos 15 min` : '', hint: 'Clic para ver sus bases' };
+    }
     if (u.kind === 'system') return { title: 'Central', body: 'El <b>servidor</b>: la chimenea echa más humo con más CPU; los silos azul y naranja son la memoria y el disco.', meta: this.state?.system ? `CPU ${this.state.system.cpu.toFixed(0)}% · RAM ${this.state.system.mem.pct.toFixed(0)}% · carga ${this.state.system.load[0].toFixed(2)}` : '', hint: 'Clic para ver el servidor completo' };
     return null;
   }

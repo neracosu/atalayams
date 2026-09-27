@@ -3,7 +3,7 @@
   "name": "Castillo",
   "description": "Un castillo gótico de noche visto de costado, en pixel art: la torre del reloj es el servidor, cada cuenta una sala con su estandarte y su placa, cada servicio un candelabro cuyas llamas crecen con la CPU y cada sitio un vitral que se ilumina con las visitas. Las visitas son murciélagos que bajan de la luna, los intentos de acceso son espectros que se quedan en el portón y los agentes de Claude Code son cazadoras con su antorcha. Los bloqueados quedan presos en la mazmorra y el correo pasa por la torre de los cuervos.",
   "author": "NERACOSU",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "license": "Propietaria · arte propio en código · fuentes Jacquard 24 y Pixelify Sans bajo SIL OFL 1.1",
   "world": "world.js",
   "css": "theme.css",
@@ -41,44 +41,47 @@
       "title": "El castillo",
       "items": [
         {
-          "icon": "terminal",
           "title": "Torre del reloj",
-          "text": "El servidor: sus agujas giran más rápido con más CPU. Si falla un servicio clave, sus ventanas se encienden en rojo y arriba dice cuál."
+          "text": "El servidor: sus agujas giran más rápido con más CPU. Si falla un servicio clave, sus ventanas se encienden en rojo y arriba dice cuál.",
+          "art": "tower"
         },
         {
-          "icon": "house",
           "title": "Salas",
-          "text": "Cada cuenta es una sala con su estandarte. Debajo, su placa nombra todo lo que hay adentro; al acercarse, cada cosa lleva su nombre."
+          "text": "Cada cuenta es una sala con su estandarte. Debajo, su placa nombra todo lo que hay adentro; al acercarse, cada cosa lleva su nombre.",
+          "art": "hall"
         },
         {
-          "color": "#f0b848",
           "title": "Candelabro",
-          "text": "Un servicio: las llamas crecen con la CPU. Llama azul y débil: a medias (parcial). Apagado y humeando: caído."
+          "text": "Un servicio: las llamas crecen con la CPU. Llama azul y débil: a medias (parcial). Apagado y humeando: caído.",
+          "art": "candle"
         },
         {
-          "color": "#2a5ab0",
           "title": "Vitral",
-          "text": "Un sitio servido directo: su haz de luz se enciende con las visitas. Oscuro: caído."
+          "text": "Un sitio servido directo: su haz de luz se enciende con las visitas. Oscuro: caído.",
+          "art": "window"
         },
         {
-          "icon": "shield",
           "title": "Portón",
-          "text": "El cortafuegos, al pie de la torre: se enciende en rojo cuando llega un espectro."
+          "text": "El cortafuegos, al pie de la torre: se enciende en rojo cuando llega un espectro.",
+          "art": "gate"
         },
         {
-          "icon": "jail",
           "title": "Mazmorra",
-          "text": "A la izquierda de la torre: las IPs bloqueadas son espectros presos tras las rejas. Los ataúdes con cadenas, en la puerta, son archivos PHP maliciosos en cuarentena."
+          "text": "A la izquierda de la torre: las IPs bloqueadas son espectros presos tras las rejas. Los ataúdes con cadenas, en la puerta, son archivos PHP maliciosos en cuarentena.",
+          "art": [
+            "specter",
+            "coffin"
+          ]
         },
         {
-          "icon": "mail",
           "title": "Torre de los cuervos",
-          "text": "A la derecha del castillo: todo el correo pasa por aquí. Si la cola se atasca, los cuervos esperan posados en la percha."
+          "text": "A la derecha del castillo: todo el correo pasa por aquí. Si la cola se atasca, los cuervos esperan posados en la percha.",
+          "art": "raven"
         },
         {
-          "icon": "db",
           "title": "Grimorios",
-          "text": "El librero de las salas con bases de datos: más lleno cuanto más pesan, rojizo si están al límite y con una «z» si hay conexiones dormidas. Los hilos violetas llegan a las luces que las usan; las runas corren cuando hay consultas."
+          "text": "El librero de las salas con bases de datos: más lleno cuanto más pesan, rojizo si están al límite y con una «z» si hay conexiones dormidas. Los hilos violetas llegan a las luces que las usan; las runas corren cuando hay consultas.",
+          "art": "grimoires"
         }
       ]
     },
@@ -86,24 +89,24 @@
       "title": "Los que llegan",
       "items": [
         {
-          "color": "#1a1020",
           "title": "Murciélagos",
-          "text": "Cada visita baja de la luna hasta su candelabro o vitral. Grises: robots. Rojos: un error del servidor."
+          "text": "Cada visita baja de la luna hasta su candelabro o vitral. Grises: robots. Rojos: un error del servidor.",
+          "art": "bat"
         },
         {
-          "color": "#d8e0f0",
           "title": "Espectros",
-          "text": "Intentos de acceso fallidos: flotan hasta el portón. Si la IP queda bloqueada, un rayo de luz los disuelve."
+          "text": "Intentos de acceso fallidos: flotan hasta el portón. Si la IP queda bloqueada, un rayo de luz los disuelve.",
+          "art": "specter"
         },
         {
-          "icon": "bot",
           "title": "Cazadoras",
-          "text": "Las sesiones de Claude Code recorren su sala con su antorcha. Con la antorcha en alto: esperan su permiso."
+          "text": "Las sesiones de Claude Code recorren su sala con su antorcha. Con la antorcha en alto: esperan su permiso.",
+          "art": "hunter"
         },
         {
-          "icon": "mail",
           "title": "Cuervos",
-          "text": "Correo que sale o llega a la torre (ojos rojos: rebotado)."
+          "text": "Correo que sale o llega a la torre (ojos rojos: rebotado).",
+          "art": "raven"
         }
       ]
     },
