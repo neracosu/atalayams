@@ -17,13 +17,16 @@ import { Application, Container, Graphics, Sprite, Text, Texture } from '../../v
 import { signTexture, signCanvas } from '../../js/sprites.js';
 import { groupsOf, layoutKeyOf, packRows, iconURL, plaqueList, healthLine } from '../../js/layout.js';
 import { esc, fmtBytes } from '../../js/hud.js';
-import { accountCaption } from '../../js/accounts.js';
+import { accountCaption, forEdition } from '../../js/accounts.js';
 import { pixiScreen } from '../../js/commfx.js';
 
 const PX = 2;                       // escala del pixel art
 const SLOT_W = 80, SLOT_H = 108;    // lugar de cada candelabro o vitral dentro de una sala
 const HEAD = 46, PAD = 20, B = 12;  // alto del encabezado de la sala, margen interior, grosor del muro
 const TOWER_W = 128, GAP = 44;
+const SHELF_W = 70;                 // lugar del librero de grimorios (bases de datos) en las salas que las tienen
+const JAIL_X0 = -290, JAIL_X1 = -20;  // la mazmorra, a la izquierda de la torre
+const ROOK_W = 60;                  // la torre de los cuervos, a la derecha del castillo
 const FONT_T = "'Jacquard 24', 'Pixelify Sans', serif", FONT = "'Pixelify Sans', ui-monospace, monospace";
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -66,6 +69,23 @@ const GHOST = [
   ['...wwww...', '..wwwwww..', '.wwwwwwww.', '.wkkwwkkw.', '.wkkwwkkw.', '.wwwwwwww.', '.wwwkkwww.', '.wwwwwwww.', '.wwwwwwww.', '.wwwwwwww.', '.w.ww.ww.w', 'w..w..w..w'],
   ['...wwww...', '..wwwwww..', '.wwwwwwww.', '.wkkwwkkw.', '.wkkwwkkw.', '.wwwwwwww.', '.wwwkkwww.', '.wwwwwwww.', '.wwwwwwww.', '.wwwwwwww.', 'w.ww.ww.w.', '.w..w..w..']];
 const RAVEN = [['k.......k', 'kk.....kk', '.kkkykkk.', '..kkkkk..', '....k....'], ['.........', '...kyk...', '.kkkkkkk.', 'kk.kkk.kk', 'k.......k']];
+// ataud cerrado con cadenas (un archivo en cuarentena)
+const COFFIN = ['...bbbbb...', '..bBBBBBb..', '.bBBBBBBBb.', 'bBBByBBBBBb', 'bccccccccccb', 'bBBBByBBBBb', 'bBBBByBBBBb', 'bBByyyyyBBb', 'bBBBByBBBBb', 'bccccccccccb', 'bBBBByBBBBb', '.bBBBBBBBb.', '.bBBBBBBBb.', '.bccccccccb', '..bBBBBBb..', '..bBBBBBb..', '...bbbbb...'];
+// librero de grimorios: tomos de colores en tres repisas (lleno segun el tamano de las bases)
+function shelfTex(fill, hot) {
+  return canvasTex('shelf' + fill + (hot ? 'h' : ''), 30, 44, cx => {
+    cx.fillStyle = '#2a1a10'; cx.fillRect(0, 0, 30, 44);
+    cx.fillStyle = hot ? '#6a2a1a' : '#5a3a22'; cx.fillRect(1, 1, 28, 42);
+    cx.fillStyle = '#1a100a'; for (const y of [3, 17, 31]) cx.fillRect(3, y, 24, 11);
+    cx.fillStyle = '#7a5a32'; for (const y of [14, 28, 42]) cx.fillRect(1, y, 28, 2);
+    const cols = ['#b0203a', '#2a5ab0', '#3a9a5a', '#8a3ab0', '#c86a2a', '#d8b24a'];
+    let r = 11; const rnd = () => { r = Math.imul(r ^ r >>> 13, 1274126177) >>> 0; return r; };
+    [3, 17, 31].forEach((y, row) => {
+      if (row < 3 - fill) return;
+      for (let x = 3; x < 26;) { const w = 2 + rnd() % 2, h = 7 + rnd() % 4; cx.fillStyle = cols[rnd() % 6]; cx.fillRect(x, y + 11 - h, w, h); cx.fillStyle = '#e8dcb8'; cx.fillRect(x, y + 11 - h + 2, w, 1); x += w + (rnd() % 4 === 0 ? 1 : 0); }
+    });
+  });
+}
 // cazadora de 12 x 16: capa de su color, pelo, tunica, botas; frames: quieta, caminando
 const HUNTER_BASE = [
   '....hhhh....', '...hhhhhh...', '...hsssssh..', '...ssesses..', '....ssss....', '..cctttttc..', '.ccttyytttc.', '.cctttttttc.',
@@ -117,6 +137,7 @@ export default class CastilloWorld {
     this.fx = []; this.t = 0; this.layoutKey = '';
     this.directorOn = true; this.insets = { top: 0, right: 0, bottom: 0, left: 0 };
     this.measured = new Map(); this.refits = 0;
+    this.jail = null; this.rook = null; this.mailLog = []; this.jamQ = 0; this.jamNext = 0;
   }
 
   async init() {
@@ -143,6 +164,10 @@ export default class CastilloWorld {
   // donde esta cada cosa en la pantalla (comunicacion entre agentes); los subagentes van junto a su sesion
   screenOf(kind, id) {
     if (kind === 'session' || kind === 'agent') return pixiScreen(this.app, this.hunters.get(String(id).split('/')[0]));
+    if (kind === 'jail') return this.jail ? pixiScreen(this.app, this.jail.cell) : null;    // aqui dejan a los bloqueados
+    if (kind === 'mail') return this.rook ? pixiScreen(this.app, this.rook.body) : null;
+    if (kind === 'gate') return this.gateHit ? pixiScreen(this.app, this.gateHit) : null;   // de aqui salen las patrullas
+    if (kind === 'tower') return this.towerC ? pixiScreen(this.app, this.towerC) : null;
     return pixiScreen(this.app, this.items.get(id));
   }
 
@@ -151,20 +176,23 @@ export default class CastilloWorld {
 
   // ------------------------------------------------------------------ el castillo
   layout(state) {
-    const key = layoutKeyOf(state);
+    const jailOn = !!state.jail, mailOn = !!state.mail && forEdition('TORRE DE CONTROL') === 'TORRE DE CONTROL';
+    const silos = new Set(((state.silos && state.silos.list) || []).map(x => x.account));
+    const key = layoutKeyOf(state) + (jailOn ? '|J' : '') + (mailOn ? '|M' : '') + '|' + [...silos].sort().join(',');
     if (key === this.layoutKey) return;
     if (key !== this.realKey) { this.realKey = key; this.refits = 0; }
     this.layoutKey = key;
     for (const L of [this.sky, this.castle, this.itemsL, this.tags]) L.removeChildren().forEach(c => c.destroy({ children: true }));
-    for (const r of this.rooms.values()) r.plaque.remove();
+    for (const r of this.rooms.values()) { r.plaque.remove(); r.q = null; }
     for (const h of this.hunters.values()) h.spr.destroy();
     this.rooms.clear(); this.items.clear(); this.hunters.clear();
-    this.selG = null;
+    this.selG = null; this.jail = null; this.rook = null; this.jamQ = 0;
     const list = groupsOf(state);
     for (const R of list) {
       R.cols = Math.min(R.items.length, clamp(Math.ceil(Math.sqrt(R.items.length * 2)), 2, 7));
       R.rows = Math.ceil(R.items.length / R.cols);
-      R.w = R.cols * SLOT_W + PAD * 2; R.h = HEAD + R.rows * SLOT_H + 8;
+      R.silo = silos.has(R.a.id);
+      R.w = R.cols * SLOT_W + PAD * 2 + (R.silo ? SHELF_W : 0); R.h = HEAD + R.rows * SLOT_H + 8;
     }
     const K = 22;
     const est = R => K * 1.3 * (2.8 + (this.compact ? 0 : Math.ceil(R.items.length / Math.max(1, Math.floor(R.w / (K * 10.5)))))) + 14;
@@ -183,7 +211,11 @@ export default class CastilloWorld {
     this.width = x0 + best.W + 40;
     this.buildTower();
     this.buildScenery();
-    this.bounds = { x0: -40, x1: this.width + 20, y0: -150, y1: this.groundY + 60 };
+    if (jailOn) this.buildJail();
+    if (mailOn) this.buildRook();
+    this.bounds = { x0: jailOn ? JAIL_X0 - 70 : -40, x1: this.width + (mailOn ? ROOK_W + 150 : 20), y0: -150, y1: this.groundY + 60 }; // margen para los rotulos de la mazmorra y la torre de los cuervos
+    if (state.jail) this.drawJail(state.jail);
+    this.updateSilos(state.silos);
     this.fit();
     this.camBase = { ...this.overview };
   }
@@ -197,6 +229,11 @@ export default class CastilloWorld {
     g.circle(this.moon.x, this.moon.y, 70).fill({ color: 0xf4e8c8, alpha: 0.08 });
     g.circle(this.moon.x, this.moon.y, 48).fill(0xf4e8c8);
     g.circle(this.moon.x - 14, this.moon.y - 8, 9).fill(0xe0d0a8); g.circle(this.moon.x + 16, this.moon.y + 12, 6).fill(0xe0d0a8);
+    // la fase de la luna es la de hoy (luna nueva de referencia: 6 de enero de 2000, 18:14 UTC); nunca del todo oculta
+    const p = (((Date.now() - Date.UTC(2000, 0, 6, 18, 14)) / 86400000 / 29.530588853) % 1 + 1) % 1;
+    this.moonPhase = p;
+    const off = 96 * Math.max(0.22, p < 0.5 ? p * 2 : (1 - p) * 2);
+    if (off < 95) g.circle(this.moon.x + (p < 0.5 ? -off : off), this.moon.y, 50).fill(0x0c0816);
     // montanas
     const pts = [-700, this.groundY + 60];
     for (let x = -700; x <= this.width + 700; x += 90) pts.push(x, this.groundY - 120 - 110 * Math.abs(Math.sin(x * 0.0071)) - 60 * rnd());
@@ -215,6 +252,7 @@ export default class CastilloWorld {
     g.rect(-700, this.groundY + 26, this.width + 1400, 60).fill(0x0e1a2a);
     for (let x = -700; x < this.width + 700; x += 18) g.rect(x, this.groundY + 30 + (x % 36 ? 4 : 0), 10, 2).fill({ color: 0x3a5a7a, alpha: 0.5 });
     this.sky.addChild(g);
+    this.siege = new Graphics(); this.sky.addChild(this.siege);
   }
 
   buildTower() {
@@ -247,7 +285,8 @@ export default class CastilloWorld {
     this.dyn = new Graphics(); T.addChild(this.dyn); // agujas y ventanas (cada cuadro)
     T.eventMode = 'static'; T.cursor = 'pointer';
     this.tappable(T, () => this.pick('system', 'root'), () => this.tipFor({ kind: 'system' }));
-    this.castle.addChild(T);
+    this.castle.addChild(T); this.towerC = T;
+    this.gateHit = new Graphics().rect(this.gate.x - 30, this.groundY - 92, 60, 92).fill({ color: 0, alpha: 0.001 }); this.castle.addChild(this.gateHit);
     const t = text('TORRE DEL RELOJ', 18, 0xe8dcb8, FONT_T); t.anchor.set(0.5, 1); t.x = this.clock.x; t.y = top - 160;
     this.towerSub = text('', 12, 0xb8a8c8); this.towerSub.anchor.set(0.5, 0); this.towerSub.x = this.clock.x; this.towerSub.y = this.groundY + 90;
     this.towerTitle = t;
@@ -290,6 +329,15 @@ export default class CastilloWorld {
     R.caption = accountCaption(a, nA, items.length - nA);
     items.forEach((it, i) => this.addItem(it, R, x + PAD + (i % R.cols + 0.5) * SLOT_W, y + HEAD + (Math.floor(i / R.cols) + 1) * SLOT_H - 6));
     R.walkY = y + HEAD + R.rows * SLOT_H - 6;
+    if (R.silo) {
+      const sx = x + R.w - PAD - SHELF_W / 2 + 4, sy = R.walkY;
+      const sh = new Sprite(shelfTex(1, false)); sh.scale.set(PX); sh.anchor.set(0.5, 1); sh.x = sx; sh.y = sy;
+      sh.eventMode = 'static';
+      this.tappable(sh, () => this.pick('databases', a.id), () => this.siloTip(R));
+      R.shelf = { s: sh, x: sx, y: sy, fill: -1, hot: false, data: null };
+      R.threads = new Graphics();
+      this.itemsL.addChild(R.threads, sh);
+    }
     // placa HTML debajo de la sala
     R.plaque = document.createElement('div');
     R.plaque.className = 'w3-label w3-plaque';
@@ -298,6 +346,129 @@ export default class CastilloWorld {
     this.plaques.appendChild(R.plaque);
     this.rooms.set(a.id, R);
     this.fillPlaque(R);
+  }
+  // ------------------------------------------------------------------ mazmorra, torre de los cuervos y grimorios
+  // Mazmorra, a la izquierda de la torre: las IPs bloqueadas son espectros presos tras las rejas (hasta 6 a la vista)
+  // y los archivos en cuarentena, ataudes cerrados con cadenas en la puerta
+  buildJail() {
+    const x0 = JAIL_X0, x1 = JAIL_X1, top = this.groundY - 130, C = new Container();
+    const stone = brickTex('bT', '#4a4458', '#332e40');
+    for (let yy = top; yy < this.groundY; yy += 16) for (let xx = x0; xx < x1; xx += 32) { const sp = new Sprite(stone); sp.x = xx; sp.y = yy; sp.width = Math.min(32, x1 - xx); sp.height = Math.min(16, this.groundY - yy); C.addChild(sp); }
+    const g = new Graphics();
+    for (let xx = x0; xx < x1; xx += 20) g.rect(xx, top - 12, 12, 12).fill(0x4a4458);
+    // la celda: hueco oscuro con rejas; los presos se dibujan entre el hueco y las rejas
+    const cx0 = x0 + 18, cx1 = x0 + 160, cy0 = top + 22, cy1 = this.groundY - 8;
+    g.rect(cx0, cy0, cx1 - cx0, cy1 - cy0).fill(0x0a0610);
+    g.poly([cx0, cy0, (cx0 + cx1) / 2, cy0 - 16, cx1, cy0]).fill(0x0a0610);
+    C.addChild(g);
+    const ghosts = new Container(); C.addChild(ghosts);
+    const bars = new Graphics();
+    for (let xx = cx0 + 6; xx < cx1; xx += 12) bars.rect(xx - 1.5, cy0 - 8, 3, cy1 - cy0 + 8).fill(0x5a5068);
+    bars.rect(cx0, cy0 + 20, cx1 - cx0, 3).fill(0x5a5068).rect(cx0, cy1 - 3, cx1 - cx0, 3).fill(0x5a5068);
+    C.addChild(bars);
+    // antorcha junto a la puerta
+    this.jailTorch = { x: cx1 + 14, y: top + 40 };
+    const coffins = new Container(); C.addChild(coffins);
+    C.eventMode = 'static';
+    this.tappable(C, () => this.pick('jail', 'all'), () => ({ title: 'Mazmorra', body: 'Las IPs <b>bloqueadas</b> son espectros presos tras las rejas: las que se bloquearon a mano en el firewall y las que atrapó la defensa de Atalaya. Los <b>ataúdes</b> con cadenas son archivos PHP maliciosos en cuarentena: no pueden hacer daño y se pueden restaurar.', meta: this.jailLine(), hint: 'Clic para ver cada uno' }));
+    this.castle.addChild(C);
+    const t = text('MAZMORRA', 18, 0xe8dcb8, FONT_T); t.anchor.set(0.5, 1); t.x = (x0 + x1) / 2; t.y = top - 38;
+    const sub = text('', 12, 0xb8a8c8); sub.anchor.set(0.5, 1); sub.x = t.x; sub.y = top - 18;
+    this.tags.addChild(t, sub);
+    this.jail = { C, cell: bars, ghosts, coffins, t, sub, n: -1, q: -1, box: { x0: cx0, x1: cx1, y0: cy0, y1: cy1 }, door: { x0: cx1 + 30, x1: x1 - 6 } };
+  }
+  jailLine() { const j = this.jail; if (!j) return ''; const n = Math.max(0, j.n), q = Math.max(0, j.q); return (n ? `${n} espectro${n === 1 ? '' : 's'} preso${n === 1 ? '' : 's'}` : 'celda vacía') + (q ? ` · ${q} ataúd${q === 1 ? '' : 'es'}` : ''); }
+  drawJail(J) {
+    const j = this.jail; if (!j || !J) return;
+    const n = J.n || 0, q = J.quarantine || 0;
+    if (n !== j.n) {
+      j.n = n; j.ghosts.removeChildren().forEach(o => o.destroy());
+      const b = j.box;
+      for (let i = 0; i < Math.min(6, n); i++) {
+        const sp = new Sprite(rowsTex('gh0', GHOST[0], { w: '#d8e0f0', k: '#1a1020' })); sp.scale.set(PX); sp.anchor.set(0.5, 1); sp.alpha = 0.8;
+        sp.x = b.x0 + 24 + (i % 3) * 46 + Math.floor(i / 3) * 18; sp.y = b.y1 - 4 - Math.floor(i / 3) * 34; sp.fi = i; sp.y0 = sp.y;
+        j.ghosts.addChild(sp);
+      }
+    }
+    if (q !== j.q) {
+      j.q = q; j.coffins.removeChildren().forEach(o => o.destroy());
+      const w = (j.door.x1 - j.door.x0) / 4;
+      for (let i = 0; i < Math.min(4, q); i++) {
+        const c = new Sprite(rowsTex('coffin', COFFIN, { b: '#1a100a', B: '#5a3a22', y: '#d8b24a', c: '#9a9aa8' })); c.scale.set(PX); c.anchor.set(0.5, 1);
+        c.x = j.door.x0 + w * (i + 0.5); c.y = this.groundY; j.coffins.addChild(c);
+      }
+    }
+    j.sub.text = this.jailLine();
+  }
+  // Torre de los cuervos, a la derecha del castillo: por aqui pasa el correo; si la cola se atasca, los cuervos
+  // esperan posados en el tejado
+  buildRook() {
+    const x0 = this.width + 10, x1 = x0 + ROOK_W, top = this.groundY - 250, C = new Container();
+    const stone = brickTex('bO', '#5a5468', '#433d52');
+    for (let yy = top; yy < this.groundY; yy += 16) for (let xx = x0; xx < x1; xx += 32) { const sp = new Sprite(stone); sp.x = xx; sp.y = yy; sp.width = Math.min(32, x1 - xx); sp.height = Math.min(16, this.groundY - yy); C.addChild(sp); }
+    const g = new Graphics();
+    g.poly([x0 - 10, top, (x0 + x1) / 2, top - 70, x1 + 10, top]).fill(0x2a1a36);
+    g.rect(x0 - 16, top + 40, ROOK_W + 32, 5).fill(0x5a3a22);                 // la percha
+    for (const yy of [top + 70, top + 150]) { g.rect((x0 + x1) / 2 - 7, yy, 14, 30).fill(0xf0b848); g.rect((x0 + x1) / 2 - 1, yy, 2, 30).fill(0x2a1a14); }
+    C.addChild(g);
+    const perched = new Container(); C.addChild(perched);
+    C.eventMode = 'static';
+    this.tappable(C, () => this.pick('mail', 'all'), () => ({ title: 'Torre de los cuervos', body: 'Por aquí pasa el correo del servidor: los cuervos de ojos <b>dorados</b> salen de una sala, los de ojos <b>violetas</b> llegan y los <b>rojos</b> rebotaron y vuelven con el motivo. Los que esperan posados en la percha son la cola de correo.', meta: this.postLine() + ' (último minuto)', hint: 'Clic para ver el correo' }));
+    this.castle.addChild(C);
+    const t = text('TORRE DE LOS CUERVOS', 16, 0xe8dcb8, FONT_T); t.anchor.set(0.5, 1); t.x = (x0 + x1) / 2; t.y = top - 96;
+    const sub = text('', 12, 0xb8a8c8); sub.anchor.set(0.5, 1); sub.x = t.x; sub.y = top - 78;
+    this.tags.addChild(t, sub);
+    this.rook = { C, body: g, perched, t, sub, perch: { x0: x0 - 12, x1: x1 + 12, y: top + 40 }, pt: { x: (x0 + x1) / 2, y: top + 20 }, pileN: -1 };
+  }
+  postLine() {
+    const now = this.t; this.mailLog = this.mailLog.filter(x => now - x.t < 60);
+    const n = d => this.mailLog.filter(x => x.dir === d).length;
+    const parts = [[n('out'), 'salen'], [n('in'), 'llegan'], [n('bounce'), 'rebotan']].filter(x => x[0]).map(x => `${x[0]} ${x[1]}`);
+    return parts.length ? parts.join(' · ') : 'sin cuervos';
+  }
+  drawPost() {
+    const K = this.rook; if (!K) return;
+    const line = this.postLine(); if (K.sub.text !== line) K.sub.text = line;
+    const q = this.mailQueue || 0, want = q > 1000 ? 8 : q > 100 ? 5 : q > 20 ? 3 : 0;
+    if (want === K.pileN) return;
+    K.pileN = want; K.perched.removeChildren().forEach(o => o.destroy());
+    for (let i = 0; i < want; i++) {
+      const r = new Sprite(rowsTex('perch' + (q > 1000 ? 'r' : ''), ['..kk..', '.kkyk.', 'kkkkkk', '.kkkk.', '..k.k.'], { k: '#141018', y: q > 1000 ? '#ff3b3b' : '#d8b24a' }));
+      r.scale.set(PX); r.anchor.set(0.5, 1); r.x = K.perch.x0 + 8 + i * ((K.perch.x1 - K.perch.x0 - 16) / Math.max(1, want - 1)); r.y = K.perch.y; r.fi = i;
+      K.perched.addChild(r);
+    }
+  }
+  // grimorios: el librero se llena con el tamano de las bases; rojizo al limite; hilos arcanos a cada luz que las usa
+  siloTip(R) {
+    const x = R.shelf && R.shelf.data; if (!x) return { title: 'Grimorios', body: 'Las bases de datos de la sala.', hint: 'Clic para ver sus bases' };
+    const mb = n => n > 1073741824 ? (n / 1073741824).toFixed(1) + ' GB' : Math.round(n / 1048576) + ' MB';
+    return { title: 'Grimorios · bases de datos', body: `${x.n} base${x.n === 1 ? '' : 's'} MySQL de la sala, ${mb(x.size)}. ${x.conns ? `<b>${x.conns}</b> conexión(es)${x.active ? `, <b>${x.active}</b> con consultas en curso` : ''}${x.sleep >= 10 ? `, <b>${x.sleep} dormidas</b> (las «z»)` : ''}.` : 'Sin conexiones ahora.'} Los hilos violetas llegan a las luces que las usan.`,
+      meta: x.busy ? `ocupado el ${x.busy}% de los últimos 15 min` : '', hint: 'Clic para ver sus bases' };
+  }
+  updateSilos(S) {
+    const hotAll = !!(S && S.hot >= 0.85);
+    for (const x of (S && S.list) || []) {
+      const R = this.rooms.get(x.account); if (!R || !R.shelf) continue;
+      R.shelf.data = x;
+      const fill = x.size > 2 * 1073741824 ? 3 : x.size > 200 * 1048576 ? 2 : 1, hot = hotAll || (x.busy || 0) >= 85;
+      if (fill !== R.shelf.fill || hot !== R.shelf.hot) { R.shelf.fill = fill; R.shelf.hot = hot; R.shelf.s.texture = shelfTex(fill, hot); }
+    }
+  }
+  drawThreads() {
+    for (const R of this.rooms.values()) {
+      const S = R.shelf, g = R.threads; if (!S || !g) continue;
+      g.clear();
+      for (const l of (S.data && S.data.links) || []) {
+        const d = this.items.get(l.id); if (!d || d.R !== R) continue;
+        const a = { x: S.x, y: S.y - 88 }, b = { x: d.x, y: d.y - (d.site ? 80 : 62) }, m = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - 26 };
+        const at = k => ({ x: (1 - k) * (1 - k) * a.x + 2 * (1 - k) * k * m.x + k * k * b.x, y: (1 - k) * (1 - k) * a.y + 2 * (1 - k) * k * m.y + k * k * b.y });
+        g.moveTo(a.x, a.y); for (let k = 1; k <= 16; k++) { const p = at(k / 16); g.lineTo(p.x, p.y); }
+        g.stroke({ width: 2, color: 0x9a6ae0, alpha: 0.55 });
+        if (!l.active) continue;
+        const n = Math.min(4, 1 + l.active);
+        for (let i = 0; i < n; i++) { const p = at((this.t * (0.3 + (l.busy || 0) / 200) + i / n) % 1); g.rect(p.x - 3, p.y - 3, 6, 6).fill(0xe8d0ff); }
+      }
+    }
   }
   fillPlaque(R) {
     R.plaque.querySelector('.fishlist').innerHTML = plaqueList(R.items.map(it => ({ ...it, ...(this.items.get(it.id)?.data || {}) })), it => iconURL('sign:' + (it.icon || 'web'), () => signCanvas(it.icon || 'web', 2)));
@@ -364,6 +535,22 @@ export default class CastilloWorld {
     if (hl && this.towerHealth && this.towerHealth.text !== hl.text) { this.towerHealth.text = hl.text; this.towerHealth.style.fill = hl.color; }
     this.failed = (state.keys || []).filter(k => k.state === 'failed').map(k => k.label);
     this.syncHunters(state.sessions || []);
+    // mazmorra, torre de los cuervos y grimorios
+    this.drawJail(state.jail);
+    this.mailQueue = state.mailQueue; this.drawPost();
+    this.updateSilos(state.silos);
+    // servidor al limite: el castillo queda sitiado y los murcielagos rondan la luna esperando su turno
+    const jam = !!(state.saturation && state.saturation.level === 'bad');
+    if (jam && !this.jam && this.gate) this.bubble(this.gate.x, this.gate.y - 110, 'Guardia', '¡El castillo está sitiado!', 'crit');
+    if (!jam && this.jam) this.jamNext = 0;
+    this.jam = jam;
+    // cuota al limite: una linea sobre las almenas de la sala
+    for (const a of state.accounts) {
+      const R = this.rooms.get(a.id); if (!R) continue;
+      const txt = a.quota ? `${String(a.quota.what).toUpperCase()} AL ${a.quota.pct} %` : '';
+      if (txt && !R.q) { R.q = text('', 13, 0xf5d76e, FONT, '700'); R.q.anchor.set(0.5, 1); R.q.x = R.x + R.w / 2; R.q.y = R.y - B - 16; this.tags.addChild(R.q); }
+      if (R.q) { R.q.text = txt; R.q.style.fill = a.quota && a.quota.level === 'bad' ? 0xff8a7a : 0xf5d76e; R.q.visible = !!txt; }
+    }
   }
 
   syncHunters(sessions) {
@@ -400,7 +587,7 @@ export default class CastilloWorld {
       case 'attack': return this.ghost(false);
       case 'block': return this.ghost(true, priv ? e.ip : null);
       case 'login': return this.gate && this.bubble(this.gate.x, this.gate.y - 110, 'Portón', priv && e.user ? `Se abre para ${e.user}` : 'Se abre para el señor del castillo', 'ok');
-      case 'mail': return this.raven(e.dir);
+      case 'mail': return this.rook ? this.letter(e.dir, e) : this.raven(e.dir);
       case 'deploy': {
         const d = this.items.get(e.app);
         const T = { building: ['Encendiendo velas nuevas…', 'warn'], ready: ['¡Candelabro listo!', 'ok'], error: ['Se quebró el candelabro', 'crit'], canceled: ['Se canceló', 'dim'] }[e.action];
@@ -425,6 +612,13 @@ export default class CastilloWorld {
   addFx(obj, tick) { this.fxLayer.addChild(obj); this.fx.push({ obj, tick, age: 0 }); }
   // murcielago: baja desde la luna en arco hasta su candelabro o vitral
   bat(d, bot, bad) {
+    let hold = 0, slot = 0;
+    if (this.jam && !bot) {
+      if (this.jamQ >= 16) return; // la ronda ya muestra el asedio: no crece sin fin
+      slot = this.jamQ++;
+      this.jamNext = Math.max(this.jamNext || 0, this.t) + 0.8;
+      hold = this.jamNext - this.t;
+    }
     const pal = { k: bad ? '#b0203a' : bot ? '#6a6478' : '#1a1020', r: bad ? '#ffd24a' : '#ff3b3b' };
     const key = 'bat' + pal.k;
     const s = new Sprite(rowsTex(key + '0', BAT[0], pal)); s.scale.set(PX); s.anchor.set(0.5);
@@ -432,7 +626,16 @@ export default class CastilloWorld {
     const m = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - 80 };
     const dur = 1.6 + Math.hypot(b.x - a.x, b.y - a.y) / 700;
     this.addFx(s, f => {
-      const k = f.age / dur;
+      if (f.age < hold) {
+        // ronda alrededor de la luna, esperando su turno
+        const ang = f.age * 1.6 + slot * 0.8, rr = 78 + (slot % 3) * 16;
+        s.x = this.moon.x + Math.cos(ang) * rr; s.y = this.moon.y + Math.sin(ang) * rr * 0.6;
+        const fr = Math.floor(f.age * 10) % 2; s.texture = rowsTex(key + fr, BAT[fr], pal); s.scale.x = (Math.sin(ang) > 0 ? -1 : 1) * PX;
+        if (f.age + 0.05 >= hold) { a.x = s.x; a.y = s.y; m.x = (a.x + b.x) / 2; m.y = Math.min(a.y, b.y) - 80; }
+        return true;
+      }
+      if (hold && !f.left) { f.left = true; this.jamQ = Math.max(0, this.jamQ - 1); }
+      const k = (f.age - hold) / dur;
       if (k >= 1) { d.lit = 1; if (bad) this.sparks(b.x, b.y, 0xb0203a); return false; }
       const u = 1 - k;
       s.x = u * u * a.x + 2 * u * k * m.x + k * k * b.x; s.y = u * u * a.y + 2 * u * k * m.y + k * k * b.y + Math.sin(f.age * 18) * 3;
@@ -460,6 +663,35 @@ export default class CastilloWorld {
       s.texture = rowsTex('rav' + (Math.floor(f.age * 8) % 2) + pal.y, RAVEN[Math.floor(f.age * 8) % 2], pal);
       s.scale.x = (b.x < a.x ? -1 : 1) * PX;
       return k < 1;
+    });
+  }
+  // cuervo mensajero: sale de su sala, pasa por la torre de los cuervos y se va; llega al reves; si rebota, vuelve
+  // de ojos rojos a su sala con el motivo
+  letter(dir, e) {
+    this.mailLog.push({ t: this.t, dir }); if (this.mailLog.length > 3000) this.mailLog.shift();
+    this.drawPost();
+    this.mailLast = this.mailLast || {};
+    if (this.t - (this.mailLast[dir] || -9) < 0.35 || this.fx.length > 160) return;
+    this.mailLast[dir] = this.t;
+    const R = e.account && this.rooms.get(e.account);
+    const home = R ? { x: R.x + R.w / 2, y: R.y - B - 20 } : this.towerTop;
+    const rook = this.rook.pt, sky = { x: this.width + 500, y: -260 };
+    const pts = dir === 'in' ? [sky, rook, home] : dir === 'bounce' ? [home, rook, { x: (rook.x + sky.x) / 2, y: (rook.y + sky.y) / 2 }, rook, home] : [home, rook, sky];
+    const pal = { k: '#141018', y: dir === 'bounce' ? '#ff3b3b' : dir === 'in' ? '#b69cf0' : '#d8b24a' };
+    const s = new Sprite(rowsTex('rav0' + pal.y, RAVEN[0], pal)); s.scale.set(PX); s.anchor.set(0.5);
+    const SHORT = { auth: 'SIN AUTENTICAR', nouser: 'NO EXISTE', full: 'BUZÓN LLENO', spam: 'SPAM', domain: 'DOMINIO', rate: 'DEMASIADOS' };
+    const legs = pts.slice(1).map((b, i) => ({ a: pts[i], b, d: 0.7 + Math.hypot(b.x - pts[i].x, b.y - pts[i].y) / 650 }));
+    this.addFx(s, f => {
+      let t0 = f.age, i = 0;
+      while (i < legs.length && t0 > legs[i].d) { t0 -= legs[i].d; i++; }
+      if (i >= legs.length) return false;
+      if (i !== f.leg) { f.leg = i; if (dir === 'bounce' && i === 2) this.bubble(rook.x, rook.y - 40, 'Cuervo', `Volví: ${SHORT[e.cat] || 'rebotó'}`, 'warn'); }
+      const L = legs[i], k = t0 / L.d;
+      s.x = lerp(L.a.x, L.b.x, k); s.y = lerp(L.a.y, L.b.y, k) - Math.sin(k * Math.PI) * 50;
+      const fr = Math.floor(f.age * 8) % 2;
+      s.texture = rowsTex('rav' + fr + pal.y, RAVEN[fr], pal);
+      s.scale.x = (L.b.x < L.a.x ? -1 : 1) * PX;
+      return true;
     });
   }
   // espectro: flota por el campo hasta el porton; si la IP cae, un rayo de luz lo disuelve
@@ -556,6 +788,8 @@ export default class CastilloWorld {
     else if (kind === 'session') { const h = this.hunters.get(id); if (h) f = this.roomFrame(h.R.a.id); }
     else if (kind === 'district') f = this.roomFrame(id);
     else if (kind === 'system' || kind === 'security') f = this.roomFrame('tower');
+    else if (kind === 'jail' && this.jail) f = this.frame(JAIL_X0 - 20, JAIL_X1 + 20, this.groundY - 200, this.groundY + 40);
+    else if (kind === 'mail' && this.rook) f = this.frame(this.width - 60, this.width + ROOK_W + 90, this.groundY - 380, this.groundY + 40);
     if (f) { this.manualUntil = this.t + 90; this.camTarget = f; this.navChanged(); }
     if (this.onSelect) this.onSelect(kind, id);
   }
@@ -605,6 +839,9 @@ export default class CastilloWorld {
     return null;
   }
 
+  // escala de un rotulo: legible, pero nunca mas ancho que su construccion mas un margen (en el celular no se corta)
+  capScale(txts, maxW) { return Math.min(this.textScale, ...txts.map(x => maxW / Math.max(1, x.width / (x.scale.x || 1)))); }
+
   // ------------------------------------------------------------------ cuadro a cuadro
   tick(dt) {
     dt = Math.min(dt, 0.1);
@@ -639,6 +876,45 @@ export default class CastilloWorld {
       this.towerTitle.style.fill = bad ? 0xff5a5a : 0xe8dcb8;
       this.towerTitle.scale.set(this.textScale); this.towerSub.scale.set(this.textScale);
       if (this.towerHealth) { this.towerHealth.scale.set(this.textScale); this.towerHealth.y = this.towerSub.y + this.towerSub.height + 4; }
+    }
+    // asedio: resplandor rojo en el horizonte que late
+    if (this.siege) {
+      const g = this.siege.clear();
+      if (this.jam) { const a = 0.34 + 0.14 * Math.sin(t * 4); for (let k = 0; k < 6; k++) g.rect(-700, this.groundY - 40 - k * 50, this.width + 1400, 50).fill({ color: 0xd0302a, alpha: a * (1 - k / 6) }); }
+    }
+    // estrella fugaz de vez en cuando
+    this.starT = (this.starT ?? 8) - dt;
+    if (this.starT <= 0 && this.width) {
+      this.starT = 18 + Math.random() * 20;
+      const x0 = Math.random() * this.width, y0 = -260 + Math.random() * 80, st = new Graphics();
+      for (let k = 0; k < 6; k++) st.rect(-k * 8, -k * 4, 4, 2).fill({ color: 0xf4e8c8, alpha: 1 - k / 6 });
+      this.addFx(st, f => { st.x = x0 + f.age * 420; st.y = y0 + f.age * 210; st.alpha = 1 - f.age / 0.9; return f.age < 0.9; });
+    }
+    // mazmorra: los espectros flotan en la celda y los ataudes se sacuden de a ratos; antorcha en la puerta
+    if (this.jail) {
+      const J = this.jail;
+      J.ghosts.children.forEach(sp => { sp.y = sp.y0 + Math.sin(t * 2 + sp.fi) * 3; const fr = Math.floor(t * 3 + sp.fi) % 2; sp.texture = rowsTex('gh' + fr, GHOST[fr], { w: '#d8e0f0', k: '#1a1020' }); });
+      J.coffins.children.forEach((c, i) => { const k = (t * 0.6 + i * 0.37) % 1; c.rotation = k < 0.08 ? Math.sin(k * 150) * 0.08 : 0; });
+      const k = this.capScale([J.t, J.sub], JAIL_X1 - JAIL_X0 + 100); J.t.scale.set(k); J.sub.scale.set(k); J.sub.y = J.t.y + 20 * k;
+      const g = this.dyn, T = this.jailTorch, fl = 3 + (Math.sin(t * 14) > 0 ? 1 : 0);
+      g.rect(T.x - 2, T.y, 4, 14).fill(0x6a4a2a).rect(T.x - 4, T.y - fl * 2, 8, fl * 2).fill(0xff8a2a).rect(T.x - 2, T.y - fl * 2 + 2, 4, fl * 2 - 2).fill(0xffe08a);
+      g.circle(T.x, T.y - 4, 20).fill({ color: 0xffb040, alpha: 0.1 });
+    }
+    if (this.rook) {
+      const K = this.rook;
+      const k = this.capScale([K.t, K.sub], ROOK_W + 180); K.t.scale.set(k); K.sub.scale.set(k); K.sub.y = K.t.y + 18 * k;
+      K.perched.children.forEach(r => { r.y = K.perch.y - ((Math.floor(t * 2 + r.fi * 1.3) % 5) === 0 ? 2 : 0); });
+    }
+    for (const R of this.rooms.values()) if (R.q) R.q.scale.set(this.textScale);
+    this.drawThreads();
+    // grimorios con conexiones dormidas: sueltan una «z»
+    this.zT = (this.zT || 0) - dt;
+    if (this.zT <= 0) {
+      this.zT = 1.6;
+      for (const R of this.rooms.values()) if (R.shelf && R.shelf.data && R.shelf.data.sleep >= 10) {
+        const z = text('z', 14, 0xd8c8f0, FONT, '700'); z.anchor.set(0.5); const x0 = R.shelf.x + 10, y0 = R.shelf.y - 96;
+        this.addFx(z, f => { z.x = x0 + Math.sin(f.age * 3) * 5; z.y = y0 - f.age * 16; z.alpha = Math.max(0, 1 - f.age / 1.8); return f.age < 1.8; });
+      }
     }
     // sala enfocada (para mostrar los nombres)
     const zoomed = this.overview && s > this.overview.s * 1.45;

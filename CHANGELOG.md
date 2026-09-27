@@ -14,6 +14,15 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.70.0] - 2026-09-27
+
+### Agregado
+- **Castillo, completo**: la **mazmorra** junto a la torre (las IPs bloqueadas son espectros presos tras las rejas y los archivos en cuarentena, ataúdes con cadenas en la puerta), la **torre de los cuervos** (cada correo pasa por ella; los rebotados vuelven con el motivo y la cola espera posada en la percha) y un **librero de grimorios** en cada sala con bases de datos, con hilos violetas hasta las luces que las usan.
+- Castillo: con el servidor **al límite**, el castillo queda sitiado (el horizonte arde en rojo y los murciélagos rondan la luna esperando entrar); la **cuota** aparece sobre las almenas de la sala; la luna tiene la **fase de hoy** y cruzan estrellas fugaces.
+
+### Corregido
+- Kit de temas: la ficha de un proyecto en el simulador ya no se queda en «Cargando…».
+
 ## [0.69.0] - 2026-09-27
 
 ### Agregado
@@ -1344,7 +1353,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.69.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.70.0...HEAD
+[0.70.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.69.0...v0.70.0
 [0.69.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.68.0...v0.69.0
 [0.68.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.67.0...v0.68.0
 [0.67.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.66.0...v0.67.0

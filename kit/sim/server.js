@@ -201,7 +201,9 @@ http.createServer((req, res) => {
   if (p === '/api/detail') {
     const k = u.searchParams.get('kind') + ':' + u.searchParams.get('id');
     const d = DET[k] || Object.entries(DET).find(([kk]) => kk.startsWith(u.searchParams.get('kind') + ':'))?.[1];
-    return d ? json(res, 200, shift(d, Date.now() - T0)) : json(res, 404, { error: 'No grabado en el simulador' });
+    // la grabacion a veces guardo la categoria del proyecto en «kind»: se corrige para que la ficha no quede en «Cargando…»
+    const K = u.searchParams.get('kind'), fix = d && ['app', 'site'].includes(K) && d.kind !== K ? { ...d, kind: K, id: u.searchParams.get('id') } : d;
+    return fix ? json(res, 200, shift(fix, Date.now() - T0)) : json(res, 404, { error: 'No grabado en el simulador' });
   }
   if (p === '/api/theme' && req.method === 'POST') {
     let b = ''; req.on('data', c => { b += c; }); req.on('end', () => { try { current = JSON.parse(b).id; broadcast('theme', { id: current }); json(res, 200, { ok: true }); } catch { json(res, 400, { error: 'JSON inválido' }); } });
