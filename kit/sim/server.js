@@ -55,7 +55,7 @@ function listThemes() {
 const clients = new Set();
 let current = arg('theme') || 'ciudad';
 let lastState = null;
-const overrides = { down: new Set(), waiting: null, jail: 3, quarantine: 1, saturated: 0, quota: null };
+const overrides = { down: new Set(), waiting: null, jail: 3, quarantine: 1, saturated: 0, quota: null, watch: new Map() }; // watch: id -> { reason, n, until }
 // la grabacion es anterior a la carcel y a los silos de datos: si no los trae, se inventan para que el tema
 // tenga algo que dibujar (un silo por cuenta con sitios, tuberias a sus dos primeros sitios, consultas que van y vienen)
 function fakeSilos(o) {
@@ -76,6 +76,7 @@ function patchState(s) {
   const o = JSON.parse(JSON.stringify(s));
   for (const a of o.apps) if (overrides.down.has(a.id)) { a.status = 'down'; a.online = 0; }
   if (!o.silos) o.silos = fakeSilos(o);
+  for (const x of [...o.apps, ...(o.sites || [])]) { const w = overrides.watch.get(x.id); if (w && w.until > Date.now()) x.watch = { reason: w.reason, n: w.n, since: w.since }; }
   if (overrides.saturated > Date.now()) o.saturation = { level: 'bad', causes: [{ id: 'cpu', level: 'bad', label: 'CPU al 97 %' }], since: overrides.saturated - 40000 };
   if (overrides.quota && overrides.quota.until > Date.now()) for (const a of o.accounts) if (a.id === overrides.quota.account) a.quota = overrides.quota.q;
   if (!o.jail) o.jail = { n: overrides.jail, atalaya: Math.max(0, overrides.jail - 2), quarantine: overrides.quarantine };
@@ -97,10 +98,10 @@ setInterval(() => {
 }, 100);
 
 // ------------------------------------------------------------------ escenarios (/sim)
-function scenario(name) {
+function scenario(name, target) {
   const s = lastState;
   if (!s) return 'Todavía no llegó el primer estado';
-  const pick = a => a[Math.random() * a.length | 0];
+  const pick = a => (target && a.find(x => x && x.id === target)) || a[Math.random() * a.length | 0]; // ?objetivo=<id> elige el edificio
   const now = Date.now();
   if (name === 'caida') {
     const a = pick(s.apps.filter(x => !overrides.down.has(x.id)));
@@ -126,10 +127,21 @@ function scenario(name) {
   }
   if (name === 'pico') {
     const targets = [...s.apps, ...(s.sites || [])];
-    for (let i = 0; i < 120; i++) setTimeout(() => { const a = pick(targets); broadcast('ev', { kind: 'http', t: Date.now(), account: a.account, app: s.apps.includes(a) ? a.id : null, site: s.apps.includes(a) ? null : a.id, status: Math.random() < 0.06 ? 502 : 200, bot: Math.random() < 0.3, cc: pick(['VE', 'US', 'CO', 'ES', 'MX']) }); }, i * 60);
+    const hot = pick(targets);
+    overrides.watch.set(hot.id, { reason: 'surge', n: 240, since: now, until: now + 30000 });
+    for (let i = 0; i < 120; i++) setTimeout(() => { const a = i % 2 ? hot : targets[Math.random() * targets.length | 0]; broadcast('ev', { kind: 'http', t: Date.now(), account: a.account, app: s.apps.includes(a) ? a.id : null, site: s.apps.includes(a) ? null : a.id, status: Math.random() < 0.06 ? 502 : 200, bot: Math.random() < 0.3, cc: pick(['VE', 'US', 'CO', 'ES', 'MX']) }); }, i * 60);
     return '120 visitas en 7 s';
   }
   if (name === 'dominio') { const a = pick(s.accounts.filter(x => x.id !== 'root')); broadcast('ev', { kind: 'domain', t: now, action: pick(['added', 'removed', 'changed']), account: a.id }); return `Cambio de dominio en ${a.label}`; }
+  if (name === 'escaneo') {
+    const x = pick(s.sites && s.sites.length ? s.sites : s.apps), k = s.apps.includes(x) ? 'app' : 'site';
+    overrides.watch.set(x.id, { reason: 'scan', n: 291, since: now, until: now + 45000 });
+    broadcast('ev', { kind: 'watch', t: now, action: 'start', reason: 'scan', n: 291, account: x.account, [k]: x.id });
+    const fams = ['env', 'git', 'wp', 'phpinfo', 'admin', 'backup'];
+    for (let i = 0; i < 36; i++) setTimeout(() => broadcast('ev', { kind: 'probe', t: Date.now(), account: x.account, [k]: x.id, fam: fams[i % fams.length], status: 404, exposed: false }), i * 700);
+    setTimeout(() => broadcast('ev', { kind: 'watch', t: Date.now(), action: 'end', reason: 'scan', account: x.account, [k]: x.id }), 45000);
+    return `Escaneo en «${x.name}»: patrullas y 36 sondeos durante 45 s`;
+  }
   if (name === 'carcel') {
     const x = pick(s.sites && s.sites.length ? s.sites : s.apps);
     overrides.jail++;
@@ -167,7 +179,7 @@ const SIM_PAGE = `<!doctype html><meta charset="utf-8"><title>Simulador de Atala
 <button data-s="caida">Un servicio se cae (45 s)</button><button data-s="ataque">Ataque: 25 intentos de acceso</button><button data-s="permiso">Un agente pide permiso (30 s)</button>
 <button data-s="despliegue">Un despliegue (a veces falla)</button><button data-s="pico">Pico de visitas</button><button data-s="dominio">Cambio de dominio</button><button data-s="correo">Correo</button>
 <button data-s="limite">El servidor llega al límite (40 s)</button><button data-s="cuota">Una cuenta al límite de su cuota (60 s)</button>
-<button data-s="carcel">Una IP va a la cárcel</button><button data-s="cuarentena">Un archivo PHP va a cuarentena</button>
+<button data-s="escaneo">Escaneo: patrullas y sondeos (45 s)</button><button data-s="carcel">Una IP va a la cárcel</button><button data-s="cuarentena">Un archivo PHP va a cuarentena</button>
 <p id="out"></p><script src="/sim/sim.js"></script>`;
 const SIM_JS = `document.querySelectorAll('[data-s]').forEach(b => b.onclick = async () => { const r = await fetch('/sim/' + b.dataset.s, { method: 'POST' }); document.getElementById('out').textContent = await r.text(); });`;
 
@@ -197,7 +209,7 @@ http.createServer((req, res) => {
   }
   if (p === '/sim') return send(res, 200, SIM_PAGE, 'text/html; charset=utf-8');
   if (p === '/sim/sim.js') return send(res, 200, SIM_JS, 'text/javascript; charset=utf-8');
-  if (p.startsWith('/sim/') && req.method === 'POST') return send(res, 200, scenario(p.slice(5)), 'text/plain; charset=utf-8');
+  if (p.startsWith('/sim/') && req.method === 'POST') return send(res, 200, scenario(p.slice(5), u.searchParams.get('objetivo')), 'text/plain; charset=utf-8');
   if (p.startsWith('/api/')) return json(res, 403, { error: 'No disponible en el simulador' });
   if (p === '/login' || p === '/setup') return send(res, 302, '', 'text/plain');
   const rel = p === '/' ? '/index.html' : p;
