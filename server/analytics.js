@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { isCloudflare } = require('./blocksafe');
 const { readJSON, writeJSONAtomic } = require('./util');
 
 const TOP = 40; // entradas por lista y dia
@@ -67,6 +68,7 @@ class Analytics {
     this.domainsOf = opts.domainsOf || (() => []); // clave -> dominios propios (para no contar el trafico interno como referido)
     this.months = new Map(); // "clave|AAAA-MM" -> { days: { fecha: dia } }
     this.dirty = new Set();
+    this.cf = new Map(); // clave -> { n, cf } peticiones recientes y cuantas vinieron de Cloudflare
     this.seen = new Map(); // clave -> { day, v: Map(huella -> paginas vistas) } visitantes de hoy
     const st = readJSON(path.join(this.dir, 'state.json'), null) || {};
     this.mark = st.mark || {}; // dominio -> ultima hora ya contada (para no recontar al releer los logs al arrancar)
@@ -106,6 +108,13 @@ class Analytics {
     const date = dayOf(at), d = this.day(key, date);
     this.dirty.add(key + '|' + date.slice(0, 7));
     d.hits++;
+    // cuantas peticiones llegan desde nodos de Cloudflare (ultimas ~500 por sitio): si son casi todas, el servidor
+    // no esta recibiendo la IP real del visitante
+    if (e.ip && at > Date.now() - 86400000) {
+      const c = this.cf.get(key) || { n: 0, cf: 0 }; c.n++; if (isCloudflare(e.ip)) c.cf++;
+      if (c.n > 500) { c.n = Math.round(c.n / 2); c.cf = Math.round(c.cf / 2); }
+      this.cf.set(key, c);
+    }
     const ua = e.ua || {};
     if (ua.bot || e.bot) { d.bots++; bump(d.botNames, ua.name || 'Robot'); return; }
     if (e.status >= 500) d.err++;
@@ -145,6 +154,10 @@ class Analytics {
       bump(d.os, ua.os || 'Otro');
     } else if (n === 1) d.bounces--; // ya vio una segunda pagina: no reboto
   }
+
+  // detras de Cloudflare sin la IP real: casi todo lo que llega viene de sus nodos (con al menos 60 peticiones)
+  cfOnly(key) { const c = this.cf.get(key); return !!(c && c.n >= 60 && c.cf / c.n >= 0.9); }
+  cfSites() { return [...this.cf.keys()].filter(k => this.cfOnly(k)); }
 
   // identificador fijo de un sitio para el script (no cambia al reiniciar: sale de la sal guardada en disco)
   siteToken(key) { return 'a' + crypto.createHash('sha1').update(this.salt + '|js|' + key).digest('hex').slice(0, 11); }

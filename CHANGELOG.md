@@ -14,6 +14,12 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.77.0] - 2026-09-27
+
+### Agregado
+- **Cloudflare**: si un sitio está detrás de Cloudflare y el servidor no recibe la IP real de sus visitantes (casi todo lo que llega viene de sus nodos), su ficha y su analítica lo avisan y dicen exactamente cómo arreglarlo (mod_remoteip con `CF-Connecting-IP`, o pedírselo al hosting).
+- **La cárcel también en Cloudflare**: en Defensa web se conecta un token de API de Cloudflare (Zone Read y Firewall Services Edit) y cada IP que la defensa bloquea se bloquea también en la zona de su sitio (en todas, si el bloqueo es de todo el servidor); al salir de la cárcel, la regla se borra sola. Se puede apagar o desconectar. El token queda en un archivo 600 del servidor.
+
 ## [0.76.0] - 2026-09-27
 
 ### Agregado
@@ -1397,7 +1403,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.76.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.0...HEAD
+[0.77.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.76.0...v0.77.0
 [0.76.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.75.0...v0.76.0
 [0.75.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.74.0...v0.75.0
 [0.74.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.73.0...v0.74.0

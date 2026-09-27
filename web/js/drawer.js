@@ -162,6 +162,18 @@ export class Drawer {
         if (r.error) { au.insertAdjacentHTML('afterend', `<span class="dmuted"> ${esc(r.error)}</span>`); au.disabled = false; } else this.load();
         return;
       }
+      const cfb = e.target.closest('[data-cf]');
+      if (cfb && (cfb.tagName === 'BUTTON' || e.type === 'click')) {
+        const act = cfb.dataset.cf, box = cfb.closest('.cfbox'), out = box.querySelector('.cf-out');
+        if (act === 'disconnect' && !(await ask({ title: 'Desconectar Cloudflare', icon: 'web', ok: 'Desconectar', body: 'Las IPs que se bloqueen desde ahora ya no se bloquean allá. Las reglas que ya creó siguen en Cloudflare hasta que salgan de la cárcel o las borre a mano.' }))) return;
+        const body = act === 'connect' ? { token: box.querySelector('[name=cftoken]').value } : act === 'on' ? { on: cfb.checked } : {};
+        if (cfb.tagName === 'BUTTON') cfb.disabled = true;
+        out.textContent = act === 'connect' ? 'Verificando el token…' : '';
+        const r = await fetch('api/cloudflare/' + act, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Atalaya': '1' }, body: JSON.stringify(body) }).then(x => x.json()).catch(() => ({ error: 'Sin conexión' }));
+        if (cfb.tagName === 'BUTTON') cfb.disabled = false;
+        if (r.error) { out.className = 'cf-out bad'; out.textContent = r.error; return; }
+        this.load(); return;
+      }
       const cp = e.target.closest('[data-copy]');
       if (cp) { navigator.clipboard?.writeText(cp.dataset.copy).then(() => { cp.textContent = 'Copiado'; setTimeout(() => { cp.textContent = 'Copiar'; }, 1800); }); return; }
       // informe mensual por correo: guardar destinatarios o enviarlo ya
@@ -449,7 +461,7 @@ export class Drawer {
         <span class="grow">${r.path ? `<span class="mono">${esc(r.path)}</span>` : esc(r.ua || (r.bot ? 'Robot' : 'Visita'))}${r.domain ? `<br><span class="dmuted">${esc(r.domain)}${r.ref ? ' · desde ' + esc(r.ref.replace(/^https?:\/\//, '').slice(0, 60)) : ''}</span>` : ''}</span>
         <span class="vua">${px(r.bot ? 'bot' : r.mobile ? 'phone' : 'laptop')} ${esc(r.ua || '')}${r.ip ? `<br><span class="mono dmuted">${esc(r.ip)}</span>` : ''}</span></li>`).join('')
       : '<li class="dmuted">Sin visitas desde que se abrió este panel o se reinició Atalaya.</li>';
-    return { hour: anaCard(d) + hour, rank, recent: `<section class="dsec"><h4>Últimas visitas</h4><ul class="dlist">${recent}</ul></section>` };
+    return { hour: cfWarn(d) + anaCard(d) + hour, rank, recent: `<section class="dsec"><h4>Últimas visitas</h4><ul class="dlist">${recent}</ul></section>` };
   }
 
   // analitica completa de un sitio o app: periodo, cifras con comparacion, grafica por dia y de donde llegan
@@ -522,6 +534,7 @@ export class Drawer {
       ${priv && d.notFound.length ? `<section class="dsec"><h4>Páginas que no existen</h4><p class="hint">Personas (no robots) que llegaron a un error 404: enlaces rotos o páginas que se movieron. Una redirección las recupera.</p>${list(d.notFound, k => `<span class="mono">${esc(k)}</span>`)}</section>` : ''}
       ${d.botNames.length ? `<section class="dsec"><h4>Robots que más la visitan</h4>${list(d.botNames, k => esc(k))}</section>` : ''}
       ${d.private ? '<p class="dmuted">Active el modo privado para ver las páginas, los sitios que la enlazan, las campañas y los errores 404.</p>' : ''}
+      ${d.cfOnly ? cfWarn(d) : ''}
       ${anaScript(d)}
       ${d.monthly ? anaReport(d) : ''}
       <p class="hint">${d.since ? `Se mide desde el ${new Date(d.since + 'T12:00:00').toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' })}. ` : ''}Sin cookies ni código en el sitio: sale de los registros del servidor, por eso cuenta también a quien usa bloqueador de anuncios. Un visitante es la misma IP y navegador en el día; rebote, quien vio una sola página.</p>`);
@@ -1069,8 +1082,18 @@ function defenseSection(D, priv) {
       <div class="row"><label>Duración <select name="hours">${[1, 6, 24, 72, 168].map(h => `<option value="${h}"${h === D.hours ? ' selected' : ''}>${h < 24 ? h + ' h' : h / 24 + ' día' + (h > 24 ? 's' : '')}</option>`).join('')}</select></label></div>
       <label class="stack">IPs que nunca se bloquean (una por línea)<textarea name="allow" rows="2" spellcheck="false">${esc((D.allow || []).join('\n'))}</textarea></label>
       <p class="row"><button class="btn small" data-def-save>Guardar</button></p></div>` : `<p class="dmuted">Defensa automática: <b>${D.auto ? 'encendida' : 'apagada'}</b>.</p>`;
+  // Cloudflare: la carcel tambien alla (conexion con un token) y el aviso de los sitios sin la IP real
+  const C = D.cloudflare;
+  const cf = !C ? '' : `<div class="defbox cfbox"><p><b>${px('web')} Bloquear también en Cloudflare</b></p>
+      ${D.cfSites ? `<p class="cfwarn">${D.cfSites} sitio(s) llegan desde Cloudflare sin la IP real de sus visitantes: el firewall de este servidor no frena a sus atacantes. Conectar Cloudflare lo resuelve.</p>` : ''}
+      ${C.connected ? `<p class="dmuted">Conectado: ${esc(C.zones.join(', '))}. ${C.rules ? `${C.rules} regla(s) de bloqueo activas allá.` : 'Sin reglas activas ahora.'}${C.lastError ? ` <span class="bad">Último error: ${esc(C.lastError)}</span>` : ''}</p>
+        ${priv ? `<label class="check"><input type="checkbox" name="cfon" ${C.on ? 'checked' : ''} data-cf="on"><span><b>Llevar la cárcel a Cloudflare</b><small>Cada IP bloqueada se bloquea también en la zona de su sitio; al salir de la cárcel, la regla se borra.</small></span></label>
+        <p class="row"><button class="btn small ghost" data-cf="disconnect">Desconectar</button></p>` : ''}`
+      : priv ? `<p class="hint">Si sus sitios están detrás de Cloudflare, sus atacantes siguen entrando por sus nodos aunque estén en la cárcel. Cree un token en Cloudflare (Mi perfil › Tokens de API › Crear token) con <b>Zone › Zone › Read</b> y <b>Zone › Firewall Services › Edit</b> sobre sus dominios, y péguelo aquí.</p>
+        <p class="row"><input type="password" name="cftoken" placeholder="Token de API de Cloudflare" autocomplete="off" spellcheck="false" style="flex:1 1 16rem;min-width:0"><button class="btn small" data-cf="connect">Conectar</button></p>` : '<p class="dmuted">Sin conectar.</p>'}
+      <p class="cf-out dmuted" role="status"></p></div>`;
   return `<section class="dsec"><h4>${px('shield')} Defensa de Atalaya ${D.active ? `<span class="pill bad">${D.active} bloqueo(s) activo(s)</span>` : ''}</h4>
-    ${conf}${rows ? `<ul class="dlist">${rows}</ul>` : '<p class="dmuted">Todavía no hay bloqueos.</p>'}<p class="dlinks"><a data-go="jail:all">${px('jail')} Ver la cárcel</a></p></section>`;
+    ${conf}${cf}${rows ? `<ul class="dlist">${rows}</ul>` : '<p class="dmuted">Todavía no hay bloqueos.</p>'}<p class="dlinks"><a data-go="jail:all">${px('jail')} Ver la cárcel</a></p></section>`;
 }
 
 // actividad de las bases: lo que importa (conexiones contra el maximo, consultas por segundo) y las bases mas
@@ -1080,6 +1103,14 @@ function dbQuery(q, label) {
   return `<div class="dbq"><span class="dmuted">${esc(label)}: <b class="${q.time >= 10 ? 'bad' : q.time >= 3 ? 'warn' : ''}">${q.time} s</b>${q.state ? ` · ${esc(q.state)}` : ''}</span>${q.query ? `<code>${esc(q.query)}</code>` : ''}</div>`;
 }
 // tarjeta de analitica en la ficha de un sitio o app: visitantes de 7 dias, comparacion y barras por dia
+// detras de Cloudflare sin la IP real: que se ve mal y como arreglarlo
+function cfWarn(d) {
+  if (!d.cfOnly) return '';
+  const ed = document.body.classList.contains('ed-hosting') ? 'hosting' : 'vps';
+  return `<section class="dsec"><div class="afind warn"><h5>${px('warn')} Este sitio llega desde Cloudflare sin la IP real</h5>
+    <p>El servidor recibe la dirección de los nodos de Cloudflare, no la de sus visitantes. Por eso la analítica cuenta menos visitantes y países equivocados, y la defensa no puede frenar a los atacantes de este sitio con el firewall.</p>
+    <p class="dmuted">${ed === 'hosting' ? 'Pídale a su proveedor de hosting que active <b>mod_remoteip</b> con la cabecera <b>CF-Connecting-IP</b> para su cuenta.' : 'En WHM › EasyApache 4, active <b>mod_remoteip</b> y configure <span class="mono">RemoteIPHeader CF-Connecting-IP</span> con los rangos de Cloudflare como proxies de confianza (o instale el plugin de Cloudflare para cPanel, que lo hace solo). En otros servidores, lo mismo en la configuración de Apache o Nginx (real_ip_header).'} Para bloquear igual a los atacantes, <a data-go="webdef:all">conecte Cloudflare en la defensa</a>.</p></div></section>`;
+}
 function anaCard(d) {
   const a = d.analytics; if (!a) return '';
   const p = a.prevVisitors ? Math.round((a.visitors - a.prevVisitors) / a.prevVisitors * 100) : null;

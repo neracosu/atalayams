@@ -177,6 +177,9 @@ process.once('SIGTERM', () => { try { ctx.analytics.flush(); } catch { } process
 // informe mensual de la analitica por correo, para el cliente final de cada sitio (sale del correo de las alertas)
 const { Reports } = require('./reports');
 ctx.reports = new Reports(cfg, ctx);
+// bloqueo en Cloudflare: la carcel tambien alla, para los sitios detras de su proxy
+const { Cloudflare } = require('./cloudflare');
+ctx.cloudflare = new Cloudflare(cfg, bus);
 const { Defense } = require('./defense');
 ctx.alerts = new Alerts(cfg, bus, secrets, { goOf: e => privacy.goOf(e),
   healthLine: () => { const h = ctx.hostAudit && ctx.hostAudit.summary(); return h ? (h.bad ? `Salud del servidor: ${h.bad} grave(s)${h.warn ? `, ${h.warn} para revisar` : ''}` : h.warn ? `Salud del servidor: ${h.warn} para revisar` : 'Salud del servidor: en orden') : ''; } });
@@ -590,6 +593,18 @@ async function handle(req, res) {
         if (act === 'disconnect') { A.disconnect(); console.log(`[alertas] ${session.user} desconectó Telegram`); return json(res, 200, { ok: true }); }
         if (act === 'test') { const ok = await A.send(`<b>Prueba de Atalaya</b>\nSi ve este mensaje, las alertas de <b>${cfg.title || 'Atalaya'}</b> llegan bien.`, { force: true }); return ok ? json(res, 200, { ok: true }) : json(res, 400, { error: 'Telegram no entregó el mensaje: revise que el chat siga enganchado' }); }
         if (act === 'summary') { const ok = await A.send(A.summary(), { force: true }); return ok ? json(res, 200, { ok: true }) : json(res, 400, { error: 'No se pudo enviar' }); }
+      } catch (e) { return json(res, 400, { error: e.message }); }
+      return json(res, 404, { error: 'No encontrado' });
+    }
+    // Cloudflare: conectar el token, apagar o desconectar (dueno con el modo privado activo)
+    if (p.startsWith('/api/cloudflare/')) {
+      if (session.role !== 'owner') return json(res, 403, { error: 'Solo un dueño puede hacer esto' });
+      if (!auth.isPrivate(session)) return json(res, 403, { error: 'Active el modo privado' });
+      const act = p.slice('/api/cloudflare/'.length), C = ctx.cloudflare;
+      try {
+        if (act === 'connect') { const st = await C.connect(body.token); console.log(`[cloudflare] ${session.user} conectó ${st.zones.length} zona(s)`); return json(res, 200, { ok: true, ...st }); }
+        if (act === 'on') return json(res, 200, { ok: true, ...C.setOn(body.on) });
+        if (act === 'disconnect') { C.disconnect(); console.log(`[cloudflare] ${session.user} desconectó Cloudflare`); return json(res, 200, { ok: true }); }
       } catch (e) { return json(res, 400, { error: e.message }); }
       return json(res, 404, { error: 'No encontrado' });
     }

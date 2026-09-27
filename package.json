@@ -1,6 +1,6 @@
 {
   "name": "atalaya-monitor",
-  "version": "0.76.0",
+  "version": "0.77.0",
   "description": "Atalaya Monitor Server: monitor visual en vivo de servidores, hostings, WordPress, Vercel, Supabase, GitHub y Claude Code, con temas de pixel art.",
   "license": "AGPL-3.0-only",
   "engines": {
@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node server/index.js",
     "release": "node scripts/release.js",
-    "test": "node test/platforms.test.js && node test/parsers.test.js && node test/sources.test.js && node test/cloud.test.js && node test/setup.test.js && node test/audits.test.js && node test/users.test.js && node test/dbactivity.test.js && node test/watch.test.js && node test/defense.test.js && node test/saturation.test.js && node test/phpfiles.test.js && node test/quotas.test.js && node test/services.test.js && node test/logins.test.js && node test/analytics.test.js && node test/alerts.test.js && node test/equipo.test.js && node test/comm.test.js && node test/webdefense.test.js && node test/defs.test.js && node test/exposure.test.js && node test/leakix.test.js && node test/agents.test.js && node test/projects.test.js && node test/wordpress.test.js && node test/favicons.test.js && node test/traffic.test.js && node test/hostaudit.test.js && node test/reports.test.js && node test/themes.test.js && node test/kit.test.js && node scripts/colaboradores.js --check"
+    "test": "node test/platforms.test.js && node test/parsers.test.js && node test/sources.test.js && node test/cloud.test.js && node test/setup.test.js && node test/audits.test.js && node test/users.test.js && node test/dbactivity.test.js && node test/watch.test.js && node test/defense.test.js && node test/saturation.test.js && node test/phpfiles.test.js && node test/quotas.test.js && node test/services.test.js && node test/logins.test.js && node test/analytics.test.js && node test/alerts.test.js && node test/equipo.test.js && node test/comm.test.js && node test/webdefense.test.js && node test/defs.test.js && node test/exposure.test.js && node test/leakix.test.js && node test/agents.test.js && node test/projects.test.js && node test/wordpress.test.js && node test/favicons.test.js && node test/traffic.test.js && node test/hostaudit.test.js && node test/reports.test.js && node test/cloudflare.test.js && node test/themes.test.js && node test/kit.test.js && node scripts/colaboradores.js --check"
   },
   "repository": {
     "type": "git",

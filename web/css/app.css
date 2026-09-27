@@ -669,3 +669,7 @@ small.down { color: var(--bad); font-weight: 700; margin-left: .3rem; }
 /* informe mensual por correo, en la analitica */
 .anarep input[type=text] { padding: .45rem .6rem; border: 1px solid var(--line-strong); border-radius: var(--radius, 8px); background: rgba(0, 0, 0, .25); color: var(--ink); font: inherit; }
 .anarep-out.good { color: var(--good, #4ade80); } .anarep-out.bad { color: var(--bad, #f87171); }
+/* Cloudflare en la defensa */
+.cfbox input[type=password] { padding: .45rem .6rem; border: 1px solid var(--line-strong); border-radius: var(--radius, 8px); background: rgba(0, 0, 0, .25); color: var(--ink); font: inherit; }
+.cfbox .cfwarn { color: var(--warn, #fbbf24); font-size: .9em; margin: .3rem 0; }
+.cf-out.bad { color: var(--bad, #f87171); }

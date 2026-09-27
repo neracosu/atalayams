@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.76.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.77.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -70,7 +70,7 @@ revisar y cómo arreglarlo**.
   <tr>
     <td valign="top"><img src="docs/icons/db.svg" width="40"><br><b>Las bases, a la vista</b><br><sub>Cada cuenta tiene su <b>silo de datos</b> con tuberías a los sitios que usan sus bases; por ellas corren pulsos cuando hay consultas. Supabase, como silo verde unido a su app. Conexiones contra el máximo, consultas por segundo, las bases más ocupadas y la consulta más lenta, <b>sin sus valores</b>. Se activa con un botón que crea un usuario de MySQL que solo ve las consultas en curso: no puede leer ni cambiar datos.</sub></td>
     <td valign="top"><img src="docs/icons/bot.svg" width="40"><br><b>Cada agente con su proyecto</b><br><sub>La tarjeta de cada sesión de Claude Code dice en qué proyecto y en qué cuenta trabaja. Al abrirse una sesión baja un haz de luz; al cerrarse, el robot sube y se va.</sub></td>
-    <td valign="top"><img src="docs/icons/shield.svg" width="40"><br><b>Defensa: detenerlos a tiempo</b><br><sub>Un botón en la ficha bloquea por un tiempo la IP que ataca, y las patrullas <b>se la llevan a la cárcel</b>, donde se ve cada IP bloqueada hasta que sale. Con la <b>defensa automática</b> encendida, bloquea sola a quien encontró una ruta expuesta, hace fuerza bruta, scraping o sondea varios sitios, y frena a los atacantes <b>antes de que el servidor se sature</b>.</sub></td>
+    <td valign="top"><img src="docs/icons/shield.svg" width="40"><br><b>Defensa: detenerlos a tiempo</b><br><sub>Un botón en la ficha bloquea por un tiempo la IP que ataca, y las patrullas <b>se la llevan a la cárcel</b>, donde se ve cada IP bloqueada hasta que sale. Con la <b>defensa automática</b> encendida, bloquea sola a quien encontró una ruta expuesta, hace fuerza bruta, scraping o sondea varios sitios, y frena a los atacantes <b>antes de que el servidor se sature</b>. Si sus sitios están detrás de <b>Cloudflare</b>, el bloqueo se hace también allá.</sub></td>
   </tr>
   <tr>
     <td valign="top"><img src="docs/icons/phone.svg" width="40"><br><b>Alertas por Telegram y correo</b><br><sub>Lo grave llega al teléfono o al correo aunque nadie mire la pantalla: puertas traseras, caídas, el servidor al límite. Con horario de silencio, un enlace a la ficha y un resumen cada mañana.</sub></td>

@@ -386,7 +386,7 @@ function makePrivacy(cfg) {
       }
       out.probes = probesOf(ctx, 'app:' + a.account + '/' + a.name);
       out.watch = watchOf(ctx, 'app:' + a.account + '/' + a.name, priv);
-      if (ctx.analytics && logs.groups && [...logs.groups.values()].some(g => g.account === a.account && g.app === a.name)) out.analytics = ctx.analytics.summary(k);
+      if (ctx.analytics && logs.groups && [...logs.groups.values()].some(g => g.account === a.account && g.app === a.name)) { out.analytics = ctx.analytics.summary(k); out.cfOnly = ctx.analytics.cfOnly(k); }
       return out;
     }
 
@@ -405,7 +405,7 @@ function makePrivacy(cfg) {
       };
       if (priv) Object.assign(out, { domains: g.domainList, docroot: tilde(g.docroot), wpVersion: g.wpVersion || '', proxyPort: g.proxyPort || null });
       out.probes = probesOf(ctx, 'site:' + g.id);
-      if (ctx.analytics) out.analytics = ctx.analytics.summary('site:' + g.id);
+      if (ctx.analytics) { out.analytics = ctx.analytics.summary('site:' + g.id); out.cfOnly = ctx.analytics.cfOnly('site:' + g.id); }
       out.watch = watchOf(ctx, 'site:' + g.id, priv);
       // certificado SSL: el mas proximo a vencer de sus dominios (el nombre del dominio solo en privado)
       if (ctx.svcAudit && ctx.svcAudit.data) {
@@ -542,7 +542,7 @@ function makePrivacy(cfg) {
       else if (ek === 'app') { const a = host.apps.find(x => alias(x.account + '/' + x.name) === eid); if (a) { key = a.account + '/' + a.name; name = appName(a.account, a.name, priv, a.image, fw(a)); go = 'app:' + eid; } }
       if (!key) return null;
       const r = ctx.analytics.report(key, opts.range || 30);
-      const out = { kind, id, name, go, ...r };
+      const out = { kind, id, name, go, ...r, cfOnly: ctx.analytics.cfOnly(key) };
       if (priv && ctx.reports) out.monthly = ctx.reports.info(key); // informe mensual por correo (solo en privado)
       if (priv) out.siteToken = ctx.analytics.siteToken(key); // para la linea del script (a.js)
       if (!priv) Object.assign(out, { pages: [], entries: [], refs: [], campaigns: [], notFound: [], private: true });
@@ -606,7 +606,10 @@ function makePrivacy(cfg) {
       const D = ctx.defense ? ctx.defense.summary() : null;
       const defense = D ? { available: D.available, auto: D.auto, hours: D.hours, active: D.active, allow: priv ? D.allow : undefined,
         records: D.records.map(r => ({ ip: priv ? r.ip : null, reason: r.reason, why: D.label[r.reason] || r.reason, by: r.by === 'auto' ? 'auto' : priv ? r.by : 'dueño',
-          at: r.at, until: r.until, status: r.status, hours: r.hours, site: r.app || r.site ? name(r) : null, account: r.account ? accLabel(r.account, priv) : null })) } : null;
+          at: r.at, until: r.until, status: r.status, hours: r.hours, site: r.app || r.site ? name(r) : null, account: r.account ? accLabel(r.account, priv) : null })),
+        // Cloudflare: el bloqueo tambien alla (estado de la conexion) y los sitios que llegan sin la IP real
+        cloudflare: ctx.cloudflare ? (c => ({ ...c, zones: priv ? c.zones : c.zones.length ? [`${c.zones.length} zona(s)`] : [] }))(ctx.cloudflare.status()) : null,
+        cfSites: ctx.analytics ? ctx.analytics.cfSites().length : 0 } : null;
       return { kind, id, priv, hour, day, defense,
         families: Object.entries(fams).sort((a, b) => b[1] - a[1]).map(([f, n]) => ({ fam: f, label: LABEL[f], n })),
         countries: [...cc].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([c, n]) => ({ cc: c, n })),

@@ -52,4 +52,7 @@ function internal(ip, ua) {
   return ownCache.has(ip);
 }
 
-module.exports = { unsafe, internal, CLOUDFLARE };
+// una IP de un nodo de Cloudflare (si el registro de un sitio solo trae estas, el servidor no recibe la IP real)
+function isCloudflare(ip) { ip = String(ip || '').replace(/^::ffff:/, ''); const v = net.isIP(ip); return !!v && CF.check(ip, v === 6 ? 'ipv6' : 'ipv4'); }
+
+module.exports = { unsafe, internal, isCloudflare, CLOUDFLARE };
