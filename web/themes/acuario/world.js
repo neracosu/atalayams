@@ -11,12 +11,13 @@
 // Regla de oro: calma y claridad; todo se mueve lento y cada pez se puede nombrar de un vistazo.
 import { Stage3D, THREE, color, clamp } from '../../js/stage3d.js';
 import { esc, fmtBytes } from '../../js/hud.js';
-import { accountCaption } from '../../js/accounts.js';
+import { accountCaption, forEdition } from '../../js/accounts.js';
 import { healthLine } from '../../js/layout.js';
 
 const FISH_COLORS = ['#ff8a3d', '#ffd23f', '#ff5e8a', '#7be0ff', '#b48cff', '#7be06b', '#ff4d5e', '#f4f1e8', '#3ddbd9', '#ffb3c7'];
 function hash(s) { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
 const TH = 3.6, TD = 2.6, GAP = 1.6; // alto y fondo de cada pecera, espacio entre peceras
+const IW = 3.4, TUBE_W = 1.4; // la pecera de aislamiento (carcel) y el tubo del correo, en la primera fila
 const FONT_K = 0.36; // la letra de las placas mide 0.36 unidades del mundo: crece y se achica con la camara
 
 // el dibujo del pez en la placa: 9x5 pixeles con sus dos colores (el acento pixel de la interfaz)
@@ -32,11 +33,22 @@ function fishIcon(a, b, dead) {
   return c.toDataURL();
 }
 
+// medusa: campana y tentaculos (los ataques caen como medusas; las bloqueadas quedan en aislamiento)
+function jellyMesh(scale = 1) {
+  const g = new THREE.Group();
+  const bell = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xe07ad8, emissive: 0xe07ad8, emissiveIntensity: 0.5, transparent: true, opacity: 0.85 }));
+  g.add(bell);
+  for (let i = 0; i < 6; i++) { const tl = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.5, 0.025), bell.material); tl.position.set(Math.cos(i * 1.05) * 0.2, -0.25, Math.sin(i * 1.05) * 0.2); g.add(tl); }
+  g.scale.setScalar(scale); g.userData.bell = bell;
+  return g;
+}
+
 export default class Acuario3D extends Stage3D {
   constructor(el, opts) {
     super(el, opts);
     this.fov = 30; this.fitScale = 1; this.orbitSpeed = 0;
     this.fish = new Map(); this.tanks = new Map(); this.divers = new Map();
+    this.iso = null; this.tube = null; this.mailLog = []; this.jam = false; this.jamQ = 0;
     this.layoutKey = '';
     this.view = { az: Math.PI / 2, el: 0.12, dist: 60, tx: 0, ty: 1, tz: 0, zoom: 1 };
     this.orbit = { ...this.view }; this.goal = { ...this.view };
@@ -53,13 +65,23 @@ export default class Acuario3D extends Stage3D {
     this.rack = new THREE.Group(); S.add(this.rack);
   }
 
+  // donde quedan la pecera de aislamiento (carcel), el tubo del correo y el filtro (de ahi salen las patrullas)
+  screenOf(kind, id) {
+    if (kind === 'jail') return this.iso ? this.screenAt(new THREE.Vector3(this.iso.x, this.iso.y + 1.4, 0)) : null;
+    if (kind === 'mail') return this.tube ? this.screenAt(new THREE.Vector3(this.tube.x, this.tube.y + TH / 2, 0)) : null;
+    if (kind === 'gate' || kind === 'tower') return this.filter ? this.screenAt(new THREE.Vector3(this.filter.x, this.filter.y + TH / 2, 0)) : null;
+    return super.screenOf(kind, id);
+  }
+
   // ------------------------------------------------------------------ las peceras
   layout(state) {
     const accounts = state.accounts.filter(a => a.id !== 'root');
     const by = {};
     for (const a of state.apps) (by[a.account] = by[a.account] || []).push({ ...a, _k: 'app' });
     for (const x of state.sites || []) (by[x.account] = by[x.account] || []).push({ ...x, _k: 'site' });
-    const key = accounts.map(a => a.id + ':' + a.label + ':' + (a.cpanel || '') + ':' + (by[a.id] || []).map(x => x.id + x.name).join(',')).join('|');
+    const jailOn = !!state.jail, mailOn = !!state.mail && forEdition('TORRE DE CONTROL') === 'TORRE DE CONTROL';
+    const silos = new Set(((state.silos && state.silos.list) || []).map(x => x.account));
+    const key = accounts.map(a => a.id + ':' + a.label + ':' + (a.cpanel || '') + ':' + (silos.has(a.id) ? 'c' : '') + ':' + (by[a.id] || []).map(x => x.id + x.name).join(',')).join('|') + (jailOn ? '|J' : '') + (mailOn ? '|M' : '');
     if (key === this.layoutKey) return;
     if (key !== this.realKey) { this.realKey = key; this.refits = 0; }
     this.layoutKey = key;
@@ -68,20 +90,23 @@ export default class Acuario3D extends Stage3D {
     for (const f of this.fish.values()) f.label.remove();
     for (const d of this.divers.values()) d.label.remove();
     if (this.filterLabel) this.filterLabel.remove();
+    for (const o of [this.iso, this.tube]) if (o && o.plaque) o.plaque.remove();
+    this.iso = null; this.tube = null; this.jamQ = 0;
     this.tanks.clear(); this.fish.clear(); this.divers.clear();
+    this.silos = silos;
     this.pickables = [];
     const list = accounts.filter(a => (by[a.id] || []).length)
       .map(a => ({ a, items: by[a.id].sort((x, y) => (x._k === y._k ? 0 : x._k === 'app' ? -1 : 1)) }))
       .sort((x, y) => y.items.length - x.items.length);
     list.forEach(t => { t.w = clamp(3.2 + t.items.length * 0.34, 4.6, 14); });
     // estantes: se prueba con 1 a 4 filas y se queda la que deja las peceras mas grandes en pantalla
-    const FW = 3.2;
+    const FW = 3.2, LEAD = FW + GAP + (jailOn ? IW + GAP : 0) + (mailOn ? TUBE_W + GAP : 0);
     let best = null;
     for (let n = 1; n <= Math.min(4, list.length); n++) {
-      const sum = list.reduce((k, t) => k + t.w + GAP, FW + GAP), target = sum / n;
-      const rows = [[]]; let used = FW + GAP;
+      const sum = list.reduce((k, t) => k + t.w + GAP, LEAD), target = sum / n;
+      const rows = [[]]; let used = LEAD;
       for (const t of list) { if (used + t.w / 2 > target && rows[rows.length - 1].length && rows.length < n) { rows.push([]); used = 0; } rows[rows.length - 1].push(t); used += t.w + GAP; }
-      const widths = rows.map((r, i) => r.reduce((k, t) => k + t.w, 0) + (r.length - 1) * GAP + (i === 0 ? FW + GAP : 0));
+      const widths = rows.map((r, i) => r.reduce((k, t) => k + t.w, 0) + (r.length - 1) * GAP + (i === 0 ? LEAD : 0));
       const heights = rows.map(r => TH + 0.6 + Math.max(...r.map(t => (t.plaqueU = this.plaqueUnits(t.a.id, FONT_K * 1.3 * this.plaqueLines(t.items.length, t.w, FONT_K) + 0.6)))));
       const w = Math.max(...widths) + 3, h = heights.reduce((k, x) => k + x, 0) + 1;
       const score = Math.min(this.areaAspect() / w, 1 / h);
@@ -93,11 +118,17 @@ export default class Acuario3D extends Stage3D {
       let x = -total / 2;
       const shelf = new THREE.Mesh(new THREE.BoxGeometry(total + 1.6, 0.25, TD + 0.8), new THREE.MeshStandardMaterial({ color: 0x2a3440, metalness: 0.6, roughness: 0.45 }));
       shelf.position.set(0, y - 0.13, 0); this.rack.add(shelf);
-      if (ri === 0) { this.buildFilter(x + FW / 2, y, FW); x += FW + GAP; }
+      if (ri === 0) {
+        this.buildFilter(x + FW / 2, y, FW); x += FW + GAP;
+        if (jailOn) { this.buildIso(x + IW / 2, y); x += IW + GAP; }
+        if (mailOn) { this.buildTube(x + TUBE_W / 2, y); x += TUBE_W + GAP; }
+      }
       for (const t of row) { t.x = x + t.w / 2; t.y = y; x += t.w + GAP; this.buildTank(t); }
       y -= best.heights[ri];
     });
     this.extent = { w: best.w, h: best.h, top: TH + 0.8, bottom: y + 0.4 };
+    if (state.jail) this.drawIso(state.jail);
+    this.updateChests(state.silos);
     this.fit(true);
   }
   // encuadre: que entren todas las peceras y sus placas (fov 30: se ve 0.536 x distancia de alto)
@@ -127,6 +158,139 @@ export default class Acuario3D extends Stage3D {
     this.filter = { g, water, led, x, y, w };
     this.filterLabel = this.label('w3-plaque w3-filter', '<b>Servidor</b><small></small><i class="hl"></i>', new THREE.Vector3(x, y - 0.3, TD / 2));
     this.filterLabel.d.dataset.go = 'system:root';
+  }
+
+  // Aislamiento: la pecera de cuarentena de las tiendas. Las IPs bloqueadas son medusas encerradas (hasta 6 a la vista)
+  // y los archivos en cuarentena, frascos sellados con tapa roja sobre el estante
+  buildIso(x, y) {
+    const g = new THREE.Group(); g.position.set(x, y, 0);
+    const h = TH * 0.8, d = TD * 0.8;
+    const water = new THREE.Mesh(new THREE.BoxGeometry(IW - 0.1, h - 0.2, d - 0.1), new THREE.MeshStandardMaterial({ color: 0x5a2a7a, transparent: true, opacity: 0.32, emissive: 0x3a1450, emissiveIntensity: 0.8, depthWrite: false }));
+    water.position.y = (h - 0.2) / 2 + 0.05;
+    const frame = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(IW, h, d)), new THREE.LineBasicMaterial({ color: 0xe07ad8 }));
+    frame.position.y = h / 2;
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(IW + 0.1, 0.14, d + 0.1), new THREE.MeshStandardMaterial({ color: 0x3a2440, metalness: 0.5 }));
+    lid.position.y = h + 0.07;
+    // candado sobre la tapa
+    const lock = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.26, 0.12), new THREE.MeshStandardMaterial({ color: 0xd8b24a, metalness: 0.8, roughness: 0.3 }));
+    lock.position.set(0, h + 0.3, d / 2 - 0.1);
+    const shack = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.035, 6, 12, Math.PI), lock.material); shack.position.set(0, h + 0.43, d / 2 - 0.1);
+    g.add(water, frame, lid, lock, shack);
+    water.userData = lid.userData = { kind: 'jail', id: 'all' };
+    const jellies = new THREE.Group(), jars = new THREE.Group(); g.add(jellies, jars);
+    this.rack.add(g); this.pickables.push(water, lid);
+    const plaque = this.label('w3-plaque w3-iso', '<b style="border-color:#e07ad8">Aislamiento</b><small></small>', new THREE.Vector3(x, y - 0.3, TD / 2));
+    plaque.d.dataset.go = 'jail:all';
+    this.iso = { g, x, y, h, d, jellies, jars, plaque, n: -1, q: -1 };
+  }
+  isoLine() { const j = this.iso; if (!j) return ''; const n = Math.max(0, j.n), q = Math.max(0, j.q); return (n ? `${n} medusa${n === 1 ? '' : 's'} aislada${n === 1 ? '' : 's'}` : 'vacía') + (q ? ` · ${q} frasco${q === 1 ? '' : 's'}` : ''); }
+  drawIso(J) {
+    const j = this.iso; if (!j || !J) return;
+    const n = J.n || 0, q = J.quarantine || 0;
+    if (n !== j.n) {
+      j.n = n; j.jellies.clear();
+      for (let i = 0; i < Math.min(6, n); i++) { const m = jellyMesh(0.8); m.position.set(-IW / 2 + 0.7 + (i % 3) * 1.0, 1.1 + Math.floor(i / 3) * 1.1, (i % 2 ? 0.2 : -0.2)); m.userData.ph = i * 1.3; m.userData.y0 = m.position.y; j.jellies.add(m); }
+    }
+    if (q !== j.q) {
+      j.q = q; j.jars.clear();
+      for (let i = 0; i < Math.min(4, q); i++) {
+        const jar = new THREE.Group();
+        const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.46, 14), new THREE.MeshStandardMaterial({ color: 0xbfe9ff, transparent: true, opacity: 0.35, depthWrite: false }));
+        glass.position.y = 0.23;
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 14), new THREE.MeshStandardMaterial({ color: 0xd0342a })); cap.position.y = 0.5;
+        const bug = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 0.1), new THREE.MeshBasicMaterial({ color: 0x3a1450 })); bug.position.y = 0.2;
+        jar.add(glass, cap, bug); jar.position.set(-IW / 2 + 0.45 + i * 0.62, 0, j.d / 2 + 0.28); jar.userData = { kind: 'jail', id: 'all' };
+        j.jars.add(jar);
+      }
+    }
+    j.plaque.d.querySelector('small').textContent = this.isoLine();
+  }
+  // Tubo del correo: cada correo es una capsula que sube o baja por el tubo; la cola se apila al pie
+  buildTube(x, y) {
+    const g = new THREE.Group(); g.position.set(x, y, 0);
+    const H = TH + 2.4, r = TUBE_W * 0.32;
+    const glass = new THREE.Mesh(new THREE.CylinderGeometry(r, r, H, 18, 1, true), new THREE.MeshStandardMaterial({ color: 0xbfe9ff, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false }));
+    glass.position.y = H / 2;
+    const ringM = new THREE.MeshStandardMaterial({ color: 0x8a6fc8, metalness: 0.6, roughness: 0.35 });
+    for (const yy of [0.1, H * 0.5, H - 0.1]) { const rg = new THREE.Mesh(new THREE.TorusGeometry(r + 0.03, 0.06, 8, 20), ringM); rg.rotation.x = Math.PI / 2; rg.position.y = yy; g.add(rg); }
+    g.add(glass);
+    glass.userData = { kind: 'mail', id: 'all' };
+    const pile = new THREE.Group(); g.add(pile);
+    this.rack.add(g); this.pickables.push(glass);
+    const plaque = this.label('w3-plaque w3-tube', '<b style="border-color:#8a6fc8">Correo</b><small></small>', new THREE.Vector3(x, y - 0.3, TD / 2));
+    plaque.d.dataset.go = 'mail:all';
+    this.tube = { g, x, y, H, r, pile, plaque, pileN: -1 };
+  }
+  postLine() {
+    const now = this.t; this.mailLog = this.mailLog.filter(x => now - x.t < 60);
+    const n = d => this.mailLog.filter(x => x.dir === d).length;
+    const parts = [[n('out'), 'salen'], [n('in'), 'llegan'], [n('bounce'), 'rebotan']].filter(x => x[0]).map(x => `${x[0]} ${x[1]}`);
+    return parts.length ? parts.join(' · ') : 'sin correo';
+  }
+  capsule(tone) {
+    const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.3, 4, 10), new THREE.MeshStandardMaterial({ color: tone, emissive: tone, emissiveIntensity: 0.35, roughness: 0.4 }));
+    return m;
+  }
+  drawPost() {
+    const T = this.tube; if (!T) return;
+    const sm = T.plaque.d.querySelector('small'), line = this.postLine(); if (sm.textContent !== line) sm.textContent = line;
+    const q = this.mailQueue || 0, want = q > 1000 ? 7 : q > 100 ? 5 : q > 20 ? 3 : 0;
+    if (want === T.pileN) return;
+    T.pileN = want; T.pile.clear();
+    for (let i = 0; i < want; i++) { const c = this.capsule(q > 1000 ? 0xff7a5a : 0xf4f1e8); c.rotation.z = Math.PI / 2; c.position.set(0, 0.25 + i * 0.36, 0); T.pile.add(c); }
+  }
+  // capsula: sale de su pecera, entra al tubo por arriba y sube; llega al reves; si rebota, vuelve con el motivo
+  letter(dir, e) {
+    this.mailLog.push({ t: this.t, dir }); if (this.mailLog.length > 3000) this.mailLog.shift();
+    this.drawPost();
+    this.mailLast = this.mailLast || {};
+    if (this.t - (this.mailLast[dir] || -9) < 0.35 || this.fx.length > 220) return;
+    this.mailLast[dir] = this.t;
+    const T = this.tube, t = e.account && this.tanks.get(e.account);
+    const home = t ? new THREE.Vector3(t.x, t.y + TH + 0.5, 0) : new THREE.Vector3(this.filter.x, this.filter.y + TH + 0.6, 0);
+    const top = new THREE.Vector3(T.x, T.y + T.H + 0.3, 0), mid = new THREE.Vector3(T.x, T.y + T.H * 0.5, 0), sky = new THREE.Vector3(T.x, T.y + T.H + 5, 0);
+    const arc = (a, b) => new THREE.Vector3((a.x + b.x) / 2, Math.max(a.y, b.y) + 1.4, 0.4);
+    const pts = dir === 'in' ? [sky, top, mid, top, arc(top, home), home] : dir === 'bounce' ? [home, arc(home, top), top, mid, top, arc(top, home), home] : [home, arc(home, top), top, mid, top, sky];
+    const c = this.capsule(dir === 'bounce' ? 0xff9a4d : dir === 'in' ? 0xb69cf0 : 0xf4f1e8);
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const secs = 2.2 + curve.getLength() / 14;
+    const SHORT = { auth: 'SIN AUTENTICAR', nouser: 'NO EXISTE', full: 'BUZÓN LLENO', spam: 'SPAM', domain: 'DOMINIO', rate: 'DEMASIADOS' };
+    let said = false;
+    this.addFx(c, f => {
+      const k = f.age / secs; if (k >= 1) return false;
+      c.position.copy(curve.getPoint(k)); c.rotation.z = f.age * 3;
+      if (dir === 'bounce' && !said && k > 0.5) { said = true; this.float(new THREE.Vector3(T.x, T.y + T.H + 0.8, 0), `Rebotó: ${SHORT[e.cat] || 'sin motivo'}`, 'warn'); }
+      return true;
+    });
+  }
+  // cofre del tesoro en la arena: las bases de datos de la pecera; se abre con consultas en curso y suelta
+  // burbujas doradas que van a los peces que las usan
+  buildChest(tank) {
+    const g = new THREE.Group();
+    const wood = new THREE.MeshStandardMaterial({ color: 0x7a4a22, roughness: 0.8 }), gold = new THREE.MeshStandardMaterial({ color: 0xd8b24a, metalness: 0.8, roughness: 0.3, emissive: 0x000000 });
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.34, 0.42), wood); body.position.y = 0.17;
+    const band = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.06, 0.44), gold); band.position.y = 0.3;
+    const hinge = new THREE.Group(); hinge.position.set(0, 0.34, -0.21);
+    const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.21, 0.62, 12, 1, false, 0, Math.PI), wood); lid.rotation.z = Math.PI / 2; lid.position.z = 0.21;
+    hinge.add(lid);
+    const coins = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.26, 0.08, 12), gold); coins.position.y = 0.34;
+    g.add(body, band, coins, hinge);
+    g.position.set(tank.w / 2 - 0.75, 0.3, -TD / 2 + 0.6);
+    g.userData = { kind: 'databases', id: tank.a.id };
+    tank.g.add(g); this.pickables.push(g);
+    const links = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xd8b24a, transparent: true, opacity: 0.45 }));
+    tank.g.add(links);
+    tank.chest = { g, hinge, gold, links, fill: 1, hot: false, data: null };
+  }
+  updateChests(S) {
+    const hotAll = !!(S && S.hot >= 0.85);
+    for (const x of (S && S.list) || []) {
+      const t = this.tanks.get(x.account); if (!t || !t.chest) continue;
+      t.chest.data = x;
+      t.chest.fill = x.size > 2 * 1073741824 ? 3 : x.size > 200 * 1048576 ? 2 : 1;
+      t.chest.hot = hotAll || (x.busy || 0) >= 85;
+      t.chest.g.scale.setScalar(0.85 + t.chest.fill * 0.18);
+    }
   }
 
   buildTank(t) {
@@ -165,8 +329,9 @@ export default class Acuario3D extends Stage3D {
     const tank = { a, g, w, x: t.x, y: t.y, items, lid, plants, caption };
     this.tanks.set(a.id, tank);
     items.forEach(it => this.addFish(it, tank));
-    // la placa: nombre, cuenta y la lista de sus peces con su dibujo
-    tank.plaque = this.label('w3-plaque', `<b style="border-color:${a.color}">${esc(a.label)}</b><small>${esc(caption)}</small><div class="fishlist"></div>`, new THREE.Vector3(t.x, t.y - 0.3, TD / 2));
+    if (this.silos && this.silos.has(a.id)) this.buildChest(tank);
+    // la placa: nombre, cuenta (y la cuota si se acerca al limite) y la lista de sus peces con su dibujo
+    tank.plaque = this.label('w3-plaque', `<b style="border-color:${a.color}">${esc(a.label)}</b><small>${esc(caption)}</small><small class="q" hidden style="font-weight:700"></small><div class="fishlist"></div>`, new THREE.Vector3(t.x, t.y - 0.3, TD / 2));
     tank.plaque.d.dataset.go = 'district:' + a.id;
     this.fillPlaque(tank);
   }
@@ -246,6 +411,21 @@ export default class Acuario3D extends Stage3D {
     const hl = healthLine(state), he = this.filterLabel && this.filterLabel.d.querySelector('.hl');
     if (he && hl) { he.textContent = hl.text; he.style.color = hl.color; }
     this.syncDivers(state.sessions || []);
+    // aislamiento, correo y cofres
+    this.drawIso(state.jail);
+    this.mailQueue = state.mailQueue; this.drawPost();
+    this.updateChests(state.silos);
+    // servidor al limite: el filtro no da abasto, el agua se enturbia y la comida se amontona en la superficie
+    const jam = !!(state.saturation && state.saturation.level === 'bad');
+    if (jam && !this.jam && this.filter) this.float(new THREE.Vector3(this.filter.x, this.filter.y + TH + 1, 0), '¡El filtro no da abasto!', 'crit', 4);
+    this.jam = jam;
+    // cuota al limite: una linea en la placa de la pecera
+    for (const a of state.accounts) {
+      const t = this.tanks.get(a.id); if (!t) continue;
+      const el = t.plaque.d.querySelector('.q'); if (!el) continue;
+      const txt = a.quota ? `${String(a.quota.what).toUpperCase()} AL ${a.quota.pct} %` : '';
+      el.textContent = txt; el.hidden = !txt; el.style.color = a.quota && a.quota.level === 'bad' ? '#ff8a7a' : '#f5d76e';
+    }
   }
 
   syncDivers(sessions) {
@@ -294,6 +474,7 @@ export default class Acuario3D extends Stage3D {
         if (!f || f.dead || this.fx.length > 220) return;
         return e.status >= 500 ? this.murk(f) : this.food(f, e.bot);
       }
+      case 'mail': return this.tube ? this.letter(e.dir, e) : undefined;
       case 'attack': return this.jelly(false);
       case 'block': return this.jelly(true, priv ? e.ip : null);
       case 'login': return this.filter && this.float(new THREE.Vector3(this.filter.x, this.filter.y + TH + 0.8, 0), priv && e.user ? `Entró ${e.user}` : 'Entró el acuarista', 'ok');
@@ -319,9 +500,16 @@ export default class Acuario3D extends Stage3D {
 
   food(f, bot) {
     const t = f.tank;
+    let hold = 0;
+    if (this.jam && !bot) {
+      if (this.jamQ >= 24) return; // la superficie ya muestra el atasco
+      this.jamQ++; this.jamNext = Math.max(this.jamNext || 0, this.t) + 0.5; hold = this.jamNext - this.t;
+    }
     const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 4), new THREE.MeshBasicMaterial({ color: bot ? 0x9aa7ad : 0xd9c08c }));
     m.position.set(t.x + clamp(f.x + (Math.random() - 0.5), -f.half, f.half), t.y + TH - 0.4, f.z);
     this.addFx(m, (fx, dt) => {
+      if (fx.age < hold) { m.position.y = t.y + TH - 0.35 + Math.sin(fx.age * 3 + m.position.x) * 0.03; return true; } // flota en la superficie esperando
+      if (hold && !fx.left) { fx.left = true; this.jamQ = Math.max(0, this.jamQ - 1); }
       m.position.y -= 0.6 * dt;
       const fx0 = t.x + f.x, fy0 = t.y + f.y;
       if (Math.hypot(fx0 - m.position.x, fy0 - m.position.y, f.z - m.position.z) < 0.35 * f.scale + 0.1) { f.ate = 1; return false; }
@@ -340,10 +528,7 @@ export default class Acuario3D extends Stage3D {
   jelly(blocked, ip) {
     const tanks = [...this.tanks.values()]; if (!tanks.length) return;
     const t = tanks[Math.floor(Math.random() * tanks.length)];
-    const g = new THREE.Group();
-    const bell = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xe07ad8, emissive: 0xe07ad8, emissiveIntensity: 0.5, transparent: true, opacity: 0.85 }));
-    g.add(bell);
-    for (let i = 0; i < 6; i++) { const tl = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.5, 0.025), bell.material); tl.position.set(Math.cos(i * 1.05) * 0.2, -0.25, Math.sin(i * 1.05) * 0.2); g.add(tl); }
+    const g = jellyMesh(1), bell = g.userData.bell;
     const x = t.x + (Math.random() - 0.5) * (t.w - 1);
     g.position.set(x, t.y + TH + 4, 0.3);
     const lidY = t.y + TH + 0.4;
@@ -384,9 +569,30 @@ export default class Acuario3D extends Stage3D {
       t.lid.material.emissiveIntensity = t.lidFlash * 1.6;
       if (Math.random() < dt * 0.7) this.bubble(t.x - t.w / 2 + 0.45, t.y + 0.4, -TD / 2 + 0.35, t.y + TH - 0.4);
     }
+    // aislamiento: las medusas laten en su pecera; los frascos se sacuden de a ratos
+    if (this.iso) {
+      this.iso.jellies.children.forEach(m => { m.position.y = m.userData.y0 + Math.sin(this.t * 1.2 + m.userData.ph) * 0.15; m.scale.y = 0.8 * (1 + Math.sin(this.t * 4 + m.userData.ph) * 0.1); });
+      this.iso.jars.children.forEach((j, i) => { const u = (this.t * 0.6 + i * 0.37) % 1; j.rotation.z = u < 0.08 ? Math.sin(u * 150) * 0.12 : 0; });
+    }
+    if (this.tube) { this.tube.pile.children.forEach((c, i) => { c.position.x = Math.sin(this.t * 2 + i) * 0.03; }); }
+    // cofres: la tapa se abre con consultas en curso; hilos dorados a los peces que usan sus bases
+    this.zT = (this.zT || 0) - dt;
+    const zNow = this.zT <= 0; if (zNow) this.zT = 1.8;
+    for (const t of this.tanks.values()) {
+      const C = t.chest; if (!C) continue;
+      const x = C.data, active = x && x.active > 0;
+      C.hinge.rotation.x += ((active ? -0.9 : 0) - C.hinge.rotation.x) * Math.min(1, dt * 3);
+      C.gold.emissive.set(C.hot && Math.floor(this.t * 3) % 2 ? 0x802010 : active ? 0x3a2a00 : 0x000000);
+      const pos = [], cp = C.g.position;
+      for (const l of (x && x.links) || []) { const f = this.fish.get(l.id); if (!f || f.tank !== t) continue; pos.push(cp.x, cp.y + 0.4, cp.z, f.x, f.y, f.z); if (l.active && Math.random() < dt * (1 + l.active)) this.goldBubble(t, cp, f); }
+      C.links.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      if (zNow && x && x.sleep >= 10) this.float(new THREE.Vector3(t.x + cp.x, t.y + cp.y + 0.9, cp.z), 'z', 'dim', 1.8);
+    }
+    // al limite: el agua de todas las peceras se enturbia
+    for (const t of this.tanks.values()) { const w = t.g.children[1]; if (w && w.material) { const k = this.jam ? 0.5 + 0.2 * Math.sin(this.t * 3) : 0; w.material.color.setRGB(0.12 + k * 0.45, 0.48 - k * 0.2, 0.56 - k * 0.35); w.material.opacity = 0.3 + k * 0.25; } }
     // la placa ocupa el ancho de su pecera y su letra crece al acercarse
     this.refitPlaques([...this.tanks.values()], 1);
-    this.sizePlaques([...this.tanks.values()].map(t => [t.plaque, t.w]).concat(this.filterLabel && F ? [[this.filterLabel, F.w]] : []), FONT_K);
+    this.sizePlaques([...this.tanks.values()].map(t => [t.plaque, t.w]).concat(this.filterLabel && F ? [[this.filterLabel, F.w]] : []).concat(this.iso ? [[this.iso.plaque, IW]] : []).concat(this.tube ? [[this.tube.plaque, TUBE_W + 1.2]] : []), FONT_K);
     for (const f of this.fish.values()) {
       const a = f.data;
       if (f.dead) {
@@ -426,6 +632,14 @@ export default class Acuario3D extends Stage3D {
     }
   }
 
+  // burbuja dorada: del cofre al pez que usa esa base
+  goldBubble(t, from, f) {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffd24a }));
+    const a = new THREE.Vector3(t.x + from.x, t.y + from.y + 0.4, from.z);
+    m.position.copy(a);
+    this.addFx(m, (fx) => { const k = Math.min(1, fx.age / 1.4), b = new THREE.Vector3(t.x + f.x, t.y + f.y, f.z); m.position.lerpVectors(a, b, k); m.position.y += Math.sin(k * Math.PI) * 0.4; return k < 1; });
+  }
+
   // ------------------------------------------------------------------ camara, avisos y enfoque
   zoomFor(t) { return clamp((this.extent?.w || 30) / (t.w + 6), 1.7, 4.5); }
   shots() { return [...this.tanks.values()].map(t => ({ x: t.x, y: t.y + TH / 2 - 0.8, z: 0, zoom: this.zoomFor(t), el: this.view.el })); }
@@ -435,6 +649,9 @@ export default class Acuario3D extends Stage3D {
     else if (kind === 'session') t = this.divers.get(id)?.tank;
     else if (kind === 'district') t = this.tanks.get(id);
     else if ((kind === 'system' || kind === 'security') && this.filter) return { x: this.filter.x, y: this.filter.y + TH / 2 - 0.8, z: 0, zoom: 3 };
+    else if (kind === 'jail' && this.iso) return { x: this.iso.x, y: this.iso.y + TH / 2 - 0.8, z: 0, zoom: 3.2 };
+    else if (kind === 'mail' && this.tube) return { x: this.tube.x, y: this.tube.y + TH / 2, z: 0, zoom: 3 };
+    else if (kind === 'databases') t = this.tanks.get(id);
     return t ? { x: t.x, y: t.y + TH / 2 - 0.8, z: 0, zoom: this.zoomFor(t) } : null;
   }
   tipFor(u) {
@@ -446,6 +663,13 @@ export default class Acuario3D extends Stage3D {
     }
     if (u.kind === 'session') { const d = this.divers.get(u.id); return d && { title: 'Buzo · agente de Claude Code', body: esc(d.s.activity || ''), meta: d.s.waitKind ? 'Espera su permiso o su respuesta' : { working: 'Trabajando', thinking: 'Pensando', idle: 'Descansando' }[d.s.state] || '', hint: 'Clic para ver la línea de tiempo' }; }
     if (u.kind === 'district') { const t = this.tanks.get(u.id); return t && { title: t.a.label, body: `Pecera con ${t.items.length} peces: los servicios y sitios de esta cuenta. Su placa, abajo, los nombra a todos.`, meta: t.caption, hint: 'Clic para acercarse y ver los nombres sobre cada pez' }; }
+    if (u.kind === 'jail') return { title: 'Aislamiento', body: 'La pecera de cuarentena: las IPs <b>bloqueadas</b> son medusas encerradas bajo candado, las que se bloquearon a mano en el firewall y las que atrapó la defensa de Atalaya. Los <b>frascos sellados</b> son archivos PHP maliciosos en cuarentena: no pueden hacer daño y se pueden restaurar.', meta: this.isoLine(), hint: 'Clic para ver cada uno' };
+    if (u.kind === 'mail') return { title: 'Tubo del correo', body: 'Cada correo es una cápsula: las <b>blancas</b> salen de una pecera, las <b>violetas</b> llegan y las <b>naranjas</b> rebotaron y vuelven con el motivo. Las que se apilan al pie son la cola de correo.', meta: this.postLine() + ' (último minuto)', hint: 'Clic para ver el correo' };
+    if (u.kind === 'databases') {
+      const t = this.tanks.get(u.id), x = t && t.chest && t.chest.data; if (!x) return { title: 'Cofre del tesoro', body: 'Las bases de datos de la pecera.', hint: 'Clic para ver sus bases' };
+      const mb = n => n > 1073741824 ? (n / 1073741824).toFixed(1) + ' GB' : Math.round(n / 1048576) + ' MB';
+      return { title: 'Cofre del tesoro · bases de datos', body: `${x.n} base${x.n === 1 ? '' : 's'} MySQL, ${mb(x.size)}. ${x.conns ? `<b>${x.conns}</b> conexión(es)${x.active ? `, <b>${x.active}</b> con consultas en curso (el cofre se abre)` : ''}${x.sleep >= 10 ? `, <b>${x.sleep} dormidas</b> (las «z»)` : ''}.` : 'Sin conexiones ahora.'} Los hilos dorados van a los peces que las usan.`, meta: x.busy ? `ocupado el ${x.busy}% de los últimos 15 min` : '', hint: 'Clic para ver sus bases' };
+    }
     if (u.kind === 'system') return { title: 'Filtro · servidor', body: 'El agua del filtro llega tan alto como el disco usado; burbujea más rápido con más carga.', meta: this.state?.system ? `CPU ${this.state.system.cpu.toFixed(0)}% · RAM ${this.state.system.mem.pct.toFixed(0)}% · carga ${this.state.system.load[0].toFixed(2)}` : '', hint: 'Clic para ver el servidor completo' };
     return null;
   }

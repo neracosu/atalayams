@@ -14,6 +14,12 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.72.0] - 2026-09-27
+
+### Agregado
+- **Acuario, completo**: la pecera de **aislamiento** bajo candado (las IPs bloqueadas son medusas encerradas y los archivos en cuarentena, frascos sellados), el **tubo del correo** (cada correo es una cápsula que sube o baja; las rebotadas vuelven con el motivo y la cola se apila al pie) y un **cofre del tesoro** en cada pecera con bases de datos, que se abre con consultas y manda burbujas doradas a los peces que las usan.
+- Acuario: con el servidor **al límite**, el agua se enturbia y la comida se queda flotando; la **cuota** aparece en la placa de la pecera.
+
 ## [0.71.0] - 2026-09-27
 
 ### Agregado
@@ -1362,7 +1368,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.71.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.72.0...HEAD
+[0.72.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.71.0...v0.72.0
 [0.71.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.70.0...v0.71.0
 [0.70.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.69.0...v0.70.0
 [0.69.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.68.0...v0.69.0

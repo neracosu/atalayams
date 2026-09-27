@@ -1,9 +1,9 @@
 {
   "id": "acuario",
   "name": "Acuario",
-  "description": "Una pared de peceras como en una tienda de acuarios, en 3D: cada cuenta es una pecera independiente con una placa que nombra a todos sus peces, cada servicio o sitio es un pez que nada según su CPU, las visitas son comida, los ataques son medusas sobre la tapa y los agentes de Claude Code son buzos. Al acercarse, cada pez lleva su nombre encima.",
+  "description": "Una pared de peceras como en una tienda de acuarios, en 3D: cada cuenta es una pecera independiente con una placa que nombra a todos sus peces, cada servicio o sitio es un pez que nada según su CPU, las visitas son comida, los ataques son medusas sobre la tapa y los agentes de Claude Code son buzos. Al acercarse, cada pez lleva su nombre encima. Las medusas bloqueadas quedan en la pecera de aislamiento y el correo sube y baja por su tubo.",
   "author": "NERACOSU",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "Propietaria · arte propio · three.js (MIT) · fuente Pixelify Sans bajo SIL OFL 1.1",
   "world": "world.js",
   "css": "theme.css",
@@ -59,6 +59,21 @@
           "icon": "shield",
           "title": "Tapas",
           "text": "El cortafuegos: las medusas (intentos de acceso) caen sobre ellas y la tapa se enciende naranja."
+        },
+        {
+          "icon": "jail",
+          "title": "Aislamiento",
+          "text": "Junto al filtro, bajo candado: las IPs bloqueadas son medusas encerradas. Los frascos sellados con tapa roja son archivos PHP maliciosos en cuarentena."
+        },
+        {
+          "icon": "mail",
+          "title": "Tubo del correo",
+          "text": "Cada correo es una cápsula que sube o baja por el tubo: blanca sale, violeta llega, naranja rebotó y vuelve con el motivo. La cola se apila al pie."
+        },
+        {
+          "icon": "db",
+          "title": "Cofre del tesoro",
+          "text": "Las bases de datos de la pecera: más grande cuanto más pesan, rojizo al límite y con una «z» si hay conexiones dormidas. Se abre con consultas en curso y suelta burbujas doradas hacia los peces que las usan."
         }
       ]
     },
@@ -94,6 +109,21 @@
           "icon": "chart",
           "title": "Franja de abajo",
           "text": "Los niveles del servidor, la bitácora del acuarista (las novedades) y los buzos."
+        }
+      ]
+    },
+    {
+      "title": "Cuando algo aprieta",
+      "items": [
+        {
+          "color": "#8a5a3a",
+          "title": "Agua turbia",
+          "text": "Con el servidor al límite, el filtro no da abasto: el agua de las peceras se enturbia y la comida se queda flotando en la superficie antes de caer."
+        },
+        {
+          "color": "#f5d76e",
+          "title": "Cuota",
+          "text": "En la placa de la pecera, en ámbar o rojo, cuando la cuenta se acerca al límite de su disco o sus inodos."
         }
       ]
     }
