@@ -82,3 +82,10 @@ body[data-theme="terminal"] #navbar { bottom: 4.5rem; }
 .term-proc.wait { color: #ffb000; }
 .term-proc small { color: #3f8a55; }
 .term-unit.warn, .term-unit.warn span { color: #ffb000; }
+/* carcel, correo, bases, cuota y vigilancia: todo en texto */
+body[data-theme="terminal"] .term-pane header .q.w { color: var(--warn); font-style: normal; }
+body[data-theme="terminal"] .term-pane header .q.c { color: var(--bad); font-style: normal; animation: termBlink 1s steps(1) infinite; }
+body[data-theme="terminal"] .term-watch { color: var(--warn); }
+.term-line em.w { color: var(--warn); }
+body[data-theme="terminal"] .term-sat { background: rgba(255, 77, 77, .12); }
+body[data-theme="terminal"] .term-sat i::after { content: '_'; animation: termBlink 1s steps(1) infinite; }

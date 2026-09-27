@@ -379,6 +379,7 @@ export class CommFx {
     }
   }
   setSaturation(s) {
+    if (this.skin.none) { this.sat = null; return; } // en Terminal el aviso es una linea de texto
     this.sat = s && s.level === 'bad' ? s : null;
     if (this.sat) this.run();
   }

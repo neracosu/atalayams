@@ -14,6 +14,12 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.75.0] - 2026-09-27
+
+### Agregado
+- **Terminal, completo** (todo en texto): `iptables -L ATALAYA` con las IPs bloqueadas y los archivos sellados en cuarentena, cada bloqueo como una regla `-A … -j DROP`; `mailq` con la cola y cada envío, llegada o rebote con su motivo; `mysqladmin processlist` con las bases de cada cuenta. El servidor al límite es un aviso `[ GRAVE ]` del sistema, la cuota va en el título de la ventana de la cuenta y los sitios vigilados llevan `<- vigilado`. En Terminal la capa de efectos ya no dibuja nada encima del texto.
+- Kit de temas: escenario **«Cola de correo atascada»** en el simulador, para ver cómo cada tema muestra la cola.
+
 ## [0.74.0] - 2026-09-27
 
 ### Agregado
@@ -1382,7 +1388,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.74.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.75.0...HEAD
+[0.75.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.74.0...v0.75.0
 [0.74.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.73.0...v0.74.0
 [0.73.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.72.0...v0.73.0
 [0.72.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.71.0...v0.72.0

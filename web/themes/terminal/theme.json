@@ -1,9 +1,9 @@
 {
   "id": "terminal",
   "name": "Terminal",
-  "description": "Una consola de fósforo verde de los 80 con ventanas de texto como tmux: el servidor es root@atalaya con barras ASCII y sus servicios como un arranque de systemd, cada cuenta es una ventana con una línea por servicio o sitio (barra de CPU al estilo htop, gráfica de visitas con caracteres y su estado), las visitas corren por un tail -f y los intentos de acceso por el registro de sshd. Todo es texto: cada proyecto se lee sin hacer clic.",
+  "description": "Una consola de fósforo verde de los 80 con ventanas de texto como tmux: el servidor es root@atalaya con barras ASCII y sus servicios como un arranque de systemd, cada cuenta es una ventana con una línea por servicio o sitio (barra de CPU al estilo htop, gráfica de visitas con caracteres y su estado), las visitas corren por un tail -f y los intentos de acceso por el registro de sshd. Todo es texto: cada proyecto se lee sin hacer clic. La cárcel es iptables, el correo mailq y las bases mysqladmin: aquí todo es una línea de texto.",
   "author": "NERACOSU",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "Propietaria · fuente VT323 bajo SIL OFL 1.1",
   "world": "world.js",
   "css": "theme.css",
@@ -58,6 +58,46 @@
           "title": "journalctl -fu sshd",
           "text": "Los intentos de acceso fallidos y las IPs que quedan BLOQUEADAS.",
           "glyph": "sshd"
+        }
+      ]
+    },
+    {
+      "title": "Defensa, correo y bases",
+      "items": [
+        {
+          "glyph": "DROP",
+          "title": "iptables -L ATALAYA",
+          "text": "La cárcel: cuántas IPs están bloqueadas (por la defensa automática o permanentes) y cuántos archivos .php quedaron SELLADOS en cuarentena. Cada bloqueo nuevo aparece como una regla -A ATALAYA … -j DROP con su motivo; cada salida, como -D."
+        },
+        {
+          "glyph": "mailq",
+          "title": "mailq",
+          "text": "El correo: la cola arriba y, debajo, cada envío (=> enviado), llegada (<= recibido) y rebote (** rebotado, con su motivo)."
+        },
+        {
+          "glyph": "sql",
+          "title": "mysqladmin processlist",
+          "text": "Las bases de cada cuenta: cuántas, cuánto pesan, cuán ocupadas están, sus conexiones activas y las dormidas (zzz). [ LÍMITE ] en rojo cuando están al tope."
+        }
+      ]
+    },
+    {
+      "title": "Cuando algo aprieta",
+      "items": [
+        {
+          "glyph": "[!]",
+          "title": "[ GRAVE ] SERVIDOR AL LÍMITE",
+          "text": "Arriba de la ventana del servidor, con la causa; el registro de visitas avisa que esperan en cola y cuándo el servidor se recuperó."
+        },
+        {
+          "glyph": "[%]",
+          "title": "[ DISCO AL 92 % ]",
+          "text": "En el título de la ventana de una cuenta cuando se acerca al límite de su disco o sus inodos (ámbar; rojo y parpadeando si es grave)."
+        },
+        {
+          "glyph": "<-",
+          "title": "<- vigilado",
+          "text": "Al final de la línea de un sitio mientras lo escanean, lo raspan o recibe un pico de visitas. Aquí no hay patrullas: todo es texto."
         }
       ]
     },

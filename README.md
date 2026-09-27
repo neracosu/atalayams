@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.74.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.75.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -146,7 +146,7 @@ simulador con datos reales en modo público para diseñar sin un servidor. Con s
 los mensajes entre agentes, los robots que sondean, las consultas lentas, la **escolta a la cárcel** y las
 **cápsulas de cuarentena**, cada una con **el elenco de su mundo** (`fxSkin`): guardias y búhos en la Villa,
 gárgolas y espectros en el Castillo, tortugas y tiburones en el Acuario, montacargas y drones en la Planta; en
-Terminal, solo texto. Y cada tema dibuja a su manera la cárcel, el correo, las bases de datos, el servidor al
+Terminal no hay vehículos: todo es una línea de texto. Y cada tema dibuja a su manera la cárcel, el correo, las bases de datos, el servidor al
 límite y la cuota de cada cuenta:
 
 | Tema | Cárcel y cuarentena | Correo | Bases de datos | Al límite |
@@ -159,6 +159,7 @@ límite y la cuota de cada cuenta:
 | Acuario | pecera de aislamiento con medusas, frascos | tubo del correo | cofre del tesoro | agua turbia |
 | Ops | zona de detención, contenedores | antena de comunicaciones | depósitos de datos | alerta roja |
 | Planta | jaula de decomisos, barriles | despacho por cable | tanques de datos | planta saturada |
+| Terminal | `iptables -L ATALAYA`, archivos SELLADOS | `mailq` | `mysqladmin processlist` | aviso `[ GRAVE ]` del sistema |
 
 La **leyenda** (tecla <kbd>?</kbd>) explica cada cosa con el dibujo de su propio tema y muestra su elenco en
 «Los que vigilan». Los datos (`state.jail`, `state.silos`, `state.saturation`, `quota`) están para cualquier tema.

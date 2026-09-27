@@ -55,7 +55,7 @@ function listThemes() {
 const clients = new Set();
 let current = arg('theme') || 'ciudad';
 let lastState = null;
-const overrides = { down: new Set(), waiting: null, jail: 3, quarantine: 1, saturated: 0, quota: null, watch: new Map() }; // watch: id -> { reason, n, until }
+const overrides = { down: new Set(), waiting: null, jail: 3, quarantine: 1, saturated: 0, quota: null, mailq: null, watch: new Map() }; // watch: id -> { reason, n, until }
 // la grabacion es anterior a la carcel y a los silos de datos: si no los trae, se inventan para que el tema
 // tenga algo que dibujar (un silo por cuenta con sitios, tuberias a sus dos primeros sitios, consultas que van y vienen)
 function fakeSilos(o) {
@@ -79,6 +79,7 @@ function patchState(s) {
   for (const x of [...o.apps, ...(o.sites || [])]) { const w = overrides.watch.get(x.id); if (w && w.until > Date.now()) x.watch = { reason: w.reason, n: w.n, since: w.since }; }
   if (overrides.saturated > Date.now()) o.saturation = { level: 'bad', causes: [{ id: 'cpu', level: 'bad', label: 'CPU al 97 %' }], since: overrides.saturated - 40000 };
   if (overrides.quota && overrides.quota.until > Date.now()) for (const a of o.accounts) if (a.id === overrides.quota.account) a.quota = overrides.quota.q;
+  if (overrides.mailq && overrides.mailq.until > Date.now()) o.mailQueue = overrides.mailq.n;
   if (!o.jail) o.jail = { n: overrides.jail, atalaya: Math.max(0, overrides.jail - 2), quarantine: overrides.quarantine };
   if (overrides.waiting && overrides.waiting.until > Date.now()) for (const x of o.sessions) if (x.id === overrides.waiting.sid) { x.waitKind = 'permission'; x.waitSince = overrides.waiting.since; }
   return o;
@@ -160,6 +161,11 @@ function scenario(name, target) {
     for (let i = 0; i < 8; i++) setTimeout(() => broadcast('ev', { kind: 'mail', t: Date.now(), dir: pick(['in', 'out', 'bounce']), account: pick(accs).id, cat: pick(['auth', 'nouser', 'full', 'spam']) }), i * 300);
     return '8 correos';
   }
+  if (name === 'colacorreo') {
+    const n = [60, 350, 1500][Math.floor(Math.random() * 3)];
+    overrides.mailq = { n, until: now + 60000 };
+    return `La cola de correo sube a ${n} mensajes por 60 s`;
+  }
   if (name === 'limite') {
     overrides.saturated = now + 40000;
     broadcast('ev', { kind: 'saturation', t: now, action: 'start', causes: ['CPU al 97 %'] });
@@ -177,7 +183,7 @@ const SIM_PAGE = `<!doctype html><meta charset="utf-8"><title>Simulador de Atala
 <style>body{font:15px system-ui,sans-serif;background:#0b0d09;color:#e6e6e6;max-width:640px;margin:40px auto;padding:0 16px}button{display:block;width:100%;margin:8px 0;padding:12px;font:inherit;background:#1d2419;color:#e6e6e6;border:1px solid #4b5a3a;cursor:pointer;text-align:left}button:hover{border-color:#9fd356}#out{margin-top:16px;color:#9fd356;min-height:1.4em}a{color:#9fd356}</style>
 <h1>Simulador de Atalaya</h1><p>Provoca eventos que en la grabación casi no aparecen, para ver cómo los muestra su tema. Abra la pantalla en otra pestaña: <a href="/" target="_blank">/</a></p>
 <button data-s="caida">Un servicio se cae (45 s)</button><button data-s="ataque">Ataque: 25 intentos de acceso</button><button data-s="permiso">Un agente pide permiso (30 s)</button>
-<button data-s="despliegue">Un despliegue (a veces falla)</button><button data-s="pico">Pico de visitas</button><button data-s="dominio">Cambio de dominio</button><button data-s="correo">Correo</button>
+<button data-s="despliegue">Un despliegue (a veces falla)</button><button data-s="pico">Pico de visitas</button><button data-s="dominio">Cambio de dominio</button><button data-s="correo">Correo</button><button data-s="colacorreo">Cola de correo atascada (60 s)</button>
 <button data-s="limite">El servidor llega al límite (40 s)</button><button data-s="cuota">Una cuenta al límite de su cuota (60 s)</button>
 <button data-s="escaneo">Escaneo: patrullas y sondeos (45 s)</button><button data-s="carcel">Una IP va a la cárcel</button><button data-s="cuarentena">Un archivo PHP va a cuarentena</button>
 <p id="out"></p><script src="/sim/sim.js"></script>`;

@@ -7,11 +7,14 @@
 //  - cada visita hace parpadear su linea y corre por el tail -f del access.log (gris si es un robot; rojo si es 5xx)
 //  - cada intento de acceso aparece en el registro de sshd; si la IP cae, BLOQUEADA
 //  - cada sesion de Claude Code es un proceso con cursor parpadeante; si espera su permiso pregunta [s/N]
+//  - la carcel es `iptables -L ATALAYA` (IPs bloqueadas y archivos sellados en cuarentena), el correo `mailq`
+//    y las bases `mysqladmin processlist`; el servidor al limite es un aviso del sistema y la cuota va en el
+//    titulo de la ventana de su cuenta. Aca no hay patrullas ni vehiculos: todo es una linea de texto
 // Regla de oro: solo texto; el color significa estado (verde bien, ambar a medias, rojo caido).
 import { signCanvas } from '../../js/sprites.js';
 import { groupsOf, layoutKeyOf, iconURL } from '../../js/layout.js';
 import { esc, fmtBytes } from '../../js/hud.js';
-import { accountCaption } from '../../js/accounts.js';
+import { accountCaption, forEdition } from '../../js/accounts.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const SPARK = '.:-=+*#@'; // grafica de visitas con caracteres ASCII (de poco a mucho)
@@ -40,7 +43,7 @@ export default class TerminalWorld {
     this.sys = this.pane('sys', 'root@atalaya', 'servidor', 'system:root');
     this.access = this.pane('log', 'tail -f access.log', 'visitas en vivo', null);
     this.sshd = this.pane('sec', 'journalctl -fu sshd', 'defensa', 'security:all');
-    this.accessLines = []; this.sshdLines = [];
+    this.accessLines = []; this.sshdLines = []; this.jailLines = []; this.mailLines = []; this.mailLog = [];
     // clics, avisos al pasar el mouse
     this.root.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) { const [k, ...r] = g.dataset.go.split(':'); this.pick(k, r.join(':')); } }, sig);
     this.root.addEventListener('mouseover', e => { const r = e.target.closest('[data-tip]'); if (r && this.onTip) this.onTip(this.tipFor(r.dataset.tip), e.clientX, e.clientY); }, sig);
@@ -53,6 +56,7 @@ export default class TerminalWorld {
   }
   // donde esta cada cosa en la pantalla (comunicacion entre agentes): la linea del proyecto o el proceso claude
   screenOf(kind, id) {
+    if (kind === 'jail' || kind === 'mail') { const p = this.panes.get(kind); if (!p || !p.d.offsetParent) return null; const r = p.head.getBoundingClientRect(); return { x: r.left + 80, y: r.top + r.height / 2 }; }
     const el = kind === 'session' || kind === 'agent' ? this.root.querySelector(`[data-go="session:${CSS.escape(String(id).split('/')[0])}"]`) : this.rows.get(id)?.line;
     if (!el || !el.offsetParent) return null;
     const r = el.getBoundingClientRect();
@@ -100,7 +104,7 @@ export default class TerminalWorld {
   // ------------------------------------------------------------------ estado
   update(state) {
     this.state = state;
-    const key = layoutKeyOf(state);
+    const key = layoutKeyOf(state) + (state.jail ? '|J' : '') + (state.mail ? '|M' : '') + (state.silos && (state.silos.list || []).length ? '|D' : '');
     if (key !== this.layoutKey) { this.layoutKey = key; this.build(state); }
     for (const x of [...state.apps, ...(state.sites || [])]) {
       const r = this.rows.get(x.id);
@@ -113,11 +117,21 @@ export default class TerminalWorld {
     }
     this.renderSys(state);
     this.renderSessions(state.sessions || []);
+    this.renderJail(state.jail);
+    this.mailQueue = state.mailQueue; this.renderMail();
+    this.renderDb(state);
+    // cuota al limite: en el titulo de la ventana de su cuenta
+    for (const a of state.accounts) {
+      const p = this.panes.get('acc:' + a.id); if (!p) continue;
+      let q = p.head.querySelector('.q'); if (!q) { q = document.createElement('em'); q.className = 'q'; p.head.appendChild(q); }
+      q.textContent = a.quota ? ` [ ${String(a.quota.what).toUpperCase()} AL ${a.quota.pct} % ]` : '';
+      q.className = 'q ' + (a.quota && a.quota.level === 'bad' ? 'c' : 'w');
+    }
     this.fitSoon();
   }
 
   build(state) {
-    for (const [id, p] of this.panes) if (!['sys', 'log', 'sec'].includes(id)) { p.d.remove(); this.panes.delete(id); }
+    for (const [id, p] of this.panes) if (!['sys', 'log', 'sec', 'jail', 'mail', 'db'].includes(id)) { p.d.remove(); this.panes.delete(id); }
     this.rows.clear();
     for (const G of groupsOf(state)) {
       const nA = G.items.filter(x => x._k === 'app').length;
@@ -137,8 +151,16 @@ export default class TerminalWorld {
       const ag = document.createElement('div'); ag.className = 'term-agents'; p.body.appendChild(ag); p.agents = ag;
       // la ventana del servidor y los registros quedan primero y al final
     }
+    // carcel, correo y bases: ventanas propias si el servidor las tiene
+    const want = { jail: !!state.jail, mail: !!state.mail && forEdition('TORRE DE CONTROL') === 'TORRE DE CONTROL', db: !!(state.silos && (state.silos.list || []).length) };
+    const T = { jail: ['iptables -L ATALAYA', 'cárcel', 'jail:all'], mail: ['mailq', 'correo', 'mail:all'], db: ['mysqladmin processlist', 'bases de datos', 'databases:all'] };
+    for (const k of Object.keys(T)) {
+      if (want[k] && !this.panes.get(k)) { const p = this.pane(k, ...T[k]); if (k !== 'db') { p.fixed = document.createElement('div'); p.body.prepend(p.fixed); } }
+      if (!want[k] && this.panes.get(k)) { this.panes.get(k).d.remove(); this.panes.delete(k); }
+    }
     this.grid.appendChild(this.access.d);
     this.grid.appendChild(this.sshd.d);
+    for (const k of ['jail', 'mail', 'db']) if (this.panes.get(k)) this.grid.appendChild(this.panes.get(k).d);
     this.grid.prepend(this.sys.d);
     this.fitSoon();
   }
@@ -154,6 +176,11 @@ export default class TerminalWorld {
     r.st.textContent = st === 'down' ? '[ FALLO ]' : st === 'degraded' ? '[ LENTO ]' : '[  OK   ]';
     r.line.classList.toggle('down', st === 'down');
     r.line.classList.toggle('warn', st === 'degraded');
+    // vigilancia (escaneo, scraping, pico de visitas): una marca al final de la linea mientras dure
+    const W = { scan: 'escaneo', scraping: 'scraping', surge: 'pico de visitas', bruteforce: 'fuerza bruta', multi: 'sondeo de varios sitios', exposed: 'ruta expuesta', php: 'archivo PHP', phpbad: 'archivo PHP malicioso' };
+    let w = r.line.querySelector('.term-watch');
+    if (a.watch) { if (!w) { w = document.createElement('span'); w.className = 'term-watch'; r.line.appendChild(w); } w.textContent = ` <- vigilado: ${W[a.watch.reason] || a.watch.reason}${a.watch.n ? ` (${a.watch.n})` : ''}`; }
+    else if (w) w.remove();
   }
 
   renderSys(state) {
@@ -175,8 +202,46 @@ export default class TerminalWorld {
     L.push('<div class="term-sep"></div>');
     for (const k of keys) L.push(`<div class="term-unit${k.state === 'failed' ? ' down' : ''}"><span>${k.state === 'failed' ? '[ FALLO ]' : '[  OK   ]'}</span> ${esc(k.label)}${k.unit ? ` <small>${esc(k.unit)}</small>` : ''}</div>`);
     const sec = state.security || {};
+    // servidor al limite: aviso del sistema arriba de todo y una linea en el registro de visitas
+    const sat = state.saturation && state.saturation.level === 'bad';
+    if (sat) L.unshift(`<div class="term-unit down term-sat"><span>[ GRAVE ]</span> SERVIDOR AL LÍMITE: ${esc(((state.saturation.causes || []).map(c => c.label).join(' · ')) || 'recursos agotados')} <i></i></div>`);
+    if (sat && !this.sat) this.log(this.access, `${now()} <em class="c">*** servidor al límite: las visitas esperan en cola ***</em>`, 'accessLines', 40);
+    if (!sat && this.sat) this.log(this.access, `${now()} <em>*** el servidor se recuperó ***</em>`, 'accessLines', 40);
+    this.sat = sat;
     this.sys.body.innerHTML = L.join('');
     this.sshd.head.querySelector('small').textContent = `${sec.failed ?? 0} intentos · ${sec.blocked ?? 0} IPs bloqueadas · ${sec.logins ?? 0} accesos`;
+  }
+
+  // ------------------------------------------------------------------ carcel, correo y bases
+  renderJail(J) {
+    const p = this.panes.get('jail'); if (!p || !J) return;
+    const n = J.n || 0, auto = J.atalaya || 0, q = J.quarantine || 0;
+    p.head.querySelector('small').textContent = `${n} IP${n === 1 ? '' : 's'} bloqueada${n === 1 ? '' : 's'} · ${q} en cuarentena`;
+    p.fixed.innerHTML = `<div class="term-kv"><span>Chain ATALAYA (policy DROP)</span></div>
+      <div class="term-unit${n ? ' down' : ''}"><span>DROP</span> ${lpad(n, 4)} IP${n === 1 ? ' ' : 's'} <small>${auto} de la defensa automática · ${Math.max(0, n - auto)} permanente${n - auto === 1 ? '' : 's'}</small></div>
+      <div class="term-unit${q ? ' warn' : ''}"><span>SELLADO</span> ${lpad(q, 4)} archivo${q === 1 ? '' : 's'} .php en cuarentena <small>no pueden ejecutarse</small></div><div class="term-sep"></div>`;
+  }
+  postLine() {
+    const t = this.t; this.mailLog = this.mailLog.filter(x => t - x.t < 60);
+    const c = d => this.mailLog.filter(x => x.dir === d).length;
+    return `${c('out')} salen · ${c('in')} llegan · ${c('bounce')} rebotan (1 min)`;
+  }
+  renderMail() {
+    const p = this.panes.get('mail'); if (!p) return;
+    p.head.querySelector('small').textContent = this.postLine();
+    const q = this.mailQueue || 0;
+    p.fixed.innerHTML = `<div class="term-unit${q > 1000 ? ' down' : q > 100 ? ' warn' : ''}"><span>${q > 100 ? '[ COLA ]' : '[  OK  ]'}</span> ${q ? `${q} mensaje${q === 1 ? '' : 's'} en cola` : 'Mail queue is empty'}</div><div class="term-sep"></div>`;
+  }
+  renderDb(state) {
+    const p = this.panes.get('db'); if (!p) return;
+    const S = state.silos || {}, list = S.list || [];
+    const mb = n => n > 1073741824 ? (n / 1073741824).toFixed(1) + ' GB' : Math.round(n / 1048576) + ' MB';
+    const acc = id => (state.accounts.find(a => a.id === id) || {}).label || id;
+    p.head.querySelector('small').textContent = `${list.reduce((n, x) => n + (x.n || 0), 0)} bases · ${list.reduce((n, x) => n + (x.conns || 0), 0)} conexiones`;
+    p.body.innerHTML = list.map(x => {
+      const hot = S.hot >= 0.85 || (x.busy || 0) >= 85;
+      return `<div class="term-row${hot ? ' down' : ''}" data-go="databases:${esc(x.account)}"><span class="n">${esc(pad(acc(x.account), 22))}</span><span>${lpad(x.n || 0, 2)} bases ${lpad(mb(x.size || 0), 7)}</span><span> ${bar(Math.min(1, (x.busy || 0) / 100), 8)} ${lpad(x.conns || 0, 3)} con${x.active ? ` · ${x.active} activas` : ''}${x.sleep >= 10 ? ` · <em class="d">${x.sleep} dormidas zzz</em>` : ''}</span><span class="st"> ${hot ? '[ LÍMITE ]' : '[  OK   ]'}</span></div>`;
+    }).join('');
   }
 
   renderSessions(sessions) {
@@ -195,6 +260,7 @@ export default class TerminalWorld {
 
   // ------------------------------------------------------------------ eventos
   onEvent(e, priv) {
+    this.priv = priv;
     switch (e.kind) {
       case 'http': {
         const r = this.rows.get(e.app || e.site);
@@ -206,6 +272,27 @@ export default class TerminalWorld {
       }
       case 'attack': return this.log(this.sshd, `${now()} <em class="c">Failed password</em> for invalid user`, 'sshdLines', 30);
       case 'block': return this.log(this.sshd, `${now()} <em class="c">BLOQUEADA</em> ${priv && e.ip ? esc(e.ip) : 'IP'} por cPHulk`, 'sshdLines', 30);
+      case 'defense': {
+        if (!this.panes.get('jail')) return;
+        const who = this.priv && e.ip ? esc(e.ip) : 'x.x.x.x', R = { scan: 'escaneo', scraping: 'scraping', bruteforce: 'fuerza bruta', exposed: 'ruta expuesta', multi: 'varios sitios', phpfile: 'archivo PHP', manual: 'a mano' };
+        if (e.action === 'block') return this.log(this.panes.get('jail'), `${now()} <em class="c">-A ATALAYA -s ${who} -j DROP</em> # ${esc(R[e.reason] || e.reason || '')}${e.hours ? `, ${e.hours} h` : ''}${e.by === 'auto' ? ' (defensa automática)' : ''}`, 'jailLines', 20);
+        if (e.action === 'unblock' || e.action === 'expire') return this.log(this.panes.get('jail'), `${now()} <em>-D ATALAYA -s ${who} -j DROP</em> # ${e.action === 'expire' ? 'venció' : 'liberada'}`, 'jailLines', 20);
+        return;
+      }
+      case 'phpfile': {
+        if (e.action !== 'quarantine' || !this.panes.get('jail')) return;
+        const r = this.rows.get(e.site); if (r) this.flash(r, 'archivo PHP a cuarentena', 'c');
+        return this.log(this.panes.get('jail'), `${now()} <em class="w">SELLADO</em> ${esc(r ? r.data.name : 'sitio')}: ${this.priv && e.path ? esc(e.path.split('/').pop()) : 'archivo.php'} -> cuarentena`, 'jailLines', 20);
+      }
+      case 'mail': {
+        if (!this.panes.get('mail')) return;
+        this.mailLog.push({ t: this.t, dir: e.dir }); this.renderMail();
+        if (this.mailQ > 4) return; this.mailQ = (this.mailQ || 0) + 1;
+        const a = e.account && this.state && this.state.accounts.find(x => x.id === e.account);
+        const SHORT = { auth: 'sin autenticar', nouser: 'no existe', full: 'buzón lleno', spam: 'spam', domain: 'dominio', rate: 'demasiados' };
+        const L = e.dir === 'out' ? '<em>=&gt; enviado</em> ' : e.dir === 'in' ? '<em class="d">&lt;= recibido</em> ' : `<em class="c">** rebotado</em> (${esc(SHORT[e.cat] || 'sin motivo')}) `;
+        return this.log(this.panes.get('mail'), `${now()} ${L}${a ? esc(a.label) : ''}`, 'mailLines', 20);
+      }
       case 'login': return this.log(this.sshd, `${now()} <em>Accepted publickey</em> ${priv && e.user ? 'for ' + esc(e.user) : ''}`, 'sshdLines', 30);
       case 'deploy': {
         const r = this.rows.get(e.app);
@@ -223,7 +310,7 @@ export default class TerminalWorld {
   // una linea nueva arriba del registro (y se van las viejas)
   log(p, html, key, max) {
     const d = document.createElement('div'); d.className = 'term-line new'; d.innerHTML = html;
-    p.body.prepend(d);
+    if (p.fixed) p.fixed.after(d); else p.body.prepend(d); // el resumen fijo (cadena, cola) queda arriba
     this[key].unshift(d);
     while (this[key].length > max) this[key].pop().remove();
     setTimeout(() => d.classList.remove('new'), 600);
@@ -237,7 +324,7 @@ export default class TerminalWorld {
   // cada cuarto de segundo: parpadeos de actividad, cursor y director
   tick() {
     this.t += 0.25;
-    this.accessQ = 0;
+    this.accessQ = 0; this.mailQ = 0;
     for (const r of this.rows.values()) { r.line.classList.toggle('hit', r.blink > 0); r.blink = Math.max(0, r.blink - 0.5); }
     // director: el cursor recorre las ventanas y las resalta
     if (this.directorOn && !(this.manualUntil > this.t)) {
@@ -266,6 +353,8 @@ export default class TerminalWorld {
     else if (kind === 'session') { const s = (this.state?.sessions || []).find(x => x.id === id); paneId = s && 'acc:' + s.account; }
     else if (kind === 'system') paneId = 'sys';
     else if (kind === 'security') paneId = 'sec';
+    else if (kind === 'jail' || kind === 'mail') paneId = this.panes.get(kind) ? kind : null;
+    else if (kind === 'databases') paneId = this.panes.get('db') ? 'db' : null;
     for (const r of this.rows.values()) r.line.classList.toggle('sel', r === row);
     if (paneId) { this.manualUntil = this.t + 90; this.focusPane(paneId); }
     if (!quiet && this.onSelect) this.onSelect(kind, id);
