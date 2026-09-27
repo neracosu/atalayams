@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.66.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.67.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -701,6 +701,20 @@ cd /tmp/sitio && python3 -m http.server 8080  # y ábralo en http://localhost:80
 
 Las animaciones de `site/assets/video/` salen del simulador del [kit de temas](https://github.com/neracosu/atalaya-temas),
 en modo público: no muestran nombres, dominios ni IPs.
+
+---
+
+## Comunidad
+
+Atalaya crece con aportes de quienes lo usan. Si sabe Git, abra un pull request; si no, **no hace falta**:
+descargue el .zip del repositorio, haga su cambio y súbalo en [nube.neracosu.com/aportes](https://nube.neracosu.com/aportes).
+La guía para su primer aporte, con misiones para empezar e instrucciones para su asistente de IA, está en
+[neracosu.com/atalaya/aportar](https://neracosu.com/atalaya/aportar/). Cada aporte se revisa antes de publicarse y
+queda con su crédito aquí, en [COLABORADORES.md](COLABORADORES.md) y en el sitio.
+
+<!-- comunidad:inicio -->
+_Todavía no hay aportes publicados: el primer nombre de esta lista puede ser el suyo._
+<!-- comunidad:fin -->
 
 ---
 

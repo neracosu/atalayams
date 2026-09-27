@@ -89,6 +89,16 @@ const srv = http.createServer((req, res) => {
   assert.strictEqual(sent.length, 1, 'no se repite');
   console.log('ok   alertas: solicitudes de acceso nuevas de la nube, sin el contacto');
 
+  // aportes de la comunidad: solo los que llegan despues de arrancar
+  sent.length = 0;
+  const ad = path.join(stateDir, 'aportes'); fs.mkdirSync(path.join(ad, 'aaaaaaaaaa'), { recursive: true });
+  fs.writeFileSync(path.join(ad, 'aaaaaaaaaa', 'meta.json'), JSON.stringify({ name: 'Viejo', files: 3, what: 'x' }));
+  const checkAp = A.watchAportes(ad);
+  fs.mkdirSync(path.join(ad, 'bbbbbbbbbb')); fs.writeFileSync(path.join(ad, 'bbbbbbbbbb', 'meta.json'), JSON.stringify({ name: 'Luisa', first: true, files: 5, what: 'Mejoré un texto', contact: 'luisa@correo.com' }));
+  checkAp(); await flush();
+  assert.ok(sent.length === 1 && /APORTE/.test(sent[0].text) && /primer aporte/.test(sent[0].text) && !/luisa@/.test(sent[0].text) && !/Viejo/.test(sent[0].text), sent.map(x => x.text).join(' | '));
+  console.log('ok   alertas: aportes nuevos de la comunidad, sin el contacto');
+
   // ---- correo: servidor SMTP falso (sin TLS) que anota la conversacion
   const mails = [];
   const smtp = net.createServer(sock => {

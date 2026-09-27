@@ -3,6 +3,14 @@
 Gracias por querer sumar. Atalaya es un monitor **de solo lectura**: esa promesa manda sobre cualquier
 función nueva.
 
+## ¿No sabe usar Git? No hace falta
+
+Descargue el proyecto (en GitHub: **Code › Download ZIP**), haga su cambio y suba el .zip en
+[nube.neracosu.com/aportes](https://nube.neracosu.com/aportes) con su nombre para los créditos. Lo revisamos, le
+contamos cómo va y, si se publica, queda a su nombre en el historial y en [COLABORADORES.md](COLABORADORES.md).
+La guía paso a paso, con misiones para empezar e instrucciones para su asistente de IA, está en
+[neracosu.com/atalaya/aportar](https://neracosu.com/atalaya/aportar/).
+
 ## Antes de escribir código
 
 - Abra un *issue* contando qué quiere resolver y por qué. Así evitamos trabajo que no pueda entrar.

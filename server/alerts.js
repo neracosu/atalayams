@@ -21,6 +21,7 @@ const CATS = {
   saturation: { label: 'Saturación: servidor al límite', on: true, critical: true },
   traffic: { label: 'Tráfico: scraping, escaneos y picos de visitas', on: false },
   requests: { label: 'Solicitudes de acceso a Atalaya que llegan a su nube', on: true, cloudOnly: true },
+  aportes: { label: 'Aportes de la comunidad (.zip) que llegan a su nube', on: true, cloudOnly: true },
   summary: { label: 'Resumen de cada mañana', on: true },
 };
 const DEFAULTS = { cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.on])), quiet: { from: 23, to: 7 }, summaryHour: 8, maxPerHour: 12 };
@@ -230,6 +231,23 @@ class Alerts {
         seen.add(r.id);
         if (r.state !== 'nueva' || !this.anyChannel() || !this.conf().cats.requests) continue;
         this.send(`[SOLICITUD] <b>${esc(r.name)}</b> pide ${esc(KIND[r.kind] || r.kind)}\nContacto por ${r.channel === 'email' ? 'correo' : 'WhatsApp'}${r.what ? `: «${esc(String(r.what).slice(0, 200))}»` : ''}\nRespóndala desde menú › Panel maestro de la nube › Solicitudes.`).catch(() => { });
+      }
+    };
+    setInterval(check, 60000).unref();
+    return check;
+  }
+
+  // aportes de la comunidad por .zip (<nube>/aportes/<id>/meta.json): cada uno nuevo llega como aviso
+  watchAportes(dir) {
+    this.requestsFile = this.requestsFile || dir;
+    const read = () => { let ids = []; try { ids = fs.readdirSync(dir).filter(x => /^[0-9a-f]{10}$/.test(x)); } catch { } return ids; };
+    const seen = new Set(read());
+    const check = () => {
+      for (const id of read().filter(x => !seen.has(x))) {
+        seen.add(id);
+        let m = null; try { m = JSON.parse(fs.readFileSync(path.join(dir, id, 'meta.json'), 'utf8')); } catch { continue; }
+        if (!this.anyChannel() || !this.conf().cats.aportes) continue;
+        this.send(`[APORTE] <b>${esc(m.name)}</b> envió ${m.first ? 'su <b>primer aporte</b>' : 'un aporte'} (${m.files} archivos)\n«${esc(String(m.what || '').slice(0, 200))}»\nRevíselo en menú › Panel maestro de la nube › Aportes.`).catch(() => { });
       }
     };
     setInterval(check, 60000).unref();

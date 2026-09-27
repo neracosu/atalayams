@@ -178,7 +178,10 @@ const { Defense } = require('./defense');
 ctx.alerts = new Alerts(cfg, bus, secrets, { goOf: e => privacy.goOf(e),
   healthLine: () => { const h = ctx.hostAudit && ctx.hostAudit.summary(); return h ? (h.bad ? `Salud del servidor: ${h.bad} grave(s)${h.warn ? `, ${h.warn} para revisar` : ''}` : h.warn ? `Salud del servidor: ${h.warn} para revisar` : 'Salud del servidor: en orden') : ''; } });
 // solicitudes de acceso de la nube que vive en este servidor (si la hay): avisan por Telegram o correo
-if (maestroPass.available(cfg)) ctx.alerts.watchRequests(path.join(cfg.cloudDir || '/var/lib/atalaya-cloud', 'requests.json'));
+if (maestroPass.available(cfg)) {
+  ctx.alerts.watchRequests(path.join(cfg.cloudDir || '/var/lib/atalaya-cloud', 'requests.json'));
+  ctx.alerts.watchAportes(path.join(cfg.cloudDir || '/var/lib/atalaya-cloud', 'aportes'));
+}
 ctx.defense = new Defense(cfg, bus, { ...ctx, get phpFiles() { return ctx.phpFiles; }, get seclog() { return ctx.seclog; }, get auth() { return auth; }, get setup() { return setup; }, get watch() { return ctx.watch; }, get dbActivity() { return ctx.dbActivity; } });
 // primera vez del registro de seguridad: se vuelca lo que ya se sabia (bloqueos, puertas traseras, cuarentenas)
 if (!fs.existsSync(ctx.seclog.file)) {

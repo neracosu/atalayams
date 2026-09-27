@@ -14,6 +14,13 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.67.0] - 2026-09-27
+
+### Agregado
+- **Aportar sin saber Git**: quien no usa Git descarga el .zip del proyecto, hace su cambio y lo sube en nube.neracosu.com/aportes con su nombre para los créditos. Una guía para el primer aporte (neracosu.com/atalaya/aportar) explica los pasos sin dar nada por sabido, trae instrucciones listas para copiar en su asistente de IA y misiones para empezar ordenadas por dificultad.
+- **Créditos de la comunidad**: quienes aportan aparecen en COLABORADORES.md, en la sección «Comunidad» del README y en el sitio. El cambio queda en el historial a su nombre.
+- El sitio del proyecto está en el repositorio (`site/`), el mismo que ve el público, abierto a mejoras.
+
 ## [0.66.0] - 2026-09-27
 
 ### Agregado
@@ -1319,7 +1326,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.66.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.67.0...HEAD
+[0.67.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.66.0...v0.67.0
 [0.66.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.65.1...v0.66.0
 [0.65.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.65.0...v0.65.1
 [0.65.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.64.1...v0.65.0

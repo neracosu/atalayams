@@ -151,6 +151,13 @@ $('go')?.addEventListener('submit', e => {
   if (s) location.href = 'https://nube.neracosu.com/' + encodeURIComponent(s) + '/';
 });
 
+// aportar: copiar las instrucciones para la IA (si el portapapeles no se deja, se selecciona el texto)
+document.querySelectorAll('.copyp').forEach(b => b.addEventListener('click', () => {
+  const pre = b.parentElement.querySelector('pre');
+  navigator.clipboard?.writeText(pre.textContent).then(() => { b.textContent = 'Copiado'; setTimeout(() => { b.textContent = 'Copiar'; }, 1800); })
+    .catch(() => { const r = document.createRange(); r.selectNodeContents(pre); getSelection().removeAllRanges(); getSelection().addRange(r); });
+}));
+
 // guias: copiar comandos y marcar la seccion visible en el indice
 document.querySelectorAll('pre.cmd').forEach(pre => {
   const b = document.createElement('button');

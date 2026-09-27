@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aporte su primer cambio a Atalaya, aunque no sepa Git</title>
+<meta name="description" content="Guía para su primer aporte a un proyecto de código abierto sin saber Git: descargue el .zip, cambie algo con ayuda de su IA y súbalo. Con misiones para empezar.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Su primer aporte a un proyecto abierto, sin saber Git">
+<meta property="og:description" content="Descargue el .zip, cambie algo con ayuda de su IA y súbalo. Si se publica, su nombre queda en los créditos de Atalaya.">
+<meta property="og:image" content="https://neracosu.com/atalaya/assets/video/portada.jpg">
+<meta property="og:url" content="https://neracosu.com/atalaya/aportar/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://neracosu.com/atalaya/aportar/">
+<meta name="theme-color" content="#04060c">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="stylesheet" href="../assets/css/arcade.css">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "HowTo",
+   "name": "Cómo aportar su primer cambio a Atalaya sin saber Git",
+   "inLanguage": "es",
+   "totalTime": "PT30M",
+   "step": [
+    { "@type": "HowToStep", "name": "Descargue el proyecto", "text": "En github.com/neracosu/atalayams pulse Code y luego Download ZIP. Descomprímalo en una carpeta." },
+    { "@type": "HowToStep", "name": "Ábralo en su editor", "text": "Abra la carpeta en VS Code, Cursor u otro editor, y pídale a su asistente de IA que le ayude con el cambio." },
+    { "@type": "HowToStep", "name": "Haga un cambio pequeño y véalo", "text": "Elija una misión, haga el cambio y véalo en su computadora antes de enviarlo." },
+    { "@type": "HowToStep", "name": "Súbalo", "text": "Comprima la carpeta en un .zip y súbalo en nube.neracosu.com/aportes con su nombre para los créditos." }
+   ]
+  },
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Atalaya", "item": "https://neracosu.com/atalaya/" },
+    { "@type": "ListItem", "position": 2, "name": "Aportar", "item": "https://neracosu.com/atalaya/aportar/" }
+   ]
+  }
+ ]
+}
+</script>
+</head>
+<body class="site arcade">
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<div class="born" id="born" role="note">
+  <span class="v">v__VERSION__</span>
+  <span class="age"><i class="pulse" aria-hidden="true"></i>Proyecto nuevo · <b data-age>—</b><span class="long"> desde la primera línea de código</span></span>
+  <a class="gh" href="https://github.com/neracosu/atalayams" target="_blank" rel="noopener">Código abierto: colabore en GitHub</a>
+</div>
+<header class="top">
+  <a class="logo" href="../"><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><use href="../assets/favicon.svg#mark"/></svg><span class="lockup"><b>Atalaya</b><small>Monitor Server</small></span></a>
+  <nav aria-label="Secciones">
+    <a href="#pasos">Los pasos</a><a href="#ia">Con su IA</a><a href="#misiones">Misiones</a><a href="#dudas">Dudas</a><a href="../">Atalaya</a>
+  </nav>
+  <a class="btn small primary" href="https://nube.neracosu.com/aportes">Enviar un aporte</a>
+</header>
+
+<main id="contenido">
+  <section class="lvl-sec" aria-labelledby="h-title" style="border-bottom:1px solid var(--hair)">
+    <div class="wrap">
+      <p class="press"><span class="blink" aria-hidden="true">&#9656;</span> JUGADOR 2 · SU PRIMER APORTE</p>
+      <h1 id="h-title" class="page-h1">Su primer aporte a un proyecto abierto. <em>Sin saber Git.</em></h1>
+      <p class="lead">Si arma cosas con IA, ya sabe lo suficiente para mejorar Atalaya. Descargue el proyecto, cambie algo pequeño con ayuda de su asistente y súbalo.
+        Nosotros lo revisamos con calma, le contamos cómo va y, si se publica, <b>su nombre queda en los créditos</b> del proyecto y de este sitio.</p>
+      <div class="cta">
+        <a class="btn primary big" href="#pasos">Ver los pasos <small>unos 30 minutos la primera vez</small></a>
+        <a class="btn ghost big" href="#misiones">Elegir una misión &#9656;</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="lvl-sec" id="pasos">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 01</span><span class="lvl-k">LOS PASOS</span><span class="lvl-big" aria-hidden="true">01</span></header>
+      <h2>Cuatro pasos, <em>de principio a fin.</em></h2>
+      <ol class="day">
+        <li><time>PASO 1</time><div><b>Descargue el proyecto.</b> Entre a <a href="https://github.com/neracosu/atalayams" target="_blank" rel="noopener">github.com/neracosu/atalayams</a>, pulse el botón verde <b>Code</b> y luego <b>Download ZIP</b>. Descomprima el archivo en una carpeta que encuentre fácil.</div></li>
+        <li><time>PASO 2</time><div><b>Ábralo en su editor.</b> VS Code, Cursor o el que use. Si tiene un asistente de IA, este es el momento de pedirle ayuda: más abajo tiene las instrucciones listas para copiar.</div></li>
+        <li><time>PASO 3</time><div><b>Haga un cambio pequeño y véalo.</b> Elija una misión. Si toca el sitio, puede verlo en su computadora con Node instalado: <code>node scripts/export-site.js sitio</code> arma la carpeta <code>sitio</code>, y la abre con un servidor local (su IA le dice cómo en su sistema).</div></li>
+        <li><time>PASO 4</time><div><b>Súbalo.</b> Comprima la carpeta del proyecto en un .zip (clic derecho › Comprimir; si puede, sin <code>node_modules</code>) y súbalo en <a href="https://nube.neracosu.com/aportes">nube.neracosu.com/aportes</a> con su nombre para los créditos y una línea de qué cambió.</div></li>
+      </ol>
+      <p class="note" style="margin-top:1.6rem">Después le escribimos por correo o WhatsApp para contarle cómo va, aunque la respuesta sea «todavía no, pero casi». ¿Ya sabe Git? Abra un <a href="https://github.com/neracosu/atalayams/pulls" target="_blank" rel="noopener">pull request</a> y listo.</p>
+    </div>
+  </section>
+
+  <section class="lvl-sec alt" id="ia">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 02</span><span class="lvl-k">CON SU ASISTENTE DE IA</span><span class="lvl-big" aria-hidden="true">02</span></header>
+      <h2>Copie, pegue y <em>que su IA le acompañe.</em></h2>
+      <p class="sub">Con la carpeta abierta en Claude Code, Cursor o el asistente que use, pegue alguna de estas instrucciones y cambie lo que está entre corchetes.</p>
+      <div class="prompts">
+        <figure class="prompt"><figcaption>Para hacer el cambio</figcaption>
+          <pre>Estoy aportando a Atalaya Monitor Server, un proyecto de código abierto (esta carpeta). Quiero [describa su cambio]. Dime qué archivo tengo que tocar y por qué, haz el cambio más pequeño posible y no cambies nada más.</pre>
+          <button class="btn small copyp" type="button">Copiar</button></figure>
+        <figure class="prompt"><figcaption>Para ver el sitio en su computadora</figcaption>
+          <pre>En esta carpeta está el proyecto Atalaya. Ayúdame paso a paso a ver el sitio en mi computadora: hay que correr "node scripts/export-site.js sitio" y abrir la carpeta "sitio" con un servidor local. Estoy en [Windows / macOS / Linux] y no sé usar la terminal.</pre>
+          <button class="btn small copyp" type="button">Copiar</button></figure>
+        <figure class="prompt"><figcaption>Antes de enviarlo</figcaption>
+          <pre>Revisa mi cambio en este proyecto: corre "npm test" y dime si algo falla. Después hazme un resumen de una línea, en español, de lo que cambié, para ponerlo al enviar mi aporte.</pre>
+          <button class="btn small copyp" type="button">Copiar</button></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="lvl-sec" id="misiones">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">NIVEL 03</span><span class="lvl-k">MISIONES PARA EMPEZAR</span><span class="lvl-big" aria-hidden="true">03</span></header>
+      <h2>¿No sabe qué cambiar? <em>Elija una misión.</em></h2>
+      <p class="sub">Tareas reales que hacen falta, ordenadas por dificultad. Empiece por una chica: el primer aporte es el más importante.</p>
+      <ol class="leakrows missions">
+        <li><span class="ln lv1">NIVEL 1</span><div class="lp"><h3>Pruebe el sitio en su celular y cuéntenos</h3><p>Recorra neracosu.com/atalaya en su teléfono y anote lo que se ve mal o no se entiende. No hace falta tocar código: <a href="https://github.com/neracosu/atalayams/issues" target="_blank" rel="noopener">abra un issue</a> o escríbalo en su aporte.</p></div>
+          <div class="lf"><b>DÓNDE</b><p>Solo su teléfono y sus ojos.</p></div></li>
+        <li><span class="ln lv1">NIVEL 1</span><div class="lp"><h3>Corrija un texto</h3><p>Una falta de ortografía, una frase confusa o una explicación que se puede decir más simple en las guías o en el README.</p></div>
+          <div class="lf"><b>DÓNDE</b><p><code>site/guias/index.html</code> y <code>README.md</code></p></div></li>
+        <li><span class="ln lv2">NIVEL 2</span><div class="lp"><h3>Mejore una explicación de la leyenda</h3><p>La leyenda de las guías dice qué es cada cosa en la Ciudad. Si algo no le quedó claro la primera vez que la vio, reescríbalo como le hubiera gustado leerlo.</p></div>
+          <div class="lf"><b>DÓNDE</b><p><code>site/guias/index.html</code>, sección «Qué es cada cosa en la Ciudad»</p></div></li>
+        <li><span class="ln lv2">NIVEL 2</span><div class="lp"><h3>Traduzca el README al inglés</h3><p>Muchas personas encontrarían Atalaya si el README estuviera también en inglés. Una traducción fiel, con su IA como ayuda y su revisión.</p></div>
+          <div class="lf"><b>DÓNDE</b><p>Un archivo nuevo, <code>docs/README.en.md</code></p></div></li>
+        <li><span class="ln lv3">NIVEL 3</span><div class="lp"><h3>Cree un tema propio</h3><p>Diseñe su mundo: un tema es una carpeta con su estilo y su dibujo. El kit trae un simulador con datos reales, así que no necesita un servidor.</p></div>
+          <div class="lf"><b>DÓNDE</b><p>El <a href="https://github.com/neracosu/atalaya-temas" target="_blank" rel="noopener">kit de temas</a> y su guía</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="lvl-sec alt" id="dudas">
+    <div class="wrap">
+      <header class="lvl"><span class="lvl-n">JEFE FINAL</span><span class="lvl-k">SUS DUDAS</span><span class="lvl-big" aria-hidden="true">04</span></header>
+      <h2>Preguntas antes del primer aporte</h2>
+      <div class="faq">
+        <details open><summary>¿Y si mi cambio está mal?</summary>
+          <p>No pasa nada: nada se publica sin que lo revisemos. Si algo no entra, le decimos por qué y cómo dejarlo listo. Todo el mundo empezó con un primer aporte imperfecto.</p></details>
+        <details><summary>¿Tengo que saber programar?</summary>
+          <p>No para las misiones de nivel 1: son textos y pruebas. Para las demás, alcanza con poder pedirle ayuda a su asistente de IA y revisar lo que hace.</p></details>
+        <details><summary>¿Qué pasa con mi nombre?</summary>
+          <p>Si su aporte se publica, su nombre (y su enlace, si lo dejó) queda en COLABORADORES.md, en el README y en el sitio, y el cambio queda en el historial del proyecto a su nombre.</p></details>
+        <details><summary>¿Qué licencia tiene mi aporte?</summary>
+          <p>La misma del proyecto: AGPL-3.0. Cualquiera puede usarlo, estudiarlo y mejorarlo, y quien lo ofrezca como servicio con cambios debe publicarlos.</p></details>
+      </div>
+      <div class="cta" style="margin-top:2.4rem">
+        <a class="btn primary big" href="https://nube.neracosu.com/aportes">Enviar mi aporte <small>.zip de hasta 30 MB</small></a>
+        <a class="btn ghost big" href="https://github.com/neracosu/atalayams" target="_blank" rel="noopener">Descargar el proyecto</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="logo" href="../"><svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><use href="../assets/favicon.svg#mark"/></svg><span class="lockup"><b>Atalaya</b><small>Monitor Server</small></span></a>
+    <nav><a href="../">Atalaya</a><a href="../vibe-coding/">Vibe coding</a><a href="../guias/">Guías</a><a href="https://nube.neracosu.com/aportes">Enviar un aporte</a></nav>
+    <p>Atalaya Monitor Server es un producto de <a href="/">NERACOSU</a>, hecho por Neri Colón en La Guaira, Venezuela. Pixel art dibujado en código, sin emojis.</p>
+  </div>
+</footer>
+<script type="module" src="../assets/js/site.js"></script>
+</body>
+</html>
