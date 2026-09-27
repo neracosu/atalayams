@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.67.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.68.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -145,7 +145,8 @@ simulador con datos reales en modo público para diseñar sin un servidor. Con s
 (`screenOf`), un tema recibe gratis la **capa de efectos** común: patrullas voladoras, reflectores, el director,
 los mensajes entre agentes, los robots que sondean, las consultas lentas, la **escolta a la cárcel** y las
 **cápsulas de cuarentena**. La cárcel, la oficina de correos, los silos de datos, la torre al límite con su atasco
-y las líneas de cuota los dibujan la Ciudad clásica y la Ciudad 3D. Los datos (`state.jail`, `state.silos`, `state.saturation`) están para cualquier tema.
+y las líneas de cuota los dibujan la Ciudad clásica, la Ciudad 3D y Villa (a su manera: calabozo, palomar, graneros y
+castillo asediado). Los datos (`state.jail`, `state.silos`, `state.saturation`) están para cualquier tema.
 
 ### En el teléfono y la tablet
 

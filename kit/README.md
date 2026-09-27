@@ -108,7 +108,7 @@ La capa queda entre su mundo y la interfaz: nunca tapa una ficha, un menú ni un
 mostrarlo a su manera, el estado y los eventos traen lo mismo (`watch`, `probe`, `db`, `claude`, `defense`, `phpfile`, `saturation`):
 está todo en la [guía](docs/TEMAS.md). La ciudad clásica dibuja además la cárcel, la oficina de correos, los
 silos de datos y la torre al límite con `state.jail`, `state.silos` y `state.saturation`; la Ciudad 3D hace lo mismo en
-tres dimensiones (vea cómo responde `screenOf('jail')`, `'mail'`, `'gate'` y `'tower'`). Su tema puede hacer lo
+tres dimensiones, y Villa a su manera (calabozo, palomar, graneros y castillo asediado) (vea cómo responde `screenOf('jail')`, `'mail'`, `'gate'` y `'tower'`). Su tema puede hacer lo
 mismo a su manera. El simulador trae una cárcel y silos inventados si la grabación no los tiene, y escenarios para
 el servidor al límite, una cuota al límite, una IP a la cárcel y un archivo a cuarentena.
 

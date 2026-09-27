@@ -5,11 +5,14 @@
 //  - cada visita es un aldeano que camina del borde al castillo y de ahi a la casa (los robots son pajaros)
 //  - cada intento de acceso es un slime que golpea la muralla del castillo; si la IP cae, un guardia lo derrota
 //  - cada sesion de Claude Code es un mago en la plaza de su pueblo ("!" = espera su permiso)
+//  - junto al castillo, el CALABOZO (IPs bloqueadas: bandidos tras las rejas; toneles sellados = archivos en
+//    cuarentena) y el PALOMAR (el correo: palomas que salen, llegan o vuelven heridas); en cada pueblo con bases,
+//    su GRANERO, con acequias hacia las casas que las usan; si el servidor llega al limite, el castillo queda asediado
 // Regla de oro: nada de numeros sobre el mapa; todo se cuenta con casas, humo, fuego y gente.
 import { Application, Container, Graphics, Sprite, Text, Texture, TilingSprite, Rectangle } from '../../vendor/pixi.csp.mjs';
 import { signTexture } from '../../js/sprites.js';
 import { esc, fmtBytes } from '../../js/hud.js';
-import { accountCaption } from '../../js/accounts.js';
+import { accountCaption, forEdition } from '../../js/accounts.js';
 import { healthLine } from '../../js/layout.js';
 import { pixiScreen } from '../../js/commfx.js';
 
@@ -66,6 +69,19 @@ const FIRE = [
   ['...I....', '..IiI...', '..IiiI..', '.IiiiI..', '.iimiiI.', 'IimmmiI.', 'imm.mmi.', '.m...m..'],
   ['....I...', '...IiI..', '..IiiI..', '..IiiiI.', '.IiimiI.', '.IimmmiI', '.imm.mmi', '..m...m.'],
 ];
+const PRISONER = [
+  ['....kkkk....', '...kzzzzk...', '...kzkzkk...', '...kzzzzk...', '....kkkk....', '...kxkxkk...', '..kxkxkxkk..', '..kzxkxkzk..', '...kxkxkk...', '...kkkkkk...', '...kk..kk...', '...kk..kk...'],
+  ['....kkkk....', '...kzzzzk...', '...kzkzkk...', '...kzzzzk...', '....kkkk....', '...kxkxkk...', '..kxkxkxkk..', '..kzxkxkzk..', '...kxkxkk...', '...kkkkkk...', '...kk..kk...', '..kk....kk..'],
+];
+// tonel sellado con cadenas: un archivo en cuarentena (madera y hierro, como pide el tema)
+const BARREL = ['..kkkkkk..', '.kWwwwwWk.', 'kAAAAAAAAk', 'kwWwwwwWwk', 'kwwmwwmwwk', 'kwwwmmwwwk', 'kwwmwwmwwk', 'kwWwwwwWwk', 'kAAAAAAAAk', '.kWwwwwWk.', '..kkkkkk..'];
+const WELL = ['....kkkkkkkk....', '...kwwwwwwwwk...', '...kW......Wk...', '...kW......Wk...', '..kkkkkkkkkkkk..', '.khhhhhhhhhhhhk.', 'kSccccccccccccSk', 'kSccccccccccccSk', 'khSSSSSSSSSSSShk', 'khhhhhhhhhhhhhhk', 'kSShhSShhSShhSSk', '.kkkkkkkkkkkkkk.'];
+const ROCK = ['...kkkk...', '.kkhhhhk..', 'khhssshhk.', 'khsssssShk', 'kSsssSSSSk', '.kkkkkkkk.'];
+const BUSH = ['...kkkk...', '.kkTtTtkk.', 'kTtpTtTptk', 'ktTtTTtTtk', 'kTtTpTtTTk', '.kkkkkkkk.'];
+const DUCK = [['..kk....', '.kxxk...', '.kxkxii.', '..kxxk..', 'kkxxxxk.', 'kxxxxxxk', '.kkkkkk.'], ['..kk....', '.kxxk...', '.kxkxii.', '..kxxk..', '.kxxxxk.', 'kxxxxxxk', '.kkkkkk.']];
+const TORCH = ['kk', 'ww', 'ww', 'WW', 'WW', 'WW', 'WW', 'kk'];
+const LETTER = ['kkkkkkkk', 'kxxxxxxk', 'kxkxxkxk', 'kxxkkxxk', 'kxxxxxxk', 'kkkkkkkk'];
+const ZZZ = ['kkk', '..k', '.k.', 'kkk'];
 const TREE = ['.....tttt.....', '...tttTTttt...', '..ttTTTTTTtt..', '.ttTTTtTTTTtt.', '.tTTTTTTTtTTt.', 'ttTTtTTTTTTTtt', 'tTTTTTTtTTTTTt', 'ttTTTTTTTTtTtt', '.ttTtTTTTTTtt.', '.tttTTTTtTttt.', '..tttttttttt..', '....ttWWtt....', '......WW......', '......WW......', '.....WWWW.....'];
 
 export default class VillaWorld {
@@ -77,6 +93,7 @@ export default class VillaWorld {
     this.directorOn = true; this.insets = { top: 0, right: 0, bottom: 0, left: 0 };
     this.cam = { s: 1, x: 0, y: 0 }; this.camTarget = null; this.manualUntil = 0; this.shotT = 0; this.shotIdx = 0;
     this.texCache = new Map();
+    this.post = null; this.jail = null; this.mailLog = []; this.jamQ = 0;
   }
 
   // ------------------------------------------------------------------ texturas (se pintan una vez)
@@ -154,6 +171,49 @@ export default class VillaWorld {
       for (const wx of [36, 58]) { px(wx, 24, P.k, 4, 7); px(wx + 1, 25, P.j, 2, 5); }
     }));
   }
+  // calabozo: torreon de piedra con ventana enrejada y una puerta de hierro
+  jailTex() {
+    return this.tex('jail', () => canvasTex(40, 52, px => {
+      px(2, 10, P.k, 36, 42); px(3, 11, P.S, 34, 40);
+      for (let y = 14; y < 50; y += 5) { px(3, y, '#4d5259', 34, 1); for (let x = 3 + ((y / 5 | 0) % 2 ? 4 : 0); x < 37; x += 8) px(x, y - 4, '#4d5259', 1, 4); }
+      for (let x = 2; x < 38; x += 6) { px(x, 4, P.k, 5, 7); px(x + 1, 5, P.S, 3, 6); }
+      px(3, 11, P.A, 34, 1);
+      px(13, 18, P.k, 14, 12); px(14, 19, '#140d0a', 12, 10); for (let x = 15; x < 26; x += 3) px(x, 19, P.a, 1, 10); px(14, 24, P.a, 12, 1);
+      px(14, 36, P.k, 12, 16); px(15, 37, '#3a3f47', 10, 15); for (let y = 39; y < 51; y += 4) px(15, y, P.A, 10, 1); px(23, 44, P.j, 1, 2);
+    }));
+  }
+  // palomar: torre redonda de piedra con nidos y techo conico, con palomas posadas
+  postTex() {
+    return this.tex('post', () => canvasTex(32, 60, px => {
+      for (let y = 2; y < 16; y++) { const w = Math.min(30, 4 + (y - 2) * 2); px(16 - w / 2, y, P.k, w, 1); if (w > 2) px(16 - w / 2 + 1, y, y % 3 ? P.m : '#8f2c22', w - 2, 1); }
+      px(1, 15, P.k, 30, 45); px(2, 16, P.y, 28, 20); px(2, 36, P.s, 28, 23);
+      for (let y = 19; y < 35; y += 5) px(2, y, P.w, 28, 1);
+      for (let y = 40; y < 58; y += 5) { px(2, y, P.S, 28, 1); for (let x = 2 + ((y / 5 | 0) % 2 ? 4 : 0); x < 30; x += 8) px(x, y - 4, P.S, 1, 4); }
+      for (const [x, y] of [[6, 21], [14, 21], [22, 21], [10, 28], [18, 28]]) { px(x, y, P.k, 5, 4); px(x + 1, y + 1, '#1b1410', 3, 3); }
+      for (const [x, y] of [[7, 19], [23, 19], [19, 26]]) { px(x, y, P.x, 3, 2); px(x + 3, y, P.k, 1, 1); }
+      px(12, 46, P.k, 8, 14); px(13, 47, P.b, 6, 13);
+    }));
+  }
+  // granero: torre de madera con techo conico; tres alturas segun el tamano de las bases
+  granaryTex(size) {
+    const h = [34, 42, 52][size];
+    return this.tex('gran' + size, () => canvasTex(28, h, px => {
+      for (let y = 0; y < 12; y++) { const w = Math.min(28, 4 + y * 2); px(14 - w / 2, y, P.k, w, 1); if (w > 2) px(14 - w / 2 + 1, y, y % 3 ? P.o : P.O, w - 2, 1); }
+      px(2, 11, P.k, 24, h - 11); px(3, 12, '#9b3b2a', 22, h - 13);
+      for (let x = 7; x < 25; x += 5) px(x, 12, '#7c2d20', 1, h - 13);
+      px(3, 12, '#b64a36', 22, 1);
+      px(8, h - 14, P.k, 12, 13); px(9, h - 13, P.x, 10, 12); for (let i = 0; i < 10; i++) { px(9 + i, h - 13 + i + 1, '#9b3b2a', 1, 1); px(18 - i, h - 13 + i + 1, '#9b3b2a', 1, 1); }
+      for (let y = 18; y < h - 16; y += 7) px(12, y, P.j, 4, 3);
+    }));
+  }
+  waterTex(k) {
+    return this.tex('water' + k, () => canvasTex(U, U, px => {
+      px(0, 0, '#3f74b8', U, U);
+      const r = rng(11 + k * 7);
+      for (let i = 0; i < 7; i++) { const x = r() * 12 | 0, y = r() * 15 | 0; px(x, y, '#6ea0d8', 3 + (r() * 2 | 0), 1); }
+      for (let i = 0; i < 4; i++) { const x = r() * 14 | 0, y = r() * 15 | 0; px(x, y, '#2f5d99', 2, 1); }
+    }));
+  }
   bannerTex(color) { return this.tex('ban' + color, () => canvasTex(8, 14, px => { px(0, 0, P.k, 1, 14); px(1, 1, P.k, 7, 8); px(2, 2, color, 5, 6); px(2, 2, shade(color, 0.3), 5, 1); px(3, 8, color, 3, 2); })); }
   gateTex() { return this.tex('gate', () => canvasTex(32, U, px => { px(0, 0, P.k, 6, U); px(1, 1, P.w, 4, U - 1); px(26, 0, P.k, 6, U); px(27, 1, P.w, 4, U - 1); px(0, 0, P.k, 32, 3); px(1, 1, P.y, 30, 1); })); }
   frames(rows, extra = {}) {
@@ -172,7 +232,8 @@ export default class VillaWorld {
     this.world = new Container();
     this.ground = new Container(); this.roads = new Container(); this.scene = new Container(); this.scene.sortableChildren = true;
     this.fxL = new Container(); this.selG = new Graphics();
-    this.world.addChild(this.ground, this.roads, this.selG, this.scene, this.fxL);
+    this.night = new Graphics(); this.lights = new Container(); // de noche: velo oscuro y, encima, antorchas y ventanas
+    this.world.addChild(this.ground, this.roads, this.selG, this.scene, this.night, this.lights, this.fxL);
     this.screen = new Container(); // textos a tamano de pantalla (nitidos a cualquier zoom)
     this.app.stage.addChild(this.world, this.screen);
     this.app.stage.eventMode = 'static';
@@ -184,6 +245,9 @@ export default class VillaWorld {
   // donde esta cada cosa en la pantalla (comunicacion entre agentes); los subagentes van junto a su sesion
   screenOf(kind, id) {
     if (kind === 'session' || kind === 'agent') return pixiScreen(this.app, this.mages.get(String(id).split('/')[0]));
+    if (kind === 'jail') return this.jail ? pixiScreen(this.app, this.jail.b) : null;   // aqui dejan a los bloqueados
+    if (kind === 'mail') return this.post ? pixiScreen(this.app, this.post.t) : null;
+    if (kind === 'tower' || kind === 'gate') return pixiScreen(this.app, this.castleSprite); // de aqui salen las patrullas
     return pixiScreen(this.app, this.houses.get(id));
   }
 
@@ -195,32 +259,40 @@ export default class VillaWorld {
     const by = {};
     for (const a of state.apps) (by[a.account] = by[a.account] || []).push({ ...a, _k: 'app' });
     for (const x of state.sites || []) (by[x.account] = by[x.account] || []).push({ ...x, _k: 'site' });
-    const key = accounts.map(a => a.id + ':' + a.color + ':' + (by[a.id] || []).map(x => x.id + (x.icon || '')).join(',')).join('|');
+    // calabozo y palomar junto al castillo (si el servidor los tiene); granero en los pueblos con bases de datos
+    const jailOn = !!state.jail, postOn = !!state.mail && forEdition('TORRE DE CONTROL') === 'TORRE DE CONTROL';
+    const silos = new Set(((state.silos && state.silos.list) || []).map(x => x.account));
+    const key = (jailOn ? 'J' : '') + (postOn ? 'P' : '') + '|' + accounts.map(a => a.id + ':' + a.color + ':' + (silos.has(a.id) ? 's' : '') + ':' + (by[a.id] || []).map(x => x.id + (x.icon || '')).join(',')).join('|');
     if (key === this.layoutKey) return;
     this.layoutKey = key;
-    for (const c of [this.ground, this.roads, this.scene, this.screen]) c.removeChildren().forEach(o => o.destroy({ children: true }));
+    this.fx = this.fx.filter(f => { if (!f.obj.destroyed) f.obj.destroy(); return false; }); // efectos en curso (textos que suben, humo) se van con el mapa viejo
+    for (const c of [this.ground, this.roads, this.scene, this.screen, this.lights]) c.removeChildren().forEach(o => o.destroy({ children: true }));
+    this.torches = []; this.ducks = []; this.pond = null;
     this.houses.clear(); this.villages.clear();
     for (const m of this.mages.values()) m.dead = true;
     this.mages.clear();
     this.actors = this.actors.filter(a => { a.sprite.destroy(); return false; });
+    this.jamQ = 0;
 
     // pueblos: casas en grilla de 3x3 casillas y una plaza abajo; muralla alrededor
     const vs = accounts.map(a => {
       const items = (by[a.id] || []).sort((x, y) => (x._k === y._k ? 0 : x._k === 'app' ? -1 : 1));
       const n = Math.max(1, items.length);
       const cols = clamp(Math.ceil(Math.sqrt(n * 1.5)), 2, 9), rows = Math.ceil(n / cols);
-      const w = cols * 3 + 3, h = rows * 3 + 5;
-      return { a, items, cols, rows, w, h, x: 0, y: 0 };
+      const silo = silos.has(a.id);
+      const w = cols * 3 + 3 + (silo ? 3 : 0), h = Math.max(rows * 3 + 5, silo ? 9 : 0);
+      return { a, items, cols, rows, w, h, x: 0, y: 0, silo };
     }).sort((p, q) => q.items.length - p.items.length);
     // posiciones iniciales en anillo alrededor del castillo, luego se separan
     const slots = [[1, 0], [-1, 0], [0.6, -1], [-0.6, -1], [0, 1], [0.9, 0.9], [-0.9, 0.9], [0, -1.2], [1.3, -0.4], [-1.3, -0.4]];
     vs.forEach((v, i) => { const s = slots[i % slots.length], k = 1 + Math.floor(i / slots.length) * 0.6; v.x = Math.round(s[0] * (10 + v.w / 2) * k - v.w / 2); v.y = Math.round(s[1] * (9 + v.h / 2) * k - v.h / 2); });
     const castle = { x: -4, y: -4, w: 8, h: 8 };
+    const fixed = [castle, ...(jailOn ? [{ x: 6, y: -4, w: 6, h: 6 }] : []), ...(postOn ? [{ x: -10, y: -4, w: 4, h: 6 }] : [])];
     const overlap = (p, q, m) => p.x < q.x + q.w + m && q.x < p.x + p.w + m && p.y < q.y + q.h + m && q.y < p.y + p.h + m;
     for (let it = 0; it < 200; it++) {
       let moved = false;
       for (const v of vs) {
-        for (const o of [castle, ...vs]) {
+        for (const o of [...fixed, ...vs]) {
           if (o === v || !overlap(v, o, 3)) continue;
           const dx = (v.x + v.w / 2) - (o.x + o.w / 2), dy = (v.y + v.h / 2) - (o.y + o.h / 2);
           if (Math.abs(dx) * o.h >= Math.abs(dy) * o.w) v.x += Math.sign(dx || 1); else v.y += Math.sign(dy || 1);
@@ -230,7 +302,7 @@ export default class VillaWorld {
       if (!moved) break;
     }
     // limites del mapa
-    const all = [castle, ...vs];
+    const all = [...fixed, ...vs];
     const bx0 = Math.min(...all.map(v => v.x)) - 4, by0 = Math.min(...all.map(v => v.y)) - 4, bx1 = Math.max(...all.map(v => v.x + v.w)) + 4, by1 = Math.max(...all.map(v => v.y + v.h)) + 4;
     this.bounds = { x0: bx0 * U, y0: by0 * U, x1: bx1 * U, y1: by1 * U };
     const grass = new TilingSprite({ texture: this.grassTex(), width: (bx1 - bx0 + 40) * U, height: (by1 - by0 + 40) * U });
@@ -248,6 +320,9 @@ export default class VillaWorld {
     this.castle = { gate: { x: 0, y: 4 * U }, cx: 0, cy: -U };
     this.castleLabel = this.label('Castillo', true);
     this.castleHealth = this.subLabel(''); // salud del servidor, bajo el nombre del castillo
+    this.castleSprite = cs;
+    this.jail = jailOn ? this.buildJail() : null;
+    this.post = postOn ? this.buildPost() : null;
 
     // caminos: busqueda sobre la cuadricula desde el porton del castillo hasta cada puerta, esquivando murallas
     // y prefiriendo caminos ya trazados (asi se juntan como en un mapa de verdad)
@@ -258,7 +333,7 @@ export default class VillaWorld {
     const solid = new Uint8Array(GW * GH);
     const idx = (x, y) => (y - gy0) * GW + (x - gx0);
     const inside = (x, y) => x >= gx0 && y >= gy0 && x < gx0 + GW && y < gy0 + GH;
-    for (const o of [castle, ...vs]) for (let y = o.y; y < o.y + o.h; y++) for (let x = o.x; x < o.x + o.w; x++) if (inside(x, y)) solid[idx(x, y)] = 1;
+    for (const o of [...fixed, ...vs]) for (let y = o.y; y < o.y + o.h; y++) for (let x = o.x; x < o.x + o.w; x++) if (inside(x, y)) solid[idx(x, y)] = 1;
     const findPath = (sx, sy, tx, ty) => {
       const dist = new Float32Array(GW * GH).fill(Infinity), prev = new Int32Array(GW * GH).fill(-1);
       const buckets = [[idx(sx, sy)]]; dist[idx(sx, sy)] = 0;
@@ -307,16 +382,40 @@ export default class VillaWorld {
 
     // pueblos
     for (const v of vs) this.buildVillage(v);
+    // antorchas: en el porton del castillo, del calabozo, del palomar y de cada pueblo (se encienden de noche)
+    this.torch(-30, 3 * U + 6); this.torch(30, 3 * U + 6);
+    if (this.jail) { this.torch(7.5 * U - 16, 1 * U); this.torch(7.5 * U + 16, 1 * U); }
+    if (this.post) this.torch(-8 * U + 20, 1 * U);
+    for (const v of vs) { const g = v.gate; this.torch((g.tx - 1) * U - 6, g.ty * U + (v.gateTop ? 2 : U)); this.torch((g.tx + 1) * U + 6, g.ty * U + (v.gateTop ? 2 : U)); }
     // arboles en lo que queda de pasto
-    const r = rng(42), blocked = (tx, ty) => roadSet.has(tx + ',' + ty) || all.some(o => tx >= o.x - 1 && tx <= o.x + o.w && ty >= o.y - 2 && ty <= o.y + o.h + 1);
+    const r = rng(42), blocked = (tx, ty) => roadSet.has(tx + ',' + ty) || all.some(o => tx >= o.x - 1 && tx <= o.x + o.w && ty >= o.y - 2 && ty <= o.y + o.h + 1)
+      || (this.pond && tx >= this.pond.tx - 1 && tx <= this.pond.tx + this.pond.w && ty >= this.pond.ty - 1 && ty <= this.pond.ty + this.pond.h);
+    // un estanque con patos en un claro libre (el primero que entre, buscando desde las esquinas del mapa)
+    for (const [cx, cy] of [[bx0 + 1, by1 - 6], [bx1 - 9, by1 - 6], [bx0 + 1, by0 + 1], [bx1 - 9, by0 + 1], [bx0 + 1, 0], [bx1 - 9, 0]]) {
+      let ok = true;
+      for (let y = cy - 1; y <= cy + 4 && ok; y++) for (let x = cx - 1; x <= cx + 7 && ok; x++) if (blocked(x, y)) ok = false;
+      if (!ok) continue;
+      this.pond = { tx: cx, ty: cy, w: 7, h: 4 };
+      const water = new TilingSprite({ texture: this.waterTex(0), width: 7 * U, height: 4 * U }); water.x = cx * U; water.y = cy * U;
+      const mask = new Graphics().roundRect(cx * U, cy * U, 7 * U, 4 * U, 18).fill(0xffffff); water.mask = mask;
+      const shore = new Graphics().roundRect(cx * U - 3, cy * U - 3, 7 * U + 6, 4 * U + 6, 20).fill(0xb8925e).roundRect(cx * U - 1, cy * U - 1, 7 * U + 2, 4 * U + 2, 19).fill(0x2f5d99);
+      this.roads.addChild(shore, water, mask);
+      this.pond.water = water;
+      for (let i = 0; i < 2; i++) { const d = new Sprite(this.frames(DUCK)[0]); d.anchor.set(0.5, 1); d.scale.set(1.3); this.scene.addChild(d); this.ducks.push({ s: d, ph: i * Math.PI, sp: 0.18 + i * 0.07 }); }
+      break;
+    }
     const trees = [];
     for (let i = 0; i < (bx1 - bx0) * (by1 - by0) / 14; i++) {
       const tx = bx0 - 6 + Math.floor(r() * (bx1 - bx0 + 12)), ty = by0 - 6 + Math.floor(r() * (by1 - by0 + 12));
       if (blocked(tx, ty) || blocked(tx + 1, ty) || trees.some(t => Math.abs(t[0] - tx) < 2 && Math.abs(t[1] - ty) < 2)) continue;
       trees.push([tx, ty]);
-      const s = new Sprite(this.tex('tree', () => rowsTex(TREE, P))); s.anchor.set(0.5, 1); s.x = tx * U + U / 2; s.y = ty * U + U; s.zIndex = s.y;
+      // mayormente arboles; de a ratos una roca o un arbusto con flores
+      const kind = r(), rows = kind < 0.72 ? TREE : kind < 0.86 ? ROCK : BUSH;
+      const s = new Sprite(this.tex('deco' + (rows === TREE ? 't' : rows === ROCK ? 'r' : 'b'), () => rowsTex(rows, P))); s.anchor.set(0.5, 1); s.x = tx * U + U / 2; s.y = ty * U + U; s.zIndex = s.y;
+      if (rows !== TREE) s.scale.set(1.4);
       this.scene.addChild(s);
     }
+    this.drawNight(true);
     this.fit(true);
   }
 
@@ -345,6 +444,17 @@ export default class VillaWorld {
       this.addHouse(it, cx * U + U, cy * U + 2 * U + 4, a);
     });
     v.plaza = { x: x0 + 2 * U, y: (plazaTy + 1) * U + 4, w: (v.w - 4) * U, h: U };
+    const well = new Sprite(this.tex('well', () => rowsTex(WELL, P))); well.anchor.set(0.5, 1); well.scale.set(1.25);
+    well.x = x0 + (v.w - 2) * U - 6; well.y = (plazaTy + 2) * U + 6; well.zIndex = well.y; this.scene.addChild(well);
+    if (v.silo) {
+      const gx = (v.x + v.w - 2.5) * U, gy = v.gateTop ? (v.y + v.h - 1) * U : (v.y + 5) * U;
+      const g = new Sprite(this.granaryTex(0)); g.anchor.set(0.5, 1); g.x = gx; g.y = gy; g.zIndex = gy;
+      g.eventMode = 'static'; g.cursor = 'pointer';
+      g.on('pointertap', () => { if (!this.dragMoved) this.pick('databases', a.id); });
+      this.tipOn(g, () => this.siloTip(v));
+      this.scene.addChild(g);
+      v.gran = { s: g, x: gx, y: gy, size: 0, zT: 0, grainT: 0 };
+    }
     v.label = this.label(a.label, false);
     const nA = v.items.filter(x => x._k === 'app').length;
     v.sub = this.subLabel(accountCaption(a, nA, v.items.length - nA));
@@ -367,6 +477,8 @@ export default class VillaWorld {
         meta: `${st}${!cottage ? ` · CPU ${(a.cpu || 0).toFixed(1)}% · RAM ${fmtBytes(a.mem || 0)}` : ''} · ${a.reqMin || 0} visitas/min`, hint: 'Clic para ver el detalle' };
     });
     this.scene.addChild(s, sign);
+    h.name = new Text({ text: it.name || '', style: { fontFamily: FONT, fontSize: 14, fill: '#f4e7c5', stroke: { color: '#1b1410', width: 4 }, fontWeight: '600' } });
+    h.name.anchor.set(0.5, 0); h.name.visible = false; this.screen.addChild(h.name);
     this.houses.set(it.id, h);
   }
 
@@ -381,6 +493,157 @@ export default class VillaWorld {
     t.anchor.set(0.5, 1);
     this.screen.addChild(t);
     return t;
+  }
+
+  // ------------------------------------------------------------------ dia y noche
+  // antorcha: palo en la escena y llama (fuego pixel) en la capa de luces, sobre el velo de la noche
+  torch(x, y) {
+    const pole = new Sprite(this.tex('torch', () => rowsTex(TORCH, P))); pole.anchor.set(0.5, 1); pole.scale.set(1.5); pole.x = x; pole.y = y; pole.zIndex = y;
+    const flame = new Sprite(this.frames(FIRE)[0]); flame.anchor.set(0.5, 1); flame.scale.set(0.7); flame.x = x; flame.y = y - 11; flame.visible = false;
+    this.scene.addChild(pole); this.lights.addChild(flame);
+    this.torches.push({ pole, flame, ph: Math.random() * 3 });
+  }
+  // cuanto de noche es segun la hora local de quien mira: 0 de dia, 1 de noche, con atardecer y amanecer
+  nightness() {
+    const d = new Date(), h = this.hourOverride != null ? this.hourOverride : d.getHours() + d.getMinutes() / 60;
+    if (h >= 20 || h < 5.5) return 1;
+    if (h >= 18) return (h - 18) / 2;
+    if (h < 7) return 1 - (h - 5.5) / 1.5;
+    return 0;
+  }
+  drawNight(force) {
+    const n = this.nightness();
+    if (!force && Math.abs(n - (this.nightN ?? -1)) < 0.01) return;
+    this.nightN = n;
+    const b = this.bounds; if (!b) return;
+    this.night.clear();
+    if (n > 0) this.night.rect(b.x0 - 60 * U, b.y0 - 60 * U, b.x1 - b.x0 + 120 * U, b.y1 - b.y0 + 120 * U).fill({ color: 0x0b1030, alpha: 0.5 * n });
+  }
+
+  // ------------------------------------------------------------------ calabozo, palomar y graneros
+  // Calabozo, a la derecha del castillo: las IPs bloqueadas son bandidos tras las rejas del patio (hasta 6 a la vista)
+  // y los archivos en cuarentena, frascos de alquimista sellados en la puerta
+  buildJail() {
+    const bx = 7.5 * U, by = 1 * U;
+    const b = new Sprite(this.jailTex()); b.anchor.set(0.5, 1); b.x = bx; b.y = by; b.zIndex = by;
+    const yard = new Graphics().rect(9.3 * U, -2.2 * U, 2.5 * U, 3 * U).fill({ color: 0x5b4632, alpha: 0.85 });
+    this.roads.addChild(yard);
+    const bars = new Graphics();
+    const X0 = 9.3 * U, X1 = 11.8 * U, Y0 = -2.2 * U, Y1 = 0.8 * U;
+    for (let x = X0; x <= X1 + 0.5; x += 5) bars.rect(x, Y0 - 6, 1.5, Y1 - Y0 + 6).fill(0x7d838c);
+    bars.rect(X0, Y0 - 6, X1 - X0 + 1.5, 2).fill(0x9aa1ab).rect(X0, Y1 - 2, X1 - X0 + 1.5, 2).fill(0x9aa1ab);
+    bars.zIndex = Y1 + 2;
+    const prisoners = new Container(); prisoners.zIndex = Y1 - 1;
+    const flasks = new Container(); flasks.zIndex = 1.9 * U + 1;
+    const hit = new Container(); hit.eventMode = 'static'; hit.cursor = 'pointer'; hit.hitArea = new Rectangle(5.8 * U, -4.5 * U, 6.4 * U, 6 * U);
+    hit.on('pointertap', () => { if (!this.dragMoved) this.pick('jail', 'all'); });
+    this.tipOn(hit, () => ({ title: 'Calabozo', body: 'Las IPs <b>bloqueadas</b>: bandidos tras las rejas, los que se bloquearon a mano en el firewall y los que atrapó la defensa de Atalaya. Los <b>toneles</b> sellados con cadenas son archivos PHP maliciosos en cuarentena: no pueden hacer daño y se pueden restaurar.',
+      meta: `${Math.max(0, this.jail.n)} preso(s)${this.jail.q ? ` · ${this.jail.q} tonel(es)` : ''}`, hint: 'Clic para ver cada uno' }));
+    this.scene.addChild(b, bars, prisoners, flasks); this.roads.addChild(hit);
+    return { b, prisoners, flasks, n: -1, q: -1, yard: { x0: X0, x1: X1, y0: Y0, y1: Y1 }, label: this.label('Calabozo', false), sub: this.subLabel(''), labelPos: { x: 8.7 * U, y: -4.4 * U } };
+  }
+  drawJail(J) {
+    const j = this.jail; if (!j || !J) return;
+    const n = J.n || 0, q = J.quarantine || 0;
+    if (n !== j.n) {
+      j.n = n; j.prisoners.removeChildren().forEach(o => o.destroy());
+      const fr = this.frames(PRISONER);
+      for (let i = 0; i < Math.min(6, n); i++) {
+        const sp = new Sprite(fr[0]); sp.anchor.set(0.5, 1);
+        sp.x = j.yard.x0 + 8 + (i % 3) * 12; sp.y = j.yard.y0 + 18 + Math.floor(i / 3) * 18; sp.fi = i;
+        j.prisoners.addChild(sp);
+      }
+    }
+    if (q !== j.q) {
+      j.q = q; j.flasks.removeChildren().forEach(o => o.destroy());
+      for (let i = 0; i < Math.min(4, q); i++) { const f = new Sprite(this.tex('barrel', () => rowsTex(BARREL, P))); f.anchor.set(0.5, 1); f.scale.set(1.3); f.x = 6.4 * U + i * 14; f.y = 1.9 * U; f.zIndex = f.y; j.flasks.addChild(f); }
+    }
+    j.sub.text = (n ? `${n} preso${n === 1 ? '' : 's'}` : 'vacío') + (q ? ` · ${q} tonel${q === 1 ? '' : 'es'}` : '');
+  }
+  // Palomar, a la izquierda del castillo: por aqui pasa el correo; las cartas se apilan si la cola se atasca
+  buildPost() {
+    const px0 = -8 * U, py0 = 1 * U;
+    const t = new Sprite(this.postTex()); t.anchor.set(0.5, 1); t.x = px0; t.y = py0; t.zIndex = py0;
+    t.eventMode = 'static'; t.cursor = 'pointer';
+    t.on('pointertap', () => { if (!this.dragMoved) this.pick('mail', 'all'); });
+    this.tipOn(t, () => ({ title: 'Palomar', body: 'Por aquí pasa el correo del servidor: las palomas <b>blancas</b> salen de un pueblo, las <b>violetas</b> llegan y las <b>rojas</b> rebotaron y vuelven heridas con el motivo. La pila de cartas es la cola de correo esperando salir.', meta: this.postLine(), hint: 'Clic para ver el correo' }));
+    const pile = new Container(); pile.zIndex = py0 + 1;
+    this.scene.addChild(t, pile);
+    return { t, pile, pileN: -1, x: px0, y: py0 - 44, label: this.label('Palomar', false), sub: this.subLabel(''), labelPos: { x: px0, y: -4.4 * U } };
+  }
+  postLine() {
+    const now = this.t; this.mailLog = this.mailLog.filter(x => now - x.t < 60);
+    const n = d => this.mailLog.filter(x => x.dir === d).length;
+    const parts = [[n('out'), 'salen'], [n('in'), 'llegan'], [n('bounce'), 'rebotan']].filter(x => x[0]).map(x => `${x[0]} ${x[1]}`);
+    return parts.length ? parts.join(' · ') + ' en 1 min' : 'sin palomas en el último minuto';
+  }
+  drawPost() {
+    const P0 = this.post; if (!P0) return;
+    const line = this.postLine(); if (P0.sub.text !== line) P0.sub.text = line;
+    const q = this.mailQueue || 0, want = q > 1000 ? 9 : q > 100 ? 6 : q > 20 ? 3 : 0;
+    if (want === P0.pileN) return;
+    P0.pileN = want; P0.pile.removeChildren().forEach(o => o.destroy());
+    for (let i = 0; i < want; i++) { const l = new Sprite(this.tex('letter', () => rowsTex(LETTER, P))); l.anchor.set(0.5, 1); l.scale.set(1.4); l.x = P0.x + 22 + (i % 3) * 3; l.y = P0.y + 44 - i * 5; l.tint = q > 1000 ? 0xff9a8a : 0xffffff; P0.pile.addChild(l); }
+  }
+  // paloma mensajera: sale del pueblo, pasa por el palomar y se va; llega al reves; si rebota, vuelve roja al pueblo
+  letter(dir, e = {}) {
+    if (!this.post) return this.pigeon(dir);
+    this.mailLog.push({ t: this.t, dir }); if (this.mailLog.length > 3000) this.mailLog.shift();
+    this.drawPost();
+    this.mailLast = this.mailLast || {};
+    if (this.t - (this.mailLast[dir] || -9) < 0.35 || this.actors.length > 140) return;
+    this.mailLast[dir] = this.t;
+    const b = this.bounds || { x0: -500, x1: 500, y0: -500 };
+    const v = e.account && this.villages.get(e.account);
+    const home = v ? { x: v.plaza.x + v.plaza.w / 2, y: v.plaza.y - 20 } : { x: this.castle.cx, y: this.castle.cy - 40 };
+    const post = { x: this.post.x, y: this.post.y - 10 }, sky = { x: b.x0 - 2 * U, y: b.y0 - 2 * U };
+    const crash = { x: (post.x + sky.x) / 2, y: (post.y + sky.y) / 2 };
+    const pts = dir === 'in' ? [sky, post, home] : dir === 'bounce' ? [home, post, crash, post, home] : [home, post, sky];
+    const fr = this.frames(BIRD, dir === 'bounce' ? { s: '#ff7a45' } : dir === 'in' ? { s: '#b69cf0' } : { s: '#f4f1e8' });
+    const sp = new Sprite(fr[0]); sp.anchor.set(0.5, 1); sp.scale.set(1.3); sp.x = pts[0].x; sp.y = pts[0].y; sp.zIndex = 99999;
+    this.fxL.addChild(sp);
+    const SHORT = { auth: 'SIN AUTENTICAR', nouser: 'NO EXISTE', full: 'BUZÓN LLENO', spam: 'SPAM', domain: 'DOMINIO', rate: 'DEMASIADOS' };
+    this.actors.push({ sprite: sp, fr, pts, seg: 0, speed: 170, bot: true, fly: true, onSeg: (a, seg) => {
+      if (seg === 1) this.sparkle(post.x, post.y + 4, 2);
+      if (dir === 'bounce' && seg === 2) { this.puff(sp.x, sp.y, 0xff7a45, 5); this.floatText(sp.x, sp.y - 16, SHORT[e.cat] || 'REBOTÓ', '#ff9a7a'); }
+    } });
+  }
+  // graneros: tamano segun las bases, grano que salta si hay consultas, «z» si hay conexiones dormidas, rojo al limite
+  siloTip(v) {
+    const x = v.gran && v.gran.data; if (!x) return { title: 'Granero', body: 'Las bases de datos del pueblo.', hint: 'Clic para ver sus bases' };
+    const mb = n => n > 1073741824 ? (n / 1073741824).toFixed(1) + ' GB' : Math.round(n / 1048576) + ' MB';
+    return { title: 'Granero · bases de datos', body: `${x.n} base${x.n === 1 ? '' : 's'} MySQL del pueblo, ${mb(x.size)}. ${x.conns ? `<b>${x.conns}</b> conexión(es)${x.active ? `, <b>${x.active}</b> con consultas en curso` : ''}${x.sleep >= 10 ? `, <b>${x.sleep} dormidas</b> (las «z»)` : ''}.` : 'Sin conexiones ahora.'} Las acequias llevan agua a las casas que las usan.`,
+      meta: x.busy ? `ocupado el ${x.busy}% de los últimos 15 min` : '', hint: 'Clic para ver sus bases' };
+  }
+  updateSilos(S) {
+    this.siloHot = !!(S && S.hot >= 0.85);
+    for (const x of (S && S.list) || []) {
+      const v = this.villages.get(x.account); if (!v || !v.gran) continue;
+      v.gran.data = x;
+      const size = x.size > 2 * 1073741824 ? 2 : x.size > 200 * 1048576 ? 1 : 0;
+      if (size !== v.gran.size) { v.gran.size = size; v.gran.s.texture = this.granaryTex(size); }
+    }
+  }
+  // acequias del granero a cada casa que usa sus bases, con gotas que corren si hay consultas
+  drawCanals() {
+    let g = this.canals; if (!g || g.destroyed) g = this.canals = new Graphics();
+    if (!g.parent) this.roads.addChild(g);
+    g.clear();
+    for (const v of this.villages.values()) {
+      const G = v.gran; if (!G || !G.data) continue;
+      for (const l of G.data.links || []) {
+        const h = this.houses.get(l.id); if (!h) continue;
+        const a = { x: G.x, y: G.y + 2 }, m = { x: h.x, y: G.y + 2 }, b2 = { x: h.x, y: h.y + 4 };
+        g.moveTo(a.x, a.y).lineTo(m.x, m.y).lineTo(b2.x, b2.y).stroke({ width: 3, color: 0x3b6fb5, alpha: 0.75 });
+        if (!l.active) continue;
+        const L1 = Math.abs(m.x - a.x), L2 = Math.abs(b2.y - m.y), L = L1 + L2 || 1, n = Math.min(4, 1 + l.active);
+        for (let i = 0; i < n; i++) {
+          const u = ((this.t * (0.35 + (l.busy || 0) / 200) + i / n) % 1) * L;
+          const p = u < L1 ? { x: a.x + Math.sign(m.x - a.x) * u, y: a.y } : { x: m.x, y: m.y + Math.sign(b2.y - m.y) * (u - L1) };
+          g.rect(p.x - 1.5, p.y - 1.5, 3, 3).fill(0xbfe3ff);
+        }
+      }
+    }
   }
 
   // ------------------------------------------------------------------ estado
@@ -404,6 +667,21 @@ export default class VillaWorld {
     }
     this.failed = (state.keys || []).filter(k => k.state === 'failed').map(k => k.label);
     this.syncMages(state.sessions || []);
+    // calabozo, palomar y graneros
+    this.drawJail(state.jail);
+    this.mailQueue = state.mailQueue; this.drawPost();
+    this.updateSilos(state.silos);
+    // servidor al limite: castillo asediado y fila en el porton
+    const jam = !!(state.saturation && state.saturation.level === 'bad');
+    if (!jam && this.jam) this.jamNext = 0;
+    this.jam = jam;
+    // cuota al limite: una linea bajo el nombre del pueblo
+    for (const a of state.accounts) {
+      const v = this.villages.get(a.id); if (!v) continue;
+      const txt = a.quota ? `${String(a.quota.what).toUpperCase()} AL ${a.quota.pct} %` : '';
+      if (txt && !v.q) v.q = this.subLabel('');
+      if (v.q) { v.q.text = txt; v.q.style.fill = a.quota && a.quota.level === 'bad' ? '#ff8a7a' : '#f5d76e'; v.q.visible = !!txt; }
+    }
   }
 
   syncMages(sessions) {
@@ -449,7 +727,7 @@ export default class VillaWorld {
       case 'attack': return this.slime(false);
       case 'block': return this.slime(true, priv ? e.ip : null);
       case 'login': return this.floatText(0, -4 * U, priv && e.user ? `Entró ${e.user}` : 'Entró un administrador', '#bff5a0');
-      case 'mail': return this.pigeon(e.dir);
+      case 'mail': return this.letter(e.dir, e);
       case 'deploy': {
         const h = this.houses.get(e.app);
         if (!h) return;
@@ -491,10 +769,20 @@ export default class VillaWorld {
     const bot = !!e.bot, err = e.status >= 500;
     const shirts = ['#b53a2e', '#3c7ab5', '#c98a2b', '#4f8a3a', '#8a4fb5', '#c2c2c2'];
     const fr = bot ? this.frames(BIRD) : this.frames(VILLAGER, { M: err ? '#ff4d3d' : shirts[Math.random() * shirts.length | 0] });
+    // castillo asediado: cada aldeano toma el ultimo lugar de la fila del porton, espera su turno y sigue despacio
+    let hold = null;
+    if (this.jam && !bot) {
+      if (this.jamQ >= 16) return; // la fila ya muestra el asedio: no crece sin fin
+      const now = this.t; this.jamNext = Math.min(now + 8, Math.max(this.jamNext || 0, now) + 0.5);
+      const slot = this.jamQ++;
+      const gi = entry.length; // indice del porton en pts
+      pts.splice(gi, 0, { x: this.castle.gate.x + (slot % 2 ? 5 : -5), y: this.castle.gate.y + 14 + slot * 9 });
+      hold = { seg: gi, until: this.jamNext };
+    }
     const sp = new Sprite(fr[0]); sp.anchor.set(0.5, 1);
     sp.x = start.x; sp.y = start.y;
     this.scene.addChild(sp);
-    this.actors.push({ sprite: sp, fr, pts, seg: 0, speed: bot ? 150 : 70 + Math.random() * 30, bot, err, h });
+    this.actors.push({ sprite: sp, fr, pts, seg: 0, speed: (bot ? 150 : 70 + Math.random() * 30) * (this.jam ? 0.45 : 1), bot, err, h, hold });
   }
 
   // slime: viene desde un borde y golpea la muralla del castillo
@@ -560,8 +848,10 @@ export default class VillaWorld {
         } else if (a.h) { a.h.flash = 1; if (a.err) this.puff(sp.x, sp.y - 10, 0xff4d3d, 5); }
         sp.destroy(); this.actors.splice(i, 1); continue;
       }
+      if (a.hold && a.seg === a.hold.seg && a.hold.until > this.t) { sp.texture = a.fr[0]; continue; }
+      if (a.hold && a.seg === a.hold.seg) { a.hold = null; this.jamQ = Math.max(0, this.jamQ - 1); }
       const dx = to.x - sp.x, dy = to.y - sp.y, d = Math.hypot(dx, dy), st = a.speed * dt;
-      if (d <= st) { sp.x = to.x; sp.y = to.y; a.seg++; }
+      if (d <= st) { sp.x = to.x; sp.y = to.y; a.seg++; if (a.onSeg) a.onSeg(a, a.seg); }
       else { sp.x += dx / d * st; sp.y += dy / d * st; if (Math.abs(dx) > 0.5) sp.scale.x = Math.abs(sp.scale.x) * (dx < 0 ? -1 : 1); }
       sp.texture = a.fr[(a.slime ? Math.floor(this.t * 3) : frame) % a.fr.length];
       if (!a.fly) sp.zIndex = sp.y;
@@ -592,10 +882,44 @@ export default class VillaWorld {
       m.apprentices.forEach((a, i) => { a.x = m.x + (i % 2 ? 1 : -1) * (14 + (i >> 1) * 10); a.y = m.y + 2; a.zIndex = a.y; a.texture = this.frames(VILLAGER, { M: '#6d47b3' })[frame]; });
       if (m.s.state === 'working' && Math.random() < dt * 0.8) this.sparkle(m.x + 6, m.y - 18, 1);
     }
+    // noche: se revisa cada segundo; antorchas encendidas y ventanas de las casas con visitas
+    if (Math.floor(this.t) !== this.nightT) { this.nightT = Math.floor(this.t); this.drawNight(false); }
+    const lit = (this.nightN || 0) > 0.15;
+    for (const tq of this.torches || []) { tq.flame.visible = lit; if (lit) tq.flame.texture = this.frames(FIRE)[Math.floor(this.t * 5 + tq.ph) % 2]; }
+    for (const h of this.houses.values()) {
+      const on = lit && h.lit;
+      if (on && !h.glow) { h.glow = new Graphics().rect(h.x - 10, h.y - 12, 4, 4).fill(0xffe28a).rect(h.x + 6, h.y - 12, 4, 4).fill(0xffe28a); this.lights.addChild(h.glow); }
+      if (h.glow) h.glow.visible = on;
+    }
+    // estanque: el agua se mueve y los patos nadan en ronda
+    if (this.pond) {
+      this.pond.water.texture = this.waterTex(Math.floor(this.t * 1.5) % 2);
+      const P2 = this.pond, cx = (P2.tx + P2.w / 2) * U, cy = (P2.ty + P2.h / 2) * U + 6;
+      for (const d of this.ducks) { const a = this.t * d.sp + d.ph; d.s.x = cx + Math.cos(a) * (P2.w * U / 2 - 18); d.s.y = cy + Math.sin(a) * (P2.h * U / 2 - 14); d.s.zIndex = d.s.y; d.s.scale.x = 1.3 * (Math.sin(a) > 0 ? -1 : 1); d.s.texture = this.frames(DUCK)[Math.floor(this.t * 2) % 2]; }
+    }
+    // castillo asediado: se tiñe de rojo y late
+    if (this.castleSprite) this.castleSprite.tint = this.jam ? (Math.floor(this.t * 3) % 2 ? 0xff9a8a : 0xffc4b8) : 0xffffff;
+    if (this.jam && Math.random() < dt * 2) this.puff(this.castle.cx + (Math.random() - 0.5) * 60, this.castle.cy - 30, 0x5b3b3b, 1);
+    // calabozo: los presos se mueven en su lugar; los frascos brillan despacio
+    if (this.jail) {
+      const fr = this.frames(PRISONER);
+      this.jail.prisoners.children.forEach(sp => { sp.texture = fr[(Math.floor(this.t * 2 + sp.fi) % 2)]; });
+      // los toneles se sacuden de a ratos: algo se mueve adentro
+      this.jail.flasks.children.forEach((f, i) => { const k = (this.t * 0.7 + i * 0.37) % 1; f.rotation = k < 0.08 ? Math.sin(k * 150) * 0.12 : 0; });
+    }
+    // graneros
+    for (const v of this.villages.values()) {
+      const G = v.gran; if (!G || !G.data) continue;
+      const x = G.data, top = G.y - G.s.height;
+      G.s.tint = this.siloHot ? (Math.floor(this.t * 3) % 2 ? 0xff8a7a : 0xffc4b8) : 0xffffff;
+      if (x.active) { G.grainT -= dt * (0.8 + x.active); if (G.grainT <= 0) { G.grainT = 1; this.sparkle(G.x, top + 6, 2); } }
+      if (x.sleep >= 10) { G.zT -= dt; if (G.zT <= 0) { G.zT = 2.2; const z = new Sprite(this.tex('zzz', () => rowsTex(ZZZ, { k: '#cbd5e1' }))); z.anchor.set(0.5, 1); z.x = G.x + 8; z.y = top + 4; z.scale.set(1.2); this.addFx(z, (f, dt2) => { z.y -= 8 * dt2; z.x += Math.sin(f.age * 3) * 0.3; z.alpha = 1 - f.age / 2.2; return f.age < 2.2; }); } }
+    }
+    this.drawCanals();
     // efectos
     for (let i = this.fx.length - 1; i >= 0; i--) {
       const f = this.fx[i]; f.age += dt;
-      if (!f.tick(f, dt)) { f.obj.destroy(); this.fx.splice(i, 1); }
+      if (f.obj.destroyed || !f.tick(f, dt)) { if (!f.obj.destroyed) f.obj.destroy(); this.fx.splice(i, 1); }
     }
     this.drawSelection();
     this.director(dt);
@@ -613,8 +937,17 @@ export default class VillaWorld {
     const ts = clamp(Math.min((W - this.insets.left - this.insets.right) / 900, (H - this.insets.top - this.insets.bottom) / 560), 0.5, 1);
     if (this.castleLabel) this.castleLabel.scale.set(ts);
     if (this.castleHealth && this.castleLabel) { this.castleHealth.scale.set(ts); this.castleHealth.x = this.castleLabel.x; this.castleHealth.y = this.castleLabel.y + 22 * ts; }
-    for (const v of this.villages.values()) { const p = toScreen(v.labelPos); v.label.scale.set(ts); v.sub.scale.set(ts); v.label.x = p.x; v.label.y = p.y - 20 * ts; v.sub.x = p.x; v.sub.y = p.y; }
-    for (const f of this.fx) if (f.world) { const p = toScreen(f.world); f.obj.x = p.x; f.obj.y = p.y; }
+    for (const v of this.villages.values()) { const p = toScreen(v.labelPos); v.label.scale.set(ts); v.sub.scale.set(ts); v.label.x = p.x; v.label.y = p.y - 20 * ts; v.sub.x = p.x; v.sub.y = p.y; if (v.q) { v.q.scale.set(ts); v.q.x = p.x; v.q.y = p.y + 20 * ts; } }
+    // calabozo y palomar: su rotulo aparece al acercarse (en la vista general se encimaria con el del castillo)
+    const mid = this.overview && this.cam.s >= this.overview.s * 1.5;
+    for (const o of [this.jail, this.post]) if (o) { o.label.visible = o.sub.visible = mid; if (mid) { const p = toScreen(o.labelPos); o.label.scale.set(ts * 0.85); o.sub.scale.set(ts * 0.85); o.label.x = p.x; o.label.y = p.y - 18 * ts; o.sub.x = p.x; o.sub.y = p.y; } }
+    // nombres de las casas: aparecen al acercarse (de lejos, el cartel pixel alcanza)
+    const near = this.overview && this.cam.s >= Math.max(2.2, this.overview.s * 1.9);
+    for (const h of this.houses.values()) {
+      h.name.visible = near;
+      if (near) { const p = toScreen({ x: h.x, y: h.y + 3 }); h.name.x = p.x; h.name.y = p.y; }
+    }
+    for (const f of this.fx) if (f.world && !f.obj.destroyed) { const p = toScreen(f.world); f.obj.x = p.x; f.obj.y = p.y; }
     if (this.manualUntil && this.manualUntil < this.t) { this.manualUntil = 0; this.camTarget = this.overview; this.navChanged(); }
     else if (this.manualUntil && Math.floor(this.t) !== this.lastNav) { this.lastNav = Math.floor(this.t); this.navChanged(); }
   }
@@ -685,6 +1018,9 @@ export default class VillaWorld {
     else if (kind === 'session') { const m = this.mages.get(id); if (m) p = { x: m.x, y: m.y - 10, s: 4 }; }
     else if (kind === 'district') { const v = this.villages.get(id); if (v) p = { x: (v.x + v.w / 2) * U, y: (v.y + v.h / 2) * U, s: 3 }; }
     else if (kind === 'system' || kind === 'security') p = { x: 0, y: -U, s: 3 };
+    else if (kind === 'jail' && this.jail) p = { x: 8.5 * U, y: -1.5 * U, s: 4 };
+    else if (kind === 'mail' && this.post) p = { x: this.post.x, y: -1.5 * U, s: 4 };
+    else if (kind === 'databases') { const v = this.villages.get(id); if (v && v.gran) p = { x: v.gran.x, y: v.gran.y - 20, s: 4 }; }
     if (p) { this.manual(); this.camTarget = this.frameOn(p.x, p.y, Math.max(p.s, this.overview ? this.overview.s : 1)); }
     if (this.onSelect) this.onSelect(kind, id);
   }

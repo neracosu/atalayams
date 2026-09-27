@@ -14,6 +14,17 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.68.0] - 2026-09-27
+
+### Agregado
+- **Villa, completa**: el calabozo junto al castillo (las IPs bloqueadas son bandidos a rayas tras las rejas, y los archivos en cuarentena, toneles sellados con cadenas), el palomar (cada correo es una paloma que pasa por él; las que rebotan vuelven rojas con el motivo, y la cola atascada apila cartas), un granero por pueblo con bases de datos y acequias hacia las casas que las usan, el castillo asediado cuando el servidor llega al límite (con fila de aldeanos en el portón) y la línea de cuota bajo cada pueblo.
+- Villa: **día y noche** según la hora de quien mira, con antorchas en los portones y las ventanas encendidas de las casas con visitas; un estanque con patos, un pozo en cada plaza, rocas y arbustos con flores.
+- Villa: los **nombres de las casas** aparecen al acercarse.
+- Sitio: botón **«neracosu.com»** en la franja superior de todas las páginas, para volver al sitio del autor.
+
+### Corregido
+- La animación de la cápsula de cuarentena (en todos los temas) podía fallar al arrancar y dejar de dibujarse.
+
 ## [0.67.0] - 2026-09-27
 
 ### Agregado
@@ -1326,7 +1337,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.67.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.68.0...HEAD
+[0.68.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.67.0...v0.68.0
 [0.67.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.66.0...v0.67.0
 [0.66.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.65.1...v0.66.0
 [0.65.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.65.0...v0.65.1

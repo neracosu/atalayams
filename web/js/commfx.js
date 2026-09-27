@@ -143,7 +143,7 @@ export class CommFx {
 
   // auto de perfil centrado en (x, y), escala 2; flip = mira a la izquierda
   car(kind, x, y, t, flip) {
-    const img = this.cars[kind][Math.floor(t * 6) % 2], w = img.width * 2, h = img.height * 2, { cx } = this;
+    const img = this.cars[kind][frame2(t * 6)], w = img.width * 2, h = img.height * 2, { cx } = this;
     cx.save();
     cx.translate(Math.round(x), Math.round(y - h / 2));
     if (flip) cx.scale(-1, 1);
@@ -211,7 +211,7 @@ export class CommFx {
       const r = 14 + 6 * Math.min(1, grow);
       cx.globalAlpha = 0.85; cx.fillStyle = 'rgba(74, 222, 128, .18)'; cx.strokeStyle = '#4ade80'; cx.lineWidth = 2;
       cx.beginPath(); cx.ellipse(cap.x, cap.y, r * 0.7, r, 0, 0, Math.PI * 2); cx.fill(); cx.stroke();
-      if (t >= 7.5) { const img = this.bug[Math.floor(t * 10) % 2]; cx.drawImage(img, cap.x - img.width, cap.y - img.height, img.width * 2, img.height * 2); }
+      if (t >= 7.5) { const img = this.bug[frame2(t * 10)]; cx.drawImage(img, cap.x - img.width, cap.y - img.height, img.width * 2, img.height * 2); }
       cx.fillStyle = '#bbf7d0'; cx.fillRect(Math.round(cap.x - 3), Math.round(cap.y - r - 3), 6, 3); // tapa
       cx.globalAlpha = 1;
       if (car) { cx.strokeStyle = 'rgba(148, 163, 184, .8)'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(car.x, car.y + 8); cx.lineTo(cap.x, cap.y - r); cx.stroke(); } // cable
@@ -222,7 +222,7 @@ export class CommFx {
   // bichos caminando sobre un punto (los usa la capsula mientras los atrapa)
   drawBugs(p, t, a = 1) {
     const { cx } = this; cx.globalAlpha = a;
-    for (let i = 0; i < 2; i++) { const ang = t * 1.3 + i * 2.1, img = this.bug[Math.floor(t * 8 + i) % 2];
+    for (let i = 0; i < 2; i++) { const ang = t * 1.3 + i * 2.1, img = this.bug[frame2(t * 8 + i)];
       cx.save(); cx.translate(Math.round(p.x + Math.cos(ang) * 22), Math.round(p.y - 24 + Math.sin(ang) * 10)); cx.rotate(ang + Math.PI); cx.drawImage(img, -img.width, -img.height, img.width * 2, img.height * 2); cx.restore(); }
     cx.globalAlpha = 1;
   }
@@ -267,7 +267,7 @@ export class CommFx {
           cx.fillStyle = Math.floor(t * 8) % 2 ? '#ef4444' : '#3b82f6'; cx.fillRect(Math.round(b.x - 5), Math.round(b.y - 92), 10, 6);
         }
         for (let i = 0; i < Math.min(3, w.n || 1) + (hit ? 2 : 0); i++) {
-          const sp = hit ? 4 : 1.3, a = t * sp + i * 2.1, img = this.bug[Math.floor(t * (hit ? 16 : 8) + i) % 2], s = hit ? 2.4 : 2;
+          const sp = hit ? 4 : 1.3, a = t * sp + i * 2.1, img = this.bug[frame2(t * (hit ? 16 : 8) + i)], s = hit ? 2.4 : 2;
           const x = b.x + Math.cos(a) * 26 + (hit ? Math.sin(t * 40 + i) * 2 : 0), y = b.y - 24 + Math.sin(a) * 12;
           cx.save(); cx.translate(Math.round(x), Math.round(y)); cx.rotate(a + Math.PI); cx.drawImage(img, -img.width * s / 2, -img.height * s / 2, img.width * s, img.height * s); cx.restore();
         }
@@ -546,6 +546,9 @@ export class CommFx {
 function nudge(p, dir = 1) { return p ? { x: p.x + 56 * dir, y: p.y - 34 } : null; }
 
 // posicion en pantalla de un objeto de PixiJS (sprite, contenedor o un objeto con .spr/.c/.cont/.root)
+// cuadro 0 o 1 de una animacion de dos cuadros; siempre valido aunque el tiempo arranque negativo
+const frame2 = x => ((Math.floor(x) % 2) + 2) % 2;
+
 export function pixiScreen(app, o) {
   const d = o && [o, o.spr, o.sp, o.sprite, o.worker, o.s, o.C, o.c, o.cont, o.root, o.body].find(x => x && typeof x.getBounds === 'function');
   if (!app || !d || d.destroyed || typeof d.getBounds !== 'function' || !d.visible) return null;

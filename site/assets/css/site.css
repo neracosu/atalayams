@@ -329,3 +329,6 @@ pre.cmd { position: relative; margin: .6rem 0 0; padding: .75rem .9rem; backgrou
 .lb-prev { left: -22px; } .lb-next { right: -22px; }
 .lb-close:hover, .lb-nav:hover, .lb-close:focus-visible, .lb-nav:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
 @media (max-width: 700px) { .lb-close { top: 8px; right: 8px; } .lb-prev { left: 6px; } .lb-next { right: 6px; } .lb-nav { top: 30%; width: 38px; height: 38px; } }
+/* vuelta a neracosu.com: quien llega desde la home (o las redes) tiene cómo regresar */
+.born .home { color: var(--ink); text-decoration: none; font-weight: 600; padding: 2px 8px; border: 1px solid var(--line-strong); }
+.born .home:hover { border-color: var(--accent); color: var(--accent); }

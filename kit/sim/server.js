@@ -145,7 +145,7 @@ function scenario(name, target) {
   if (name === 'carcel') {
     const x = pick(s.sites && s.sites.length ? s.sites : s.apps);
     overrides.jail++;
-    broadcast('ev', { kind: 'defense', t: now, action: 'block', by: 'auto', reason: 'scan', account: x.account, [s.apps.includes(x) ? 'app' : 'site']: x.id });
+    broadcast('ev', { kind: 'defense', t: now, action: 'block', by: 'auto', reason: 'scan', hours: 24, account: x.account, [s.apps.includes(x) ? 'app' : 'site']: x.id });
     return `Una IP va a la cárcel desde «${x.name}» (${overrides.jail} presos)`;
   }
   if (name === 'cuarentena') {

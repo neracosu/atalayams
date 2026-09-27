@@ -292,7 +292,7 @@ export function tickerEvent(e, accounts, priv) {
       const st = window.atalaya && window.atalaya.state;
       const nm = e.name || (st && ((st.sites.find(x => x.id === e.site) || st.apps.find(x => x.id === e.app)) || {}).name) || '';
       const who = priv && e.ip ? e.ip : 'Una IP';
-      if (e.action === 'block') addTicker('shield', e.label || '', `${who} bloqueada ${e.hours} h${nm ? ' en ' + nm : ''}${e.by === 'auto' ? ' · defensa automática' : ''}`, '#4ade80', 'webdef:all');
+      if (e.action === 'block') addTicker('shield', e.label || '', `${who} bloqueada${e.hours ? ` ${e.hours} h` : ''}${nm ? ' en ' + nm : ''}${e.by === 'auto' ? ' · defensa automática' : ''}`, '#4ade80', 'webdef:all');
       else if (e.action === 'unblock') addTicker('shield', e.label || '', `${who} desbloqueada`, '#94a3b8', 'webdef:all');
       return;
     }
