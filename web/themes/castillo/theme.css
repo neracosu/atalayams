@@ -1,0 +1,97 @@
+/* Tema "Castillo" (HUD de marcos, heredado de Villa y teñido de noche gótica)
+   Tema "Villa": HUD de RPG clasico. Regla de oro: madera y piedra, nunca vidrio ni brillo.
+   Marcos biselados de pixel (sin redondeos ni desenfoques), barras de estado a la derecha y un
+   registro tipo chat abajo a la izquierda. Todo va bajo body[data-theme="castillo"]. */
+@font-face { font-family: 'Pixelify Sans'; src: url(pixelify.woff2) format('woff2'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: 'Jacquard 24'; src: url(jacquard24.woff2) format('woff2'); font-display: swap; }
+
+body[data-theme="castillo"] {
+  --bg: #2b4a26; --bg-2: #3a2a1a; --panel: #2e2217; --panel-solid: #2e2217;
+  --line: #6b4a2a; --line-strong: #a07b4c;
+  --ink: #f4e7c5; --ink-2: #d8c49a; --ink-3: #a58e66;
+  --accent: #e0b04a; --good: #7fc45a; --warn: #f0b43c; --bad: #d9412b; --private: #f0b43c;
+  --radius: 0; --font: 'Pixelify Sans', ui-monospace, monospace; --pixel: 'Jacquard 24', 'Pixelify Sans', serif; --mono: 'Pixelify Sans', ui-monospace, monospace;
+  --chart-1: #d9412b; --chart-2: #3c7ab5; --chart-3: #e0b04a; --chart-4: #d9412b;
+  /* marco de madera biselado, hecho de pixeles */
+  --frame: 0 0 0 2px #1b1410, 0 0 0 4px #8b5a2b, 0 0 0 6px #5e3b1c, 0 0 0 8px #1b1410, inset 0 0 0 2px #4a3522;
+  background: var(--bg);
+}
+body[data-theme="castillo"] *, body[data-theme="castillo"] *::before, body[data-theme="castillo"] *::after { border-radius: 0 !important; }
+
+body[data-theme="castillo"] .panel, body[data-theme="castillo"] #top, body[data-theme="castillo"] .drawer, body[data-theme="castillo"] dialog, body[data-theme="castillo"] .menu, body[data-theme="castillo"] .tip {
+  background: var(--panel); backdrop-filter: none; border: 0; box-shadow: var(--frame);
+  background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, .08) 0 2px, transparent 2px 6px);
+}
+body[data-theme="castillo"] h2, body[data-theme="castillo"] h3, body[data-theme="castillo"] h4, body[data-theme="castillo"] .pix { font-family: var(--pixel); font-weight: 400; letter-spacing: .02em; text-transform: none; }
+body[data-theme="castillo"] h2 { font-size: 1.45rem; color: var(--accent); }
+
+/* barra superior: un cartel de madera, solo el nombre, el modo y el reloj */
+body[data-theme="castillo"] #top { top: 1.2rem; left: 1.2rem; right: calc(clamp(270px, 22vw, 560px) + 2.4rem); height: 4rem; }
+body[data-theme="castillo"] .brand h1 { font-family: var(--pixel); font-size: 2.4rem; letter-spacing: .04em; color: var(--accent); }
+body[data-theme="castillo"] .brand p { color: var(--ink-3); }
+body[data-theme="castillo"] .brand svg { filter: sepia(1) saturate(2.5) hue-rotate(-12deg); }
+body[data-theme="castillo"] .clock #time { font-weight: 700; color: var(--ink); }
+body[data-theme="castillo"] .mode { background: #3a2a1a; border: 2px solid #8b5a2b; font-family: var(--font); }
+
+/* barras de estado a la derecha, como vida y mana */
+body[data-theme="castillo"] .kpis { position: fixed; top: 1.2rem; right: 1.2rem; width: clamp(270px, 22vw, 560px); display: grid; grid-template-columns: 1fr 1fr; gap: .45rem .8rem;
+  padding: .8rem .9rem; background: var(--panel); box-shadow: var(--frame); overflow: visible; }
+body[data-theme="castillo"] .kpi { background: none; border: 0; padding: 0; min-width: 0; }
+body[data-theme="castillo"] .kpi .k { font-size: .8rem; color: var(--ink-2); letter-spacing: .04em; }
+body[data-theme="castillo"] .kpi .v { font-size: 1.15rem; font-weight: 700; }
+body[data-theme="castillo"] .kpi .bar { height: 9px; margin-top: .2rem; background: #1b1410; box-shadow: 0 0 0 2px #5e3b1c; }
+body[data-theme="castillo"] .kpi .bar i { background: #7fc45a; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .25); }
+body[data-theme="castillo"] #kpi-cpu .bar i { background: #d9412b; }
+body[data-theme="castillo"] #kpi-mem .bar i { background: #3c7ab5; }
+body[data-theme="castillo"] #kpi-disk .bar i { background: #c98a2b; }
+
+/* el resto de las lecturas debajo, en la misma columna */
+body[data-theme="castillo"] #right { top: 16.4rem; right: 1.2rem; bottom: 1.2rem; width: clamp(270px, 22vw, 560px); gap: .8rem; }
+
+/* magos (agentes) arriba a la izquierda, bajo el cartel */
+body[data-theme="castillo"] #left { top: 6.8rem; left: 1.2rem; bottom: auto; height: auto; max-height: 38vh; width: clamp(240px, 19vw, 480px); }
+body[data-theme="castillo"] #left h2 .pix { font-size: 0; }
+body[data-theme="castillo"] #left h2 .pix::after { content: 'Cazadoras'; font-size: 1.45rem; }
+body[data-theme="castillo"] .agent { background: #3a2a1a; border: 0; box-shadow: inset 0 0 0 2px #5e3b1c; }
+body[data-theme="castillo"] .agent::before { background: var(--c, var(--accent)); width: 4px; }
+body[data-theme="castillo"] .agent.waiting { box-shadow: inset 0 0 0 2px var(--warn); animation: none; }
+
+/* el mapa va entre la columna izquierda (magos + registro) y la derecha (barras y lecturas) */
+body[data-theme="castillo"] #worldArea { display: block; top: 6.4rem; bottom: 1.2rem; left: calc(clamp(240px, 19vw, 480px) + 2.6rem); right: calc(clamp(270px, 22vw, 560px) + 2.6rem); }
+
+/* registro del reino: la cinta como chat abajo a la izquierda, lo mas nuevo abajo */
+body[data-theme="castillo"] #ticker { left: 1.2rem; right: auto; bottom: 1.2rem; width: clamp(240px, 19vw, 480px); height: calc(100vh - 38vh - 10.6rem); min-height: 9rem; padding: .6rem .8rem;
+  flex-direction: column; align-items: stretch; background: rgba(27, 20, 16, .88); box-shadow: var(--frame); }
+body[data-theme="castillo"] #ticker .tscroll { overflow: hidden; flex: 1; }
+body[data-theme="castillo"] #log { flex-direction: column-reverse; gap: .15rem; white-space: nowrap; justify-content: flex-end; height: 100%; }
+body[data-theme="castillo"] #log .ev { font-size: .95rem; color: var(--ink); }
+body[data-theme="castillo"] #log .ev:nth-child(n+11) { display: none; }
+body[data-theme="castillo"] #log .ev { white-space: normal; display: block; line-height: 1.25; }
+body[data-theme="castillo"] #log .ev > * { margin-right: .35rem; }
+body[data-theme="castillo"] #log .ev time { order: -1; color: var(--ink-3); }
+body[data-theme="castillo"] #log .ev .tag { font-family: var(--font); font-weight: 700; color: var(--c, var(--accent)); }
+body[data-theme="castillo"] #tall { position: absolute; bottom: .5rem; right: .6rem; background: #3a2a1a; border: 2px solid #8b5a2b; }
+
+/* navegacion */
+body[data-theme="castillo"] #navbar { bottom: 1.4rem; left: auto; right: calc(clamp(270px, 22vw, 560px) + 3.2rem); transform: none; background: var(--panel); box-shadow: var(--frame); border: 0; }
+body[data-theme="castillo"] #navbar button { background: #3a2a1a; border: 2px solid #8b5a2b; }
+
+/* detalle, dialogos y controles */
+body[data-theme="castillo"] .drawer { top: 1.2rem; bottom: 1.2rem; right: 1.2rem; }
+body[data-theme="castillo"] .dstat { background: #3a2a1a; }
+body[data-theme="castillo"] .btn { background: #5e3b1c; border: 2px solid #a07b4c; color: var(--ink); }
+body[data-theme="castillo"] .btn.ghost { background: none; }
+body[data-theme="castillo"] .pill, body[data-theme="castillo"] .chip, body[data-theme="castillo"] .keysvc { border-width: 2px; }
+body[data-theme="castillo"] .cc { font-family: var(--font); background: #3a2a1a; border-color: #8b5a2b; }
+/* registro del reino: cada novedad ocupa el ancho del cuadro y hace salto de linea (tambien las que se tocan) */
+body[data-theme="castillo"] #log { align-items: stretch; width: 100%; min-width: 0; white-space: normal; }
+body[data-theme="castillo"] #log .ev, body[data-theme="castillo"] #log .ev.link { display: block; width: 100%; max-width: none; text-align: left; white-space: normal; overflow-wrap: anywhere; overflow: visible; }
+body[data-theme="castillo"] #log .ev .ic { display: inline-block; vertical-align: -2px; }
+
+/* noche gotica: piedra morada, carmesi y oro */
+body[data-theme="castillo"] { --bg: #0c0816; --bg-2: #160f24; --panel: rgba(22, 15, 36, .94); --panel-solid: #160f24; --line: #3a2a4a; --line-strong: #d8b24a;
+  --ink: #f4e8c8; --ink-2: #c8b8d8; --ink-3: #8a7a9a; --accent: #d8b24a; --good: #f0b848; --warn: #6a9aff; --bad: #ff3b3b;
+  --chart-1: #d8b24a; --chart-2: #b0203a; --chart-3: #d8b24a; --chart-4: #ff3b3b; background: #0c0816; }
+body[data-theme="castillo"] .w3-plaque { background: #1c1428; color: #f4e8c8; box-shadow: 0 0 0 2px #0a0610, 0 0 0 4px #d8b24a; }
+body[data-theme="castillo"] .w3-plaque > b, body[data-theme="castillo"] .w3-plaque .fishlist span { color: #f4e8c8; }
+body[data-theme="castillo"] .w3-plaque > small { color: #c8b8d8; }

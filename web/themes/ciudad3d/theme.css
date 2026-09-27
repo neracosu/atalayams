@@ -1,0 +1,3 @@
+/* Ciudad 3D: el HUD de la Ciudad clasica, con el mundo en 3D. Solo se ajustan las etiquetas del mundo. */
+body[data-theme="ciudad3d"] .w3-group b { font-size: 1.15rem; }
+body[data-theme="ciudad3d"] .w3-float { background: rgba(5, 9, 18, .85); }

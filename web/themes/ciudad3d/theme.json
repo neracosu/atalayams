@@ -1,0 +1,29 @@
+{
+  "id": "ciudad3d",
+  "name": "Ciudad 3D",
+  "description": "La ciudad de Atalaya en tres dimensiones, de noche: cada cuenta es una parcela con sus edificios (altura según la memoria, ventanas que se encienden con las visitas, techo que brilla con la CPU), la torre de control en el centro con su escudo, visitas que recorren las calles, invasores y robots de Claude Code en pixel art.",
+  "author": "NERACOSU",
+  "version": "1.0.0",
+  "license": "Propietaria · three.js (MIT)",
+  "world": "world.js",
+  "css": "theme.css",
+  "preview": "preview.png",
+  "hud": { "layout": "clasico" },
+  "palette": { "ok": "#4ade80", "warn": "#fbbf24", "crit": "#ef4444", "hostile": "#f87171", "friendly": "#22d3ee", "accent": "#22d3ee", "bg": "#050912", "ink": "#e2e8f0" },
+  "rule": "La información vive en la ciudad: altura, luces y techos antes que números. El pixel art es el acento: carteles, robots e invasores.",
+  "credits": [{ "what": "three.js", "author": "three.js authors", "license": "MIT", "url": "https://threejs.org" }],
+  "legend": [
+    { "title": "La ciudad", "items": [
+      { "icon": "terminal", "title": "Torre de control", "text": "El servidor, en el centro. Sus bandas de luz corren más rápido con más CPU; el escudo se enciende al repeler un ataque y en ámbar si falla un servicio clave." },
+      { "icon": "house", "title": "Distritos", "text": "Cada cuenta es una parcela con el borde de su color. Debajo del nombre, su cuenta de cPanel (en privado) o cuántos servicios y sitios tiene." },
+      { "icon": "city", "title": "Edificios", "text": "Cada servicio: su altura es la memoria, las ventanas se encienden con las visitas, el techo brilla naranja con la CPU alta. Los sitios son edificios bajos y claros. Encima, su cartel." },
+      { "color": "#4ade80", "title": "Baliza del techo", "text": "Verde en línea, ámbar parcial, roja parpadeando caído." }
+    ] },
+    { "title": "Lo que se mueve", "items": [
+      { "color": "#67e8f9", "title": "Puntos de luz", "text": "Visitas reales: entran por el portal «Internet», pasan por la torre y siguen la calle hasta su edificio. Gris: robots. Rojo: error del servidor." },
+      { "icon": "invader", "title": "Invasores", "text": "Intentos de acceso fallidos que chocan contra el escudo de la torre." },
+      { "icon": "bot", "title": "Robots", "text": "Las sesiones de Claude Code caminan por el frente de su distrito; los chicos son sus subagentes. Halo ámbar: esperan su permiso." },
+      { "icon": "mail", "title": "Sobres", "text": "Correo: amarillo sale, violeta entra, rojo rebotó." }
+    ] }
+  ]
+}

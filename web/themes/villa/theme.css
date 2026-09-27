@@ -1,0 +1,88 @@
+/* Tema "Villa": HUD de RPG clasico. Regla de oro: madera y piedra, nunca vidrio ni brillo.
+   Marcos biselados de pixel (sin redondeos ni desenfoques), barras de estado a la derecha y un
+   registro tipo chat abajo a la izquierda. Todo va bajo body[data-theme="villa"]. */
+@font-face { font-family: 'Pixelify Sans'; src: url(pixelify.woff2) format('woff2'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: 'Jacquard 24'; src: url(jacquard24.woff2) format('woff2'); font-display: swap; }
+
+body[data-theme="villa"] {
+  --bg: #2b4a26; --bg-2: #3a2a1a; --panel: #2e2217; --panel-solid: #2e2217;
+  --line: #6b4a2a; --line-strong: #a07b4c;
+  --ink: #f4e7c5; --ink-2: #d8c49a; --ink-3: #a58e66;
+  --accent: #e0b04a; --good: #7fc45a; --warn: #f0b43c; --bad: #d9412b; --private: #f0b43c;
+  --radius: 0; --font: 'Pixelify Sans', ui-monospace, monospace; --pixel: 'Jacquard 24', 'Pixelify Sans', serif; --mono: 'Pixelify Sans', ui-monospace, monospace;
+  --chart-1: #d9412b; --chart-2: #3c7ab5; --chart-3: #e0b04a; --chart-4: #d9412b;
+  /* marco de madera biselado, hecho de pixeles */
+  --frame: 0 0 0 2px #1b1410, 0 0 0 4px #8b5a2b, 0 0 0 6px #5e3b1c, 0 0 0 8px #1b1410, inset 0 0 0 2px #4a3522;
+  background: var(--bg);
+}
+body[data-theme="villa"] *, body[data-theme="villa"] *::before, body[data-theme="villa"] *::after { border-radius: 0 !important; }
+
+body[data-theme="villa"] .panel, body[data-theme="villa"] #top, body[data-theme="villa"] .drawer, body[data-theme="villa"] dialog, body[data-theme="villa"] .menu, body[data-theme="villa"] .tip {
+  background: var(--panel); backdrop-filter: none; border: 0; box-shadow: var(--frame);
+  background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, .08) 0 2px, transparent 2px 6px);
+}
+body[data-theme="villa"] h2, body[data-theme="villa"] h3, body[data-theme="villa"] h4, body[data-theme="villa"] .pix { font-family: var(--pixel); font-weight: 400; letter-spacing: .02em; text-transform: none; }
+body[data-theme="villa"] h2 { font-size: 1.45rem; color: var(--accent); }
+
+/* barra superior: un cartel de madera, solo el nombre, el modo y el reloj */
+body[data-theme="villa"] #top { top: 1.2rem; left: 1.2rem; right: calc(clamp(270px, 22vw, 560px) + 2.4rem); height: 4rem; }
+body[data-theme="villa"] .brand h1 { font-family: var(--pixel); font-size: 2.4rem; letter-spacing: .04em; color: var(--accent); }
+body[data-theme="villa"] .brand p { color: var(--ink-3); }
+body[data-theme="villa"] .brand svg { filter: sepia(1) saturate(2.5) hue-rotate(-12deg); }
+body[data-theme="villa"] .clock #time { font-weight: 700; color: var(--ink); }
+body[data-theme="villa"] .mode { background: #3a2a1a; border: 2px solid #8b5a2b; font-family: var(--font); }
+
+/* barras de estado a la derecha, como vida y mana */
+body[data-theme="villa"] .kpis { position: fixed; top: 1.2rem; right: 1.2rem; width: clamp(270px, 22vw, 560px); display: grid; grid-template-columns: 1fr 1fr; gap: .45rem .8rem;
+  padding: .8rem .9rem; background: var(--panel); box-shadow: var(--frame); overflow: visible; }
+body[data-theme="villa"] .kpi { background: none; border: 0; padding: 0; min-width: 0; }
+body[data-theme="villa"] .kpi .k { font-size: .8rem; color: var(--ink-2); letter-spacing: .04em; }
+body[data-theme="villa"] .kpi .v { font-size: 1.15rem; font-weight: 700; }
+body[data-theme="villa"] .kpi .bar { height: 9px; margin-top: .2rem; background: #1b1410; box-shadow: 0 0 0 2px #5e3b1c; }
+body[data-theme="villa"] .kpi .bar i { background: #7fc45a; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .25); }
+body[data-theme="villa"] #kpi-cpu .bar i { background: #d9412b; }
+body[data-theme="villa"] #kpi-mem .bar i { background: #3c7ab5; }
+body[data-theme="villa"] #kpi-disk .bar i { background: #c98a2b; }
+
+/* el resto de las lecturas debajo, en la misma columna */
+body[data-theme="villa"] #right { top: 16.4rem; right: 1.2rem; bottom: 1.2rem; width: clamp(270px, 22vw, 560px); gap: .8rem; }
+
+/* magos (agentes) arriba a la izquierda, bajo el cartel */
+body[data-theme="villa"] #left { top: 6.8rem; left: 1.2rem; bottom: auto; height: auto; max-height: 38vh; width: clamp(240px, 19vw, 480px); }
+body[data-theme="villa"] #left h2 .pix { font-size: 0; }
+body[data-theme="villa"] #left h2 .pix::after { content: 'Magos del reino'; font-size: 1.45rem; }
+body[data-theme="villa"] .agent { background: #3a2a1a; border: 0; box-shadow: inset 0 0 0 2px #5e3b1c; }
+body[data-theme="villa"] .agent::before { background: var(--c, var(--accent)); width: 4px; }
+body[data-theme="villa"] .agent.waiting { box-shadow: inset 0 0 0 2px var(--warn); animation: none; }
+
+/* el mapa va entre la columna izquierda (magos + registro) y la derecha (barras y lecturas) */
+body[data-theme="villa"] #worldArea { display: block; top: 6.4rem; bottom: 1.2rem; left: calc(clamp(240px, 19vw, 480px) + 2.6rem); right: calc(clamp(270px, 22vw, 560px) + 2.6rem); }
+
+/* registro del reino: la cinta como chat abajo a la izquierda, lo mas nuevo abajo */
+body[data-theme="villa"] #ticker { left: 1.2rem; right: auto; bottom: 1.2rem; width: clamp(240px, 19vw, 480px); height: calc(100vh - 38vh - 10.6rem); min-height: 9rem; padding: .6rem .8rem;
+  flex-direction: column; align-items: stretch; background: rgba(27, 20, 16, .88); box-shadow: var(--frame); }
+body[data-theme="villa"] #ticker .tscroll { overflow: hidden; flex: 1; }
+body[data-theme="villa"] #log { flex-direction: column-reverse; gap: .15rem; white-space: nowrap; justify-content: flex-end; height: 100%; }
+body[data-theme="villa"] #log .ev { font-size: .95rem; color: var(--ink); }
+body[data-theme="villa"] #log .ev:nth-child(n+11) { display: none; }
+body[data-theme="villa"] #log .ev { white-space: normal; display: block; line-height: 1.25; }
+body[data-theme="villa"] #log .ev > * { margin-right: .35rem; }
+body[data-theme="villa"] #log .ev time { order: -1; color: var(--ink-3); }
+body[data-theme="villa"] #log .ev .tag { font-family: var(--font); font-weight: 700; color: var(--c, var(--accent)); }
+body[data-theme="villa"] #tall { position: absolute; bottom: .5rem; right: .6rem; background: #3a2a1a; border: 2px solid #8b5a2b; }
+
+/* navegacion */
+body[data-theme="villa"] #navbar { bottom: 1.4rem; left: auto; right: calc(clamp(270px, 22vw, 560px) + 3.2rem); transform: none; background: var(--panel); box-shadow: var(--frame); border: 0; }
+body[data-theme="villa"] #navbar button { background: #3a2a1a; border: 2px solid #8b5a2b; }
+
+/* detalle, dialogos y controles */
+body[data-theme="villa"] .drawer { top: 1.2rem; bottom: 1.2rem; right: 1.2rem; }
+body[data-theme="villa"] .dstat { background: #3a2a1a; }
+body[data-theme="villa"] .btn { background: #5e3b1c; border: 2px solid #a07b4c; color: var(--ink); }
+body[data-theme="villa"] .btn.ghost { background: none; }
+body[data-theme="villa"] .pill, body[data-theme="villa"] .chip, body[data-theme="villa"] .keysvc { border-width: 2px; }
+body[data-theme="villa"] .cc { font-family: var(--font); background: #3a2a1a; border-color: #8b5a2b; }
+/* registro del reino: cada novedad ocupa el ancho del cuadro y hace salto de linea (tambien las que se tocan) */
+body[data-theme="villa"] #log { align-items: stretch; width: 100%; min-width: 0; white-space: normal; }
+body[data-theme="villa"] #log .ev, body[data-theme="villa"] #log .ev.link { display: block; width: 100%; max-width: none; text-align: left; white-space: normal; overflow-wrap: anywhere; overflow: visible; }
+body[data-theme="villa"] #log .ev .ic { display: inline-block; vertical-align: -2px; }

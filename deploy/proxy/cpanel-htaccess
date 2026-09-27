@@ -1,0 +1,21 @@
+# Atalaya: reverse proxy al servicio local (solo lectura) en 127.0.0.1:3950
+DirectoryIndex disabled
+Options -Indexes
+
+RewriteEngine On
+
+# Siempre por HTTPS
+RewriteCond %{HTTPS} off
+RewriteCond %{REQUEST_URI} !^/\.well-known/
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+RewriteCond %{REQUEST_URI} !^/\.well-known/
+RewriteRule ^(.*)$ http://127.0.0.1:3950/$1 [P,L]
+
+<IfModule mod_headers.c>
+  RequestHeader set X-Forwarded-Proto "https"
+  Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>
+
+# El stream en vivo (SSE) no se comprime ni se bufferiza
+SetEnvIf Request_URI "^/api/stream" no-gzip=1 dont-vary=1

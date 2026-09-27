@@ -1,0 +1,27 @@
+{
+  "id": "ciudad",
+  "name": "Ciudad clásica",
+  "description": "Una ciudad isométrica en pixel art: cada cuenta es un distrito, cada servicio un edificio, cada visita un punto de luz y cada ataque un invasor.",
+  "author": "NERACOSU",
+  "version": "1.0.0",
+  "license": "Propietaria",
+  "world": "world.js",
+  "css": null,
+  "hud": {
+    "layout": "clasico"
+  },
+  "pixelate": false,
+  "palette": {
+    "ok": "#4ade80",
+    "warn": "#fbbf24",
+    "crit": "#ef4444",
+    "hostile": "#f87171",
+    "friendly": "#22d3ee",
+    "accent": "#22d3ee",
+    "bg": "#050912",
+    "ink": "#e2e8f0"
+  },
+  "rule": "La información vive en la ciudad: altura, luces y humo antes que números.",
+  "credits": [],
+  "preview": "preview.png"
+}

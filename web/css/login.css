@@ -1,0 +1,25 @@
+body { display: grid; place-items: center; align-content: center; gap: 1.1rem; min-height: 100vh; padding: 16px; overflow: hidden; }
+.promo { position: relative; z-index: 1; margin: 0; font-size: .82rem; text-align: center; }
+.promo a { color: var(--ink-2); text-decoration: none; }
+.promo a b { color: var(--accent); font-weight: 600; }
+.promo a:hover b, .promo a:focus-visible b { text-decoration: underline; }
+.born { position: relative; z-index: 1; margin: -.6rem 0 0; font-family: var(--mono); font-size: .72rem; color: var(--ink-3); text-align: center; }
+.born #bornV { color: var(--accent); }
+.born #bornAge { font-variant-numeric: tabular-nums; }
+.born a { color: var(--ink-3); text-decoration: none; border-bottom: 1px dashed var(--line-strong); }
+.born a:hover, .born a:focus-visible { color: var(--ink); border-bottom-color: var(--accent); }
+#stars { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+.card {
+  position: relative; z-index: 1; width: min(420px, 100%); padding: 2rem 1.75rem; border-radius: 20px;
+  background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(14px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+.brand { text-align: center; margin-bottom: 1.5rem; }
+.brand h1 { font-family: var(--pixel); font-weight: 400; font-size: 2rem; margin: .4rem 0 .2rem; letter-spacing: .08em; }
+.brand p { margin: 0; color: var(--ink-2); }
+.brand .sign { font-size: .7rem; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: var(--accent); margin: 0 0 .8rem; }
+form { display: grid; gap: 1.1rem; }
+.btn.primary { padding: .9rem; font-size: 1.05rem; }
+.shake { animation: shake .4s; }
+@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+@media (max-width: 420px) { .card { padding: 1.5rem 1.1rem; } .pin-row input { font-size: 1.3rem; } }

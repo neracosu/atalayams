@@ -1,0 +1,36 @@
+{
+  "id": "villa",
+  "name": "Villa",
+  "description": "Un RPG de casillas visto desde arriba: el servidor es un castillo y cada cuenta un pueblo amurallado. Las casas echan humo con la CPU y arden si caen, los aldeanos son visitas, los slimes atacan la muralla y los magos son sus agentes de Claude Code.",
+  "author": "NERACOSU",
+  "version": "1.0.0",
+  "license": "Propietaria · arte propio · fuentes Pixelify Sans y Jacquard 24 bajo SIL OFL 1.1",
+  "world": "world.js",
+  "css": "theme.css",
+  "preview": "preview.png",
+  "hud": { "layout": "barra-lateral" },
+  "palette": { "ok": "#7fc45a", "warn": "#f0b43c", "crit": "#d9412b", "hostile": "#6fcf4a", "friendly": "#e0b04a", "accent": "#e0b04a", "bg": "#2b4a26", "ink": "#f4e7c5" },
+  "rule": "Nada de números sobre el mapa: todo se cuenta con casas, humo, fuego y gente. Madera y piedra, nunca vidrio ni brillo.",
+  "credits": [
+    { "what": "Fuente Pixelify Sans", "author": "The Pixelify Sans Project Authors", "license": "SIL OFL 1.1", "url": "https://fonts.google.com/specimen/Pixelify+Sans" },
+    { "what": "Fuente Jacquard 24", "author": "The Soft Type Project Authors", "license": "SIL OFL 1.1", "url": "https://fonts.google.com/specimen/Jacquard+24" }
+  ],
+  "legend": [
+    { "title": "El reino", "items": [
+      { "icon": "lock", "title": "Castillo", "text": "El servidor. Todas las visitas pasan por su portón. Los slimes golpean su muralla." },
+      { "icon": "house", "title": "Pueblo amurallado", "text": "Una cuenta, con su estandarte en la puerta y su plaza." },
+      { "icon": "terminal", "title": "Casa de piedra con chimenea", "text": "Un servicio (PM2, systemd, contenedor, Vercel). Más humo = más CPU; humo oscuro = CPU alta. Ventanas encendidas = recibe visitas. En llamas = caído." },
+      { "icon": "page", "title": "Cabaña de paja", "text": "Un sitio servido directo (WordPress, PHP, estático). El cartel de la puerta dice qué es." }
+    ] },
+    { "title": "Los habitantes", "items": [
+      { "icon": "bot", "title": "Aldeano", "text": "Una visita real: llega por el sur, pasa por el castillo y camina hasta la casa que visita. Camisa roja: error del servidor (5xx)." },
+      { "icon": "antenna", "title": "Pájaro", "text": "Un robot o rastreador. Las palomas que vuelan desde el castillo son correo (naranja: rebotado)." },
+      { "icon": "invader", "title": "Slime", "text": "Un intento de acceso fallido: golpea la muralla del castillo. Si la IP queda bloqueada, un guardia lo derrota." },
+      { "icon": "star", "title": "Mago", "text": "Una sesión de Claude Code en la plaza de su pueblo; sus aprendices son los subagentes. Con un «!» encima: espera su permiso o su respuesta." }
+    ] },
+    { "title": "La interfaz", "items": [
+      { "icon": "chart", "title": "Barras de estado", "text": "A la derecha, como en un RPG: CPU, memoria, disco y el resto de las lecturas del servidor." },
+      { "icon": "chat", "title": "Registro del reino", "text": "Abajo a la izquierda, como un chat: las novedades, la más nueva abajo." }
+    ] }
+  ]
+}

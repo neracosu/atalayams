@@ -1,0 +1,101 @@
+{
+  "id": "acuario",
+  "name": "Acuario",
+  "description": "Una pared de peceras como en una tienda de acuarios, en 3D: cada cuenta es una pecera independiente con una placa que nombra a todos sus peces, cada servicio o sitio es un pez que nada según su CPU, las visitas son comida, los ataques son medusas sobre la tapa y los agentes de Claude Code son buzos. Al acercarse, cada pez lleva su nombre encima.",
+  "author": "NERACOSU",
+  "version": "2.0.0",
+  "license": "Propietaria · arte propio · three.js (MIT) · fuente Pixelify Sans bajo SIL OFL 1.1",
+  "world": "world.js",
+  "css": "theme.css",
+  "preview": "preview.png",
+  "hud": {
+    "layout": "franja-inferior"
+  },
+  "palette": {
+    "ok": "#7be06b",
+    "warn": "#ffb347",
+    "crit": "#ff4d5e",
+    "hostile": "#e07ad8",
+    "friendly": "#a6e3c8",
+    "accent": "#a6e3c8",
+    "bg": "#0b1e2d",
+    "ink": "#e6f4ee"
+  },
+  "rule": "Calma y claridad: todo se mueve lento y cada pez se puede nombrar de un vistazo, sin hacer clic.",
+  "credits": [
+    {
+      "what": "three.js",
+      "author": "three.js authors",
+      "license": "MIT",
+      "url": "https://threejs.org"
+    },
+    {
+      "what": "Fuente Pixelify Sans",
+      "author": "The Pixelify Sans Project Authors",
+      "license": "SIL OFL 1.1",
+      "url": "https://fonts.google.com/specimen/Pixelify+Sans"
+    }
+  ],
+  "legend": [
+    {
+      "title": "La tienda",
+      "items": [
+        {
+          "icon": "house",
+          "title": "Peceras",
+          "text": "Cada cuenta es una pecera independiente en su estante, con una franja de su color abajo."
+        },
+        {
+          "icon": "library",
+          "title": "Placas",
+          "text": "Debajo de cada pecera: el nombre de la cuenta, su cuenta de cPanel (en privado) y la lista de todos sus peces, cada uno con su dibujo y sus colores. Así se ubica cualquier proyecto sin hacer clic; un clic en un nombre lo abre."
+        },
+        {
+          "icon": "db",
+          "title": "Servidor",
+          "text": "El primer tanque, a la izquierda: su agua llega tan alto como el disco usado y burbujea más rápido con más carga. La luz de la tapa se pone ámbar si falla un servicio clave."
+        },
+        {
+          "icon": "shield",
+          "title": "Tapas",
+          "text": "El cortafuegos: las medusas (intentos de acceso) caen sobre ellas y la tapa se enciende naranja."
+        }
+      ]
+    },
+    {
+      "title": "Los habitantes",
+      "items": [
+        {
+          "color": "#ff8a3d",
+          "title": "Peces",
+          "text": "Cada servicio (con banda) o sitio (más chico) es un pez con los colores de su nombre, los mismos que en la placa. Tamaño: memoria. Velocidad: CPU. Burbujas: visitas. Al acercarse a una pecera, cada pez lleva su nombre encima."
+        },
+        {
+          "color": "#8a9aa0",
+          "title": "Pez gris panza arriba",
+          "text": "Un servicio caído (su nombre se ve siempre y sale en rojo en la placa). Si se queda quieto en el fondo, está a medias (parcial)."
+        },
+        {
+          "color": "#d9c08c",
+          "title": "Comida",
+          "text": "Cada visita es una bolita que cae y el pez va a buscarla (gris si es un robot). Una nube roja es un error del servidor."
+        },
+        {
+          "icon": "bot",
+          "title": "Buzo",
+          "text": "Una sesión de Claude Code en la arena de su pecera. Burbujas doradas: trabajando. Etiqueta ámbar: espera su permiso."
+        }
+      ]
+    },
+    {
+      "title": "La interfaz",
+      "items": [
+        {
+          "icon": "chart",
+          "title": "Franja de abajo",
+          "text": "Los niveles del servidor, la bitácora del acuarista (las novedades) y los buzos."
+        }
+      ]
+    }
+  ]
+}

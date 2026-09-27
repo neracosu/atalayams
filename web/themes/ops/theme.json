@@ -1,0 +1,97 @@
+{
+  "id": "ops",
+  "name": "Ops",
+  "description": "Una mesa táctica holográfica en 3D: el servidor es la base con su cúpula de escudo, cada cuenta un sector, cada servicio una columna que sube con su CPU y cada sitio un prisma que sube con sus visitas. Las visitas caen en arco, los intentos de acceso son misiles contra la cúpula y los agentes de Claude Code son drones.",
+  "author": "NERACOSU",
+  "version": "2.0.0",
+  "license": "Propietaria · three.js (MIT) · fuente VT323 bajo SIL OFL 1.1",
+  "world": "world.js",
+  "css": "theme.css",
+  "hud": {
+    "layout": "tactico"
+  },
+  "palette": {
+    "ok": "#9fd356",
+    "warn": "#f5a524",
+    "crit": "#ff4d3d",
+    "hostile": "#ff4d3d",
+    "friendly": "#9fd356",
+    "accent": "#9fd356",
+    "bg": "#0b0d09",
+    "ink": "#d9e3c8"
+  },
+  "rule": "Geometría limpia y textos nítidos; el pixel art va en los carteles; el color solo significa amigo, alerta u hostil.",
+  "credits": [
+    {
+      "what": "three.js",
+      "author": "three.js authors",
+      "license": "MIT",
+      "url": "https://threejs.org"
+    },
+    {
+      "what": "Fuente VT323",
+      "author": "The VT323 Project Authors",
+      "license": "SIL OFL 1.1",
+      "url": "https://fonts.google.com/specimen/VT323"
+    }
+  ],
+  "legend": [
+    {
+      "title": "La mesa",
+      "items": [
+        {
+          "icon": "shield",
+          "title": "Base y cúpula",
+          "text": "El servidor, en el centro. La cúpula es el escudo: se enciende en rojo cuando choca un misil y en ámbar si falla un servicio clave."
+        },
+        {
+          "icon": "web",
+          "title": "Sectores",
+          "text": "Cada cuenta es un sector con su color, su nombre y, debajo, su cuenta de cPanel (en privado) o cuántos servicios y sitios tiene. Clic en el nombre para verlo."
+        },
+        {
+          "color": "#9fd356",
+          "title": "Columnas y prismas",
+          "text": "Columna: un servicio, más alta con más CPU. Prisma hexagonal: un sitio, más alto con más visitas. Verde bien, ámbar a medias, rojo parpadeando caído. Encima, su cartel."
+        },
+        {
+          "color": "#d9e3c8",
+          "solid": false,
+          "title": "Barrido",
+          "text": "El haz que gira: hace brillar cada columna al pasar."
+        }
+      ]
+    },
+    {
+      "title": "Lo que se mueve",
+      "items": [
+        {
+          "color": "#d9e3c8",
+          "title": "Puntos de luz",
+          "text": "Visitas reales que caen en arco sobre su columna. Gris: robots. Ámbar: error del visitante. Rojo: error del servidor."
+        },
+        {
+          "icon": "invader",
+          "title": "Misiles",
+          "text": "Intentos de acceso fallidos que se estrellan contra la cúpula; si la IP queda bloqueada, aparece «NEUTRALIZADO»."
+        },
+        {
+          "icon": "bot",
+          "title": "Drones",
+          "text": "Las sesiones de Claude Code sobre su sector (ESC-01, ESC-02…). Ámbar con «ESPERA PERMISO»: lo esperan a usted."
+        }
+      ]
+    },
+    {
+      "title": "Cómo usarlo",
+      "items": [
+        {
+          "icon": "refresh",
+          "title": "Cámara",
+          "text": "Arrastre para girar la mesa, rueda para acercar, doble clic para volver. En modo director la cámara orbita sola y visita cada sector."
+        }
+      ]
+    }
+  ],
+  "preview": "preview.png"
+}

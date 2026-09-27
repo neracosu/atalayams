@@ -1,0 +1,106 @@
+{
+  "id": "planta",
+  "name": "Planta",
+  "description": "Una fábrica de automatización en 3D con la paleta de PICO-8: la central es el servidor, cada cuenta una nave con su placa que nombra todas sus máquinas, cada servicio una máquina con engranaje y tanque, cada sitio una prensa. Las visitas son piezas que viajan por las cintas y los errores terminan en la chatarra.",
+  "author": "NERACOSU",
+  "version": "2.0.0",
+  "license": "Propietaria · three.js (MIT) · arte propio · paleta PICO-8 · fuente Silkscreen bajo SIL OFL 1.1",
+  "world": "world.js",
+  "css": "theme.css",
+  "preview": "preview.png",
+  "hud": {
+    "layout": "sala-de-control"
+  },
+  "palette": {
+    "ok": "#00e436",
+    "warn": "#ffa300",
+    "crit": "#ff004d",
+    "hostile": "#ff004d",
+    "friendly": "#29adff",
+    "accent": "#ffec27",
+    "bg": "#15151b",
+    "ink": "#fff1e8"
+  },
+  "rule": "Todo fluye por cintas: los cuellos de botella y la chatarra se ven sin leer un número. Solo los 16 colores de PICO-8.",
+  "credits": [
+    {
+      "what": "three.js",
+      "author": "three.js authors",
+      "license": "MIT",
+      "url": "https://threejs.org"
+    },
+    {
+      "what": "Fuente Silkscreen",
+      "author": "Jason Kottke",
+      "license": "SIL OFL 1.1",
+      "url": "https://fonts.google.com/specimen/Silkscreen"
+    }
+  ],
+  "legend": [
+    {
+      "title": "La planta",
+      "items": [
+        {
+          "icon": "terminal",
+          "title": "La central",
+          "text": "El servidor: su chimenea echa más humo con más CPU; los silos azul y naranja son la memoria y el disco (rojos si pasan el 85 %)."
+        },
+        {
+          "icon": "library",
+          "title": "Placa de la nave",
+          "text": "Delante de cada nave: su nombre, su cuenta y la lista de todas sus máquinas con su cartel. Un clic en un nombre lo abre. Al acercarse, cada máquina lleva su nombre encima."
+        },
+        {
+          "icon": "house",
+          "title": "Naves",
+          "text": "Cada cuenta es una nave con su color en el techo."
+        },
+        {
+          "icon": "gear",
+          "title": "Máquina",
+          "text": "Un servicio: el engranaje gira más rápido con más CPU, el tanque azul es la memoria y el foco dice su estado (verde en marcha, naranja lenta, rojo detenida)."
+        },
+        {
+          "icon": "page",
+          "title": "Prensa",
+          "text": "Un sitio servido directo, con el cartel de lo que es."
+        }
+      ]
+    },
+    {
+      "title": "Lo que se mueve",
+      "items": [
+        {
+          "color": "#ffccaa",
+          "title": "Piezas",
+          "text": "Cada visita entra por el portón amarillo de su nave y viaja por la cinta hasta su máquina (violeta si es un robot). Una pieza roja es un error del servidor y vuela a la chatarra, junto a la central."
+        },
+        {
+          "color": "#ff004d",
+          "title": "Cinta con X roja",
+          "text": "La máquina está detenida (caída): la cinta se atasca frente a ella."
+        },
+        {
+          "icon": "invader",
+          "title": "Drones",
+          "text": "Intentos de acceso que llegan al cerco. La torreta los derriba con un láser cuando la IP queda bloqueada."
+        },
+        {
+          "icon": "bot",
+          "title": "Robots obreros",
+          "text": "Las sesiones de Claude Code llevan cajas entre las máquinas de su nave. Detenidos en la barrera con la luz ámbar: esperan su permiso."
+        }
+      ]
+    },
+    {
+      "title": "La interfaz",
+      "items": [
+        {
+          "icon": "chart",
+          "title": "Sala de control",
+          "text": "Arriba, las lecturas del servidor en pantallas de cristal líquido; a la derecha, la cinta de producción (las novedades) como tickets."
+        }
+      ]
+    }
+  ]
+}

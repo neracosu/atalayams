@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Atalaya</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="vendor/uPlot.min.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="world" aria-hidden="true"></div>
+<div id="frame" aria-hidden="true"></div>
+<!-- un tema puede declarar en CSS el rectangulo que le toca al mundo (#worldArea { display: block; inset… }) -->
+<div id="worldArea" aria-hidden="true"></div>
+
+<header id="top">
+  <div class="brand">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><use href="favicon.svg#mark"/></svg>
+    <div>
+      <h1 id="title">Atalaya <button id="verChip" class="verchip" data-tip="Versión instalada|Toque para ver las novedades de cada versión."></button></h1>
+      <p id="subtitle"></p>
+    </div>
+  </div>
+  <div class="kpis" id="kpis"></div>
+  <div class="right">
+    <button id="mode" class="mode pub" data-tip="Modo de pantalla|Público: oculta nombres, rutas, IPs y comandos. Privado: lo muestra todo; actívelo solo si la pantalla la ve usted. Teclas P y L.">
+      <span class="dot"></span><span class="txt">PÚBLICO</span><span class="left"></span>
+    </button>
+    <div class="clock"><span id="time">--:--</span><span id="date"></span></div>
+    <button id="menuBtn" class="icon-btn" aria-label="Menú" aria-haspopup="true">⋮</button>
+    <div id="menu" class="menu" hidden>
+      <button data-act="theme">Tema <kbd>T</kbd></button>
+      <button data-act="fullscreen">Pantalla completa <kbd>F</kbd></button>
+      <button data-act="director">Modo director <kbd>D</kbd></button>
+      <button data-act="lock">Pasar a público <kbd>L</kbd></button>
+      <button data-act="lockall">Bloquear todas las pantallas</button>
+      <button data-act="setup" class="owneronly">Asistente de configuración</button>
+      <button data-act="users" class="owneronly">Usuarios</button>
+      <button data-act="alerts" class="owneronly">Alertas por Telegram y correo</button>
+      <button data-act="maestro" class="owneronly" id="maestroBtn" hidden>Panel maestro de la nube</button>
+      <button data-act="install" class="owneronly nocloud">Instalar en otro servidor</button>
+      <button data-act="hosting" class="owneronly noequipo">Conectar un hosting compartido</button>
+      <button data-act="equipo" class="owneronly nocloud noequipo">Atalaya para su computadora</button>
+      <button data-act="logout">Cerrar sesión</button>
+      <span class="mver" id="version"></span>
+    </div>
+  </div>
+</header>
+
+<aside id="left" class="panel">
+  <h2><span class="pix">Agentes Claude</span><span class="count" id="agentCount">0</span></h2>
+  <div id="agents" class="agents"></div>
+  <p class="empty" id="agentsEmpty">Ningún agente trabajando ahora.</p>
+</aside>
+
+<aside id="right" class="panel">
+  <section class="link syschart" data-go="metric:cpu">
+    <h2><span class="pix">CPU y memoria</span><span class="legend"><i class="sw cpu"></i>CPU <i class="sw mem"></i>RAM</span></h2>
+    <div class="chart" id="chCpu"></div>
+  </section>
+  <section class="link" data-go="metric:req">
+    <h2><span class="pix">Tráfico HTTP</span><span class="legend"><i class="sw req"></i>req / 10 s <i class="sw err"></i>5xx</span></h2>
+    <div class="chart" id="chReq"></div>
+  </section>
+  <section class="link sysprocs" data-go="metric:procs">
+    <h2><span class="pix">Procesos</span><span class="sub" id="procCount"></span></h2>
+    <div id="procs" class="procs"></div>
+  </section>
+  <section class="link" data-go="projects:all" data-tip="Proyectos|Cada proyecto con su código, despliegues, dominios y bases, y un puntaje de buenas prácticas.">
+    <h2><span class="pix">Proyectos</span><span class="sub" id="projSub"></span></h2>
+    <div class="mini" id="proj"><span class="dmuted">Conecte GitHub o Vercel para armar el mapa.</span></div>
+  </section>
+  <section class="link sysonly" data-go="audit:all" data-tip="Salud del servidor|Respaldos, actualizaciones, cola de correo, tareas cron y puertos abiertos, revisados en solo lectura cada 15 minutos.">
+    <h2><span class="pix">Salud del servidor</span><span class="sub" id="healthSub"></span></h2>
+    <div class="health" id="health"><span class="dmuted">Revisando…</span></div>
+  </section>
+  <section class="duo sysonly">
+    <div class="link" data-go="security:all">
+      <h2><span class="pix">Defensa</span></h2>
+      <div class="mini" id="sec"></div>
+    </div>
+    <div class="link" data-go="mail:all">
+      <h2><span class="pix">Correo</span></h2>
+      <div class="mini" id="mail"></div>
+    </div>
+  </section>
+</aside>
+
+<aside id="drawer" class="drawer" hidden aria-label="Detalle">
+  <header class="dtop"><div class="dhead"></div><button class="dclose icon-btn" aria-label="Cerrar detalle">✕</button></header>
+  <div class="dbody"></div>
+</aside>
+
+<nav id="navbar" aria-label="Navegación del mapa">
+  <button id="navHome" data-tip="Vista general|Vuelve a ver todo el mapa. También con doble clic." aria-label="Vista general">⌂</button>
+  <button id="navOut" data-tip="Alejar|También con la rueda del mouse o pellizcando." aria-label="Alejar">−</button>
+  <button id="navIn" data-tip="Acercar|También con la rueda del mouse o pellizcando." aria-label="Acercar">+</button>
+  <button id="navHelp" data-tip="Leyenda|Qué significa cada ícono, color y animación. Tecla ?" aria-label="Leyenda">?</button>
+  <span id="navState"><span data-px="camera"></span> Director</span>
+</nav>
+
+<footer id="ticker" aria-live="polite">
+  <div class="tscroll" id="tscroll"><div id="log"><span class="ev ph"><span class="ic"><span data-px="antenna"></span></span><span>Escuchando eventos del servidor…</span></span></div></div>
+  <button id="tall" class="tall" data-tip="Historial|Todas las novedades recientes, con filtros.">Ver todo <b id="tcount">0</b></button>
+</footer>
+
+<!-- telefonos y tablets: pestanas que abren cada panel como hoja deslizable -->
+<nav id="tabs" aria-label="Paneles">
+  <button data-sheet="" aria-pressed="true"><span data-px="city"></span><b>Mundo</b></button>
+  <button data-sheet="left" aria-pressed="false"><span data-px="bot"></span><b>Agentes</b><i id="tabAgents"></i></button>
+  <button data-sheet="right" aria-pressed="false"><span data-px="chart"></span><b>Métricas</b></button>
+  <button data-sheet="ticker" aria-pressed="false"><span data-px="antenna"></span><b>Novedades</b><i id="tabEvents"></i></button>
+</nav>
+<div id="sheetBack" aria-hidden="true"></div>
+<div id="conn" class="conn" hidden>Reconectando…</div>
+<div id="tip" class="tip" hidden role="tooltip"></div>
+
+<dialog id="instDlg" class="legend inst" aria-labelledby="instTitle">
+  <header><h3 id="instTitle">Instalar Atalaya</h3><button class="iclose icon-btn" aria-label="Cerrar">✕</button></header>
+  <div class="itabs" role="tablist"><button role="tab" data-itab="vps"><span data-px="terminal"></span> Servidor VPS</button><button role="tab" data-itab="hosting"><span data-px="house"></span> Hosting compartido</button><button role="tab" data-itab="equipo" class="nocloud"><span data-px="laptop"></span> Su computadora</button></div>
+  <div class="lbody" id="instBody"></div>
+</dialog>
+
+<dialog id="alertsDlg" class="legend alerts" aria-labelledby="alertsTitle">
+  <header><h3 id="alertsTitle">Alertas por Telegram</h3><button class="aclose icon-btn" aria-label="Cerrar">✕</button></header>
+  <div class="lbody" id="alertsBody"></div>
+</dialog>
+
+<dialog id="usersDlg" class="legend users" aria-labelledby="usersTitle">
+  <header><h3 id="usersTitle">Usuarios</h3><button class="uclose icon-btn" aria-label="Cerrar">✕</button></header>
+  <div class="lbody" id="usersBody"></div>
+</dialog>
+
+<dialog id="themeDlg" class="legend themes" aria-labelledby="themeTitle">
+  <header><h3 id="themeTitle">Temas</h3><button class="tclose icon-btn" aria-label="Cerrar">✕</button></header>
+  <div class="lbody" id="themeBody"></div>
+</dialog>
+
+<dialog id="news" class="legend news" aria-labelledby="newsTitle">
+  <header><h3 id="newsTitle">Novedades de Atalaya</h3><button class="nclose icon-btn" aria-label="Cerrar novedades">✕</button></header>
+  <div class="lbody" id="newsBody"></div>
+</dialog>
+
+<dialog id="legend" class="legend">
+  <header><h3>Leyenda de Atalaya</h3><button class="lclose icon-btn" aria-label="Cerrar leyenda">✕</button></header>
+  <div class="lbody"></div>
+</dialog>
+
+<dialog id="privDlg" class="privdlg" aria-labelledby="privTitle">
+  <form method="dialog" id="privForm">
+    <header>
+      <div class="privicon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/><circle cx="12" cy="16" r="1.5" fill="#fbbf24"/></svg></div>
+      <div>
+        <h3 id="privTitle">Activar modo privado</h3>
+        <p class="hint">Muestra nombres reales, dominios, rutas, comandos, prompts e IPs. Úselo solo cuando la pantalla la vea usted.</p>
+      </div>
+    </header>
+    <div class="field">
+      <label id="privPinLbl">Su PIN</label>
+      <div class="pin-row" id="privPin" role="group" aria-labelledby="privPinLbl"></div>
+    </div>
+    <div class="field">
+      <label id="durLbl">Duración</label>
+      <div class="durations" id="durations" role="radiogroup" aria-labelledby="durLbl"></div>
+      <p class="durhint">Al vencer vuelve solo a modo público. La tecla <kbd>L</kbd> lo bloquea antes.</p>
+    </div>
+    <p class="error" id="privErr" role="alert"></p>
+    <div class="actions">
+      <button type="button" class="btn" id="privCancel">Cancelar</button>
+      <button type="submit" class="btn private" id="privGo">Activar modo privado</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="dirCap" class="dircap" role="status" aria-live="polite" hidden></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

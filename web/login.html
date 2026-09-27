@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Atalaya Monitor Server · Acceso</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<main class="card">
+  <div class="brand">
+    <svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true"><use href="favicon.svg#mark"/></svg>
+    <h1>Atalaya</h1>
+    <p class="sign">Monitor Server</p>
+    <p>Todo lo que pasa en su servidor, en vivo.</p>
+  </div>
+  <form id="f" autocomplete="off">
+    <div class="field">
+      <label for="user">Usuario</label>
+      <input id="user" type="text" autocapitalize="none" spellcheck="false" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label id="pinlbl">PIN de 6 dígitos</label>
+      <div class="pin-row" role="group" aria-labelledby="pinlbl" id="pin"></div>
+    </div>
+    <p class="error" id="err" role="alert"></p>
+    <button class="btn primary" id="go" type="submit">Entrar</button>
+  </form>
+</main>
+<p class="promo" id="promo" hidden><a href="https://neracosu.com/atalaya/?ref=acceso" target="_blank" rel="noopener">¿Qué es esto? <b>Conozca Atalaya Monitor Server</b></a></p>
+<p class="born" id="born" hidden><span id="bornV"></span> · proyecto nuevo · <span id="bornAge">—</span> · <a href="https://github.com/neracosu/atalayams" target="_blank" rel="noopener">código abierto: colabore</a></p>
+<script type="module" src="js/login.js"></script>
+</body>
+</html>

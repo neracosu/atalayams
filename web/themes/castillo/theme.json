@@ -1,0 +1,33 @@
+{
+  "id": "castillo",
+  "name": "Castillo",
+  "description": "Un castillo gótico de noche visto de costado, en pixel art: la torre del reloj es el servidor, cada cuenta una sala con su estandarte y su placa, cada servicio un candelabro cuyas llamas crecen con la CPU y cada sitio un vitral que se ilumina con las visitas. Las visitas son murciélagos que bajan de la luna, los intentos de acceso son espectros que se quedan en el portón y los agentes de Claude Code son cazadoras con su antorcha.",
+  "author": "NERACOSU",
+  "version": "1.0.0",
+  "license": "Propietaria · arte propio en código · fuentes Jacquard 24 y Pixelify Sans bajo SIL OFL 1.1",
+  "world": "world.js",
+  "css": "theme.css",
+  "preview": "preview.png",
+  "hud": { "layout": "barra-lateral" },
+  "palette": { "ok": "#f0b848", "warn": "#6a9aff", "crit": "#ff3b3b", "hostile": "#d8e0f0", "friendly": "#d8b24a", "accent": "#d8b24a", "bg": "#0c0816", "ink": "#f4e8c8" },
+  "rule": "Pixel art para el castillo y sus habitantes, textos nítidos; la luz (llamas, vitrales, ventanas) cuenta lo que pasa.",
+  "credits": [
+    { "what": "Fuente Jacquard 24", "author": "The Jacquard Project Authors", "license": "SIL OFL 1.1", "url": "https://fonts.google.com/specimen/Jacquard+24" },
+    { "what": "Fuente Pixelify Sans", "author": "The Pixelify Sans Project Authors", "license": "SIL OFL 1.1", "url": "https://fonts.google.com/specimen/Pixelify+Sans" }
+  ],
+  "legend": [
+    { "title": "El castillo", "items": [
+      { "icon": "terminal", "title": "Torre del reloj", "text": "El servidor: sus agujas giran más rápido con más CPU. Si falla un servicio clave, sus ventanas se encienden en rojo y arriba dice cuál." },
+      { "icon": "house", "title": "Salas", "text": "Cada cuenta es una sala con su estandarte. Debajo, su placa nombra todo lo que hay adentro; al acercarse, cada cosa lleva su nombre." },
+      { "color": "#f0b848", "title": "Candelabro", "text": "Un servicio: las llamas crecen con la CPU. Llama azul y débil: a medias (parcial). Apagado y humeando: caído." },
+      { "color": "#2a5ab0", "title": "Vitral", "text": "Un sitio servido directo: su haz de luz se enciende con las visitas. Oscuro: caído." },
+      { "icon": "shield", "title": "Portón", "text": "El cortafuegos, al pie de la torre: se enciende en rojo cuando llega un espectro." }
+    ] },
+    { "title": "Los que llegan", "items": [
+      { "color": "#1a1020", "title": "Murciélagos", "text": "Cada visita baja de la luna hasta su candelabro o vitral. Grises: robots. Rojos: un error del servidor." },
+      { "color": "#d8e0f0", "title": "Espectros", "text": "Intentos de acceso fallidos: flotan hasta el portón. Si la IP queda bloqueada, un rayo de luz los disuelve." },
+      { "icon": "bot", "title": "Cazadoras", "text": "Las sesiones de Claude Code recorren su sala con su antorcha. Con la antorcha en alto: esperan su permiso." },
+      { "icon": "mail", "title": "Cuervos", "text": "Correo que sale o llega a la torre (ojos rojos: rebotado)." }
+    ] }
+  ]
+}

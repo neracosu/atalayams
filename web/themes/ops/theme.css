@@ -1,0 +1,112 @@
+/* Tema "Ops": HUD tactico. Regla de oro: nada redondeado ni brillante; lineas rectas, esquinas de mira,
+   y el color solo para amigo (verde), alerta (ambar) u hostil (rojo). Todo va bajo body[data-theme="ops"]. */
+@font-face { font-family: 'VT323'; src: url(vt323.woff2) format('woff2'); font-display: swap; }
+
+body[data-theme="ops"] {
+  --bg: #0b0d09; --bg-2: #10140c; --panel: rgba(9, 11, 7, .9); --panel-solid: #0e110b;
+  --line: rgba(159, 211, 86, .22); --line-strong: rgba(159, 211, 86, .5);
+  --ink: #d9e3c8; --ink-2: #aab795; --ink-3: #6f7c5d;
+  --accent: #9fd356; --good: #9fd356; --warn: #f5a524; --bad: #ff4d3d; --private: #f5a524;
+  --radius: 0; --font: 'Space Grotesk', system-ui, sans-serif; --pixel: 'VT323', ui-monospace, monospace; --mono: ui-monospace, 'JetBrains Mono', monospace;
+  --chart-1: #9fd356; --chart-2: #d9e3c8; --chart-3: #9fd356; --chart-4: #ff4d3d;
+  --brk: linear-gradient(var(--accent), var(--accent));
+  background: var(--bg);
+}
+/* lineas de barrido de un monitor viejo, muy suaves */
+body[data-theme="ops"]::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 30;
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0) 0 2px, rgba(0, 0, 0, .14) 2px 4px); }
+
+/* paneles: sin blur, sin sombra, con esquinas de mira */
+body[data-theme="ops"] .panel, body[data-theme="ops"] #top, body[data-theme="ops"] .drawer, body[data-theme="ops"] dialog, body[data-theme="ops"] .menu, body[data-theme="ops"] .tip {
+  border-radius: 0; backdrop-filter: none; box-shadow: none; background-color: var(--panel);
+  background-image: var(--brk), var(--brk), var(--brk), var(--brk), var(--brk), var(--brk), var(--brk), var(--brk);
+  background-repeat: no-repeat;
+  background-size: 16px 2px, 2px 16px, 16px 2px, 2px 16px, 16px 2px, 2px 16px, 16px 2px, 2px 16px;
+  background-position: 0 0, 0 0, 100% 0, 100% 0, 0 100%, 0 100%, 100% 100%, 100% 100%;
+}
+body[data-theme="ops"] *, body[data-theme="ops"] *::before { border-radius: 0 !important; }
+body[data-theme="ops"] .pix, body[data-theme="ops"] h2, body[data-theme="ops"] h3, body[data-theme="ops"] h4 { font-family: var(--pixel); letter-spacing: .12em; text-transform: uppercase; }
+body[data-theme="ops"] h2 { font-size: 1.05rem; color: var(--accent); }
+
+/* barra superior: lecturas, no tarjetas */
+body[data-theme="ops"] #top { height: 4.2rem; }
+body[data-theme="ops"] .brand h1 { font-size: 1.8rem; letter-spacing: .2em; }
+body[data-theme="ops"] .brand svg { filter: grayscale(1) sepia(1) hue-rotate(40deg) saturate(3); }
+body[data-theme="ops"] .kpis { justify-content: flex-start; gap: 1.4rem; }
+body[data-theme="ops"] .kpi { background: none; border: 0; border-left: 2px solid var(--line-strong); padding: 0 0 0 .6rem; min-width: 5.2rem; }
+body[data-theme="ops"] .kpi .k { font-size: .95rem; color: var(--ink-3); letter-spacing: .12em; }
+body[data-theme="ops"] .kpi .v { font-family: var(--pixel); font-size: 1.9rem; font-weight: 400; line-height: 1; }
+body[data-theme="ops"] .kpi .bar { height: 4px; background: rgba(159, 211, 86, .12); }
+body[data-theme="ops"] .kpi .bar i { background: var(--accent); }
+body[data-theme="ops"] .kpi.warn .v { color: var(--warn); } body[data-theme="ops"] .kpi.bad .v { color: var(--bad); }
+body[data-theme="ops"] .clock #time { font-family: var(--pixel); font-size: 2.2rem; font-weight: 400; color: var(--accent); }
+body[data-theme="ops"] .mode { border-radius: 0; font-size: 1rem; background: none; }
+body[data-theme="ops"] .mode .dot { border-radius: 0; box-shadow: none; }
+
+/* escuadras (agentes) abajo a la izquierda */
+body[data-theme="ops"] #left { top: auto; height: 42vh; bottom: 1rem; width: clamp(260px, 20vw, 520px); }
+body[data-theme="ops"] #left h2 .pix { font-size: 0; }
+body[data-theme="ops"] #left h2 .pix::after { content: 'ESCUADRAS'; font-size: 1.05rem; }
+body[data-theme="ops"] .agent { background: rgba(159, 211, 86, .04); border-color: var(--line); }
+body[data-theme="ops"] .agent::before { background: var(--accent); width: 3px; }
+body[data-theme="ops"] .agent.waiting { border-color: var(--warn); animation: none; }
+body[data-theme="ops"] .agent.waiting::before { background: var(--warn); }
+body[data-theme="ops"] .agent .ttl { font-weight: 400; font-size: 1.2rem; }
+
+/* parte de operaciones (la cinta de novedades) arriba a la derecha, en columna, como un feed de combate */
+body[data-theme="ops"] #ticker { top: 6.2rem; bottom: auto; left: auto; right: 1rem; width: clamp(320px, 26vw, 640px); height: auto; max-height: 15.5rem;
+  padding: .5rem; flex-direction: column; align-items: stretch; background: none !important; border: 0; }
+body[data-theme="ops"] #ticker .tscroll { overflow: hidden; }
+body[data-theme="ops"] #log { flex-direction: column; gap: .25rem; align-items: flex-end; }
+body[data-theme="ops"] #log .ev { background: var(--panel); border-right: 3px solid var(--c, var(--accent)); padding: .15rem .6rem; font-size: 1.05rem; max-width: 100%; }
+body[data-theme="ops"] #log .ev:nth-child(n+7) { display: none; }
+body[data-theme="ops"] #log .ev time { order: -1; color: var(--ink-3); font-size: .95rem; }
+body[data-theme="ops"] #log .ev .tag { font-size: .9rem; }
+body[data-theme="ops"] #tall { align-self: flex-end; margin-top: .3rem; background: var(--panel); border: 1px solid var(--line); }
+
+/* telemetria a la derecha, debajo del parte */
+body[data-theme="ops"] #right { top: 22.5rem; bottom: 1rem; width: clamp(280px, 22vw, 560px); gap: .8rem; }
+
+/* navegacion: botones cuadrados */
+body[data-theme="ops"] #navbar { bottom: 1rem; background: var(--panel); border-radius: 0; }
+body[data-theme="ops"] #navbar button { border-radius: 0; }
+
+/* detalle y dialogos */
+body[data-theme="ops"] .drawer { top: 6.2rem; bottom: 1rem; }
+body[data-theme="ops"] .pill, body[data-theme="ops"] .btn, body[data-theme="ops"] .chip, body[data-theme="ops"] .keysvc { border-radius: 0; }
+body[data-theme="ops"] .dstat { background: rgba(159, 211, 86, .04); border-radius: 0; }
+body[data-theme="ops"] .dstat b { font-weight: 400; font-size: 1.3rem; }
+body[data-theme="ops"] .btn.primary, body[data-theme="ops"] .btn:not(.ghost) { background: rgba(159, 211, 86, .12); border-color: var(--accent); color: var(--ink); }
+body[data-theme="ops"] .score { border-radius: 0; }
+body[data-theme="ops"] .cc { font-family: var(--pixel); font-size: .95em; border-color: var(--line-strong); background: none; }
+
+/* columna mas corta (arriba va el parte de novedades): graficas mas bajas y 5 procesos */
+body[data-theme="ops"] #right .chart { height: clamp(3.5rem, 8vh, 6rem); }
+body[data-theme="ops"] #right .procs > :nth-child(n+6) { display: none; }
+body[data-theme="ops"] #right .projrow:nth-child(n+4) { display: none; }
+
+/* mundo 3D: textos nitidos que siguen a cada objeto, fichas de sector con linea guia */
+body[data-theme="ops"] .ops-leaders { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+body[data-theme="ops"] .ops-leaders polyline { fill: none; stroke-width: 1.5; opacity: .75; }
+body[data-theme="ops"] .ops-card { translate: none; background: rgba(11, 13, 9, .9); border: 1px solid var(--line-strong); }
+body[data-theme="ops"] .ops-card > b { font-family: var(--pixel); font-size: 1.45em; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
+body[data-theme="ops"] .ops-card .fishlist { grid-template-columns: repeat(auto-fill, minmax(9em, 1fr)); }
+body[data-theme="ops"] .ops-card .fishlist span { color: var(--ink-2); }
+body[data-theme="ops"] .ops-card .fishlist span.down { color: var(--bad); }
+body[data-theme="ops"] .ops-card .fishlist img { width: 1.1em; height: 1.1em; }
+body[data-theme="ops"] .ops-base b { font-family: var(--pixel); font-size: 1.4rem; letter-spacing: .2em; color: var(--ink); }
+body[data-theme="ops"] .ops-base small { color: var(--ink-3); }
+body[data-theme="ops"] .w3-item { background: rgba(11, 13, 9, .8); border-left-color: var(--accent); }
+body[data-theme="ops"] .w3-item.down { color: #ffb4ac; border-color: var(--bad); }
+body[data-theme="ops"] .ops-drone { font-family: var(--pixel); font-size: 1.05rem; letter-spacing: .1em; color: var(--ink-2); }
+body[data-theme="ops"] .ops-drone em { font-style: normal; color: #0b0d09; background: var(--warn); padding: 0 .3rem; margin-left: .3rem; }
+body[data-theme="ops"] .w3-float { font-family: var(--pixel); font-weight: 400; font-size: 1.35rem; letter-spacing: .12em; background: rgba(11, 13, 9, .85); }
+
+/* novedades: cada una ocupa el ancho del cuadro y hace salto de linea (tambien las que se tocan) */
+body[data-theme="ops"] #log { align-items: stretch; width: 100%; min-width: 0; white-space: normal; }
+body[data-theme="ops"] #log .ev, body[data-theme="ops"] #log .ev.link { display: block; width: 100%; max-width: none; text-align: right; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; }
+body[data-theme="ops"] #log .ev .ic { display: inline-block; vertical-align: -2px; }
+body[data-theme="ops"] #log .ev > * + * { margin-left: .4rem; }
+
+/* area libre del mundo: entre las escuadras (abajo a la izquierda) y la columna de la derecha, sobre la barra de navegacion */
+body[data-theme="ops"] #worldArea { display: block; top: 5.4rem; bottom: 5rem; left: calc(clamp(260px, 20vw, 520px) + 2rem); right: calc(clamp(280px, 22vw, 560px) + 2rem); }

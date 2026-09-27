@@ -1,0 +1,79 @@
+/* Tema "Acuario": HUD tranquilo, como un mueble de acuario. Franja inferior de arena y roca con tres placas
+   (niveles, bitacora y buzos), telemetria en una columna a la derecha. Sin brillos, sin redondeos grandes.
+   Todo bajo body[data-theme="acuario"]. */
+@font-face { font-family: 'Pixelify Sans'; src: url(pixelify.woff2) format('woff2'); font-weight: 400 700; font-display: swap; }
+
+body[data-theme="acuario"] {
+  --bg: #06121b; --bg-2: #0b1e2d; --panel: rgba(11, 30, 45, .92); --panel-solid: #0b1e2d;
+  --line: #16475b; --line-strong: #3a8c8c;
+  --ink: #e6f4ee; --ink-2: #a6e3c8; --ink-3: #6fa7a0;
+  --accent: #a6e3c8; --good: #7be06b; --warn: #ffb347; --bad: #ff4d5e; --private: #ffb347;
+  --radius: 0; --font: 'Pixelify Sans', ui-monospace, monospace; --pixel: 'Pixelify Sans', ui-monospace, monospace; --mono: 'Pixelify Sans', ui-monospace, monospace;
+  --chart-1: #a6e3c8; --chart-2: #ffb347; --chart-3: #a6e3c8; --chart-4: #ff4d5e;
+  --plaque: 0 0 0 2px #081620, 0 0 0 4px #3a8c8c, 0 0 0 6px #081620;
+  background: var(--bg);
+}
+body[data-theme="acuario"] *, body[data-theme="acuario"] *::before, body[data-theme="acuario"] *::after { border-radius: 0 !important; }
+body[data-theme="acuario"] .panel, body[data-theme="acuario"] #top, body[data-theme="acuario"] .drawer, body[data-theme="acuario"] dialog, body[data-theme="acuario"] .menu, body[data-theme="acuario"] .tip {
+  background: var(--panel); backdrop-filter: none; border: 0; box-shadow: var(--plaque);
+}
+body[data-theme="acuario"] h2, body[data-theme="acuario"] h3, body[data-theme="acuario"] h4, body[data-theme="acuario"] .pix { font-family: var(--pixel); font-weight: 600; letter-spacing: .02em; text-transform: none; }
+body[data-theme="acuario"] h2 { font-size: 1.1rem; color: var(--accent); }
+
+/* placa superior pequena */
+body[data-theme="acuario"] #top { top: 1rem; left: 1rem; right: calc(clamp(260px, 20vw, 520px) + 2.2rem); height: 3.6rem; }
+body[data-theme="acuario"] .brand h1 { font-family: var(--pixel); font-size: 1.7rem; font-weight: 700; letter-spacing: .04em; color: var(--accent); }
+body[data-theme="acuario"] .brand svg { filter: hue-rotate(-20deg) saturate(.8); }
+body[data-theme="acuario"] .clock #time { font-weight: 700; }
+body[data-theme="acuario"] .mode { background: #0b1e2d; border: 2px solid #3a8c8c; }
+
+/* franja inferior: tres placas */
+body[data-theme="acuario"] .kpis { position: fixed; left: 1rem; bottom: 1rem; width: 30vw; height: 11.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem;
+  padding: .7rem; background: var(--panel); box-shadow: var(--plaque); overflow: hidden; }
+body[data-theme="acuario"] .kpi { background: #0b1e2d; border: 0; box-shadow: inset 0 0 0 2px #16475b; padding: .35rem .45rem; min-width: 0; }
+body[data-theme="acuario"] .kpi .k { font-size: .72rem; color: var(--ink-3); letter-spacing: .02em; white-space: normal; line-height: 1.05; }
+body[data-theme="acuario"] .kpi .v { font-size: 1.15rem; font-weight: 700; }
+body[data-theme="acuario"] .kpi .bar { height: 6px; background: #081620; box-shadow: 0 0 0 1px #16475b; }
+body[data-theme="acuario"] .kpi .bar i { background: #3a8c8c; }
+
+body[data-theme="acuario"] #ticker { left: calc(30vw + 2.5rem); right: calc(clamp(240px, 20vw, 500px) + 2.5rem); bottom: 1rem; top: auto; height: 11.5rem; flex-direction: column; align-items: stretch; padding: .6rem .8rem;
+  background: var(--panel); box-shadow: var(--plaque); border: 0; }
+body[data-theme="acuario"] #ticker::before { content: 'Bitácora del acuarista'; font-weight: 600; color: var(--accent); margin-bottom: .35rem; }
+body[data-theme="acuario"] #ticker .tscroll { overflow: hidden; flex: 1; }
+body[data-theme="acuario"] #log { flex-direction: column; gap: .15rem; }
+body[data-theme="acuario"] #log .ev { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .95rem; color: var(--ink); }
+body[data-theme="acuario"] #log .ev > * { margin-right: .3rem; }
+body[data-theme="acuario"] #log .ev:nth-child(n+7) { display: none; }
+body[data-theme="acuario"] #tall { position: absolute; top: .5rem; right: .6rem; background: #0b1e2d; border: 2px solid #3a8c8c; }
+
+body[data-theme="acuario"] #left { top: auto; bottom: 1rem; right: 1rem; left: auto; height: 11.5rem; width: clamp(240px, 20vw, 500px); padding: .6rem; }
+body[data-theme="acuario"] #left h2 .pix { font-size: 0; }
+body[data-theme="acuario"] #left h2 .pix::after { content: 'Buzos'; font-size: 1.1rem; }
+body[data-theme="acuario"] .agent { background: #0b1e2d; border: 0; box-shadow: inset 0 0 0 1px #16475b; padding: .35rem .5rem .35rem .7rem; }
+body[data-theme="acuario"] .agent .ttl { font-size: .95rem; }
+body[data-theme="acuario"] .agent::before { background: #ffb347; width: 3px; }
+
+/* telemetria a la derecha, sobre la franja */
+body[data-theme="acuario"] #right { top: 1rem; right: 1rem; bottom: 14rem; width: clamp(260px, 20vw, 520px); padding: .8rem; }
+
+body[data-theme="acuario"] #navbar { bottom: 14rem; left: 1.4rem; transform: none; background: var(--panel); box-shadow: var(--plaque); border: 0; }
+body[data-theme="acuario"] #navbar button { background: #0b1e2d; border: 2px solid #16475b; }
+
+body[data-theme="acuario"] #worldArea { display: block; top: 5.6rem; bottom: 13.6rem; left: 1rem; right: calc(clamp(260px, 20vw, 520px) + 2.4rem); }
+body[data-theme="acuario"] .drawer { top: 1rem; bottom: 1rem; right: 1rem; }
+body[data-theme="acuario"] .dstat { background: #0b1e2d; }
+body[data-theme="acuario"] .btn { background: #16475b; border: 2px solid #3a8c8c; color: var(--ink); }
+body[data-theme="acuario"] .btn.ghost { background: none; }
+body[data-theme="acuario"] .cc { font-family: var(--font); background: #0b1e2d; border-color: #3a8c8c; }
+
+/* placas de las peceras: laton oscuro con remaches, la letra de la tienda */
+body[data-theme="acuario"] .w3-plaque { background: #0b1e2d; border: 0; box-shadow: var(--plaque); padding: .4em .6em .5em; }
+body[data-theme="acuario"] .w3-plaque > b { font-family: var(--pixel); font-weight: 700; color: var(--ink); }
+body[data-theme="acuario"] .w3-plaque .fishlist span { color: var(--ink); }
+body[data-theme="acuario"] .w3-plaque.w3-filter > b { border-color: #3ddbd9; }
+body[data-theme="acuario"] .w3-fish { font-family: var(--pixel); font-size: .8rem; background: rgba(8, 22, 32, .8); box-shadow: 0 0 0 1px #3a8c8c; }
+
+/* novedades: cada una ocupa el ancho del cuadro y hace salto de linea (tambien las que se tocan) */
+body[data-theme="acuario"] #log { align-items: stretch; width: 100%; min-width: 0; white-space: normal; }
+body[data-theme="acuario"] #log .ev, body[data-theme="acuario"] #log .ev.link { display: block; width: 100%; max-width: none; text-align: left; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; }
+body[data-theme="acuario"] #log .ev .ic { display: inline-block; vertical-align: -2px; }

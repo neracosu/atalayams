@@ -1,0 +1,1 @@
+{"name":"atalaya-vendor","private":true,"dependencies":{"animejs":"^4.5.0","country-flag-emoji-polyfill":"^0.1.10","esbuild":"^0.28.2","pixi.js":"^8.21.0","uplot":"^1.6.32"}}

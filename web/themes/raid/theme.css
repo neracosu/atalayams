@@ -1,0 +1,87 @@
+/* Tema "Raid": interfaz de banda de un MMO de fantasia. Regla de oro: marcos dorados y rectos, el color es
+   la clase o el estado. Indicadores como barra de accion abajo al centro, marcos de grupo arriba a la izquierda,
+   registro de combate abajo a la izquierda y medidor a la derecha. Todo bajo body[data-theme="raid"]. */
+@font-face { font-family: 'Jersey 10'; src: url(jersey10.woff2) format('woff2'); font-display: swap; }
+
+body[data-theme="raid"] {
+  --bg: #141110; --bg-2: #1d1916; --panel: rgba(14, 12, 11, .92); --panel-solid: #0e0c0b;
+  --line: #5a4a2a; --line-strong: #c9a227;
+  --ink: #f4e7c5; --ink-2: #cdbf9c; --ink-3: #8f8267;
+  --accent: #e8c55a; --good: #3fcf4a; --warn: #e8c55a; --bad: #d94a3a; --private: #e8c55a;
+  --radius: 0; --font: 'Jersey 10', ui-monospace, monospace; --pixel: 'Jersey 10', ui-monospace, monospace; --mono: 'Jersey 10', ui-monospace, monospace;
+  --chart-1: #3fcf4a; --chart-2: #3b82f6; --chart-3: #e8c55a; --chart-4: #d94a3a;
+  --gold: 0 0 0 1px #0b0908, 0 0 0 3px #c9a227, 0 0 0 4px #6b5316, 0 0 0 5px #0b0908;
+  background: var(--bg); font-size: 1.12rem;
+}
+body[data-theme="raid"] *, body[data-theme="raid"] *::before, body[data-theme="raid"] *::after { border-radius: 0 !important; }
+body[data-theme="raid"] .panel, body[data-theme="raid"] #top, body[data-theme="raid"] .drawer, body[data-theme="raid"] dialog, body[data-theme="raid"] .menu, body[data-theme="raid"] .tip {
+  background: var(--panel); backdrop-filter: none; border: 0; box-shadow: var(--gold);
+}
+body[data-theme="raid"] h2, body[data-theme="raid"] h3, body[data-theme="raid"] h4, body[data-theme="raid"] .pix { font-family: var(--pixel); letter-spacing: .04em; font-weight: 400; }
+body[data-theme="raid"] h2 { font-size: 1.3rem; color: var(--accent); text-transform: none; }
+
+/* estandarte superior: nombre y reloj */
+body[data-theme="raid"] #top { top: .8rem; left: 0; right: 0; margin: 0 auto; width: min(52vw, 820px); height: 3.4rem; justify-content: space-between; }
+body[data-theme="raid"] .brand h1 { font-size: 2rem; letter-spacing: .08em; color: var(--accent); }
+body[data-theme="raid"] .brand svg { filter: sepia(1) saturate(3) hue-rotate(5deg); }
+body[data-theme="raid"] .clock #time { font-weight: 400; font-size: 2rem; color: var(--ink); }
+body[data-theme="raid"] .mode { background: #1d1916; border: 1px solid #c9a227; }
+
+/* barra de accion: cada indicador es un boton cuadrado que se llena de abajo hacia arriba */
+body[data-theme="raid"] .kpis { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); display: flex; gap: .55rem; padding: .55rem;
+  background: var(--panel); box-shadow: var(--gold); counter-reset: tecla; overflow: visible; justify-content: center; width: auto; }
+body[data-theme="raid"] .kpi { position: relative; width: 5.2rem; height: 5.2rem; min-width: 0; padding: .35rem; background: #1d1916; border: 0; box-shadow: inset 0 0 0 2px #3a3025; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; counter-increment: tecla; }
+body[data-theme="raid"] .kpi::before { content: counter(tecla); position: absolute; top: .15rem; right: .35rem; font-size: .9rem; color: var(--ink-3); z-index: 1; }
+body[data-theme="raid"] .kpi .k { font-size: .82rem; color: var(--ink-2); position: relative; z-index: 1; letter-spacing: .03em; white-space: normal; line-height: 1; }
+body[data-theme="raid"] .kpi .v { font-size: 1.5rem; font-weight: 400; position: relative; z-index: 1; text-shadow: 0 1px 0 #000; }
+body[data-theme="raid"] .kpi .bar { position: absolute; left: 0; top: 0; width: 5.2rem; height: 5.2rem; margin: 0; background: none;
+  transform-origin: 0 0; transform: rotate(-90deg) translateX(-100%); }
+body[data-theme="raid"] .kpi .bar i { height: 100%; background: rgba(63, 207, 74, .28); }
+body[data-theme="raid"] #kpi-cpu .bar i { background: rgba(217, 74, 58, .35); }
+body[data-theme="raid"] #kpi-mem .bar i { background: rgba(59, 130, 246, .35); }
+body[data-theme="raid"] #kpi-disk .bar i { background: rgba(232, 197, 90, .3); }
+body[data-theme="raid"] .kpi.warn { box-shadow: inset 0 0 0 2px #e8c55a; }
+body[data-theme="raid"] .kpi.bad { box-shadow: inset 0 0 0 2px #d94a3a; }
+
+/* marcos de grupo (agentes) arriba a la izquierda */
+body[data-theme="raid"] #left { top: 1rem; left: 1rem; bottom: auto; max-height: 42vh; width: clamp(240px, 19vw, 460px); padding: .7rem; }
+body[data-theme="raid"] #left h2 .pix { font-size: 0; }
+body[data-theme="raid"] #left h2 .pix::after { content: 'Jugadores'; font-size: 1.3rem; }
+body[data-theme="raid"] .agent { background: #1d1916; border: 0; box-shadow: inset 0 0 0 1px #3a3025; padding: .45rem .6rem .45rem .8rem; }
+body[data-theme="raid"] .agent::before { width: 100%; height: 3px; top: auto; bottom: 0; background: var(--good); }
+body[data-theme="raid"] .agent.waiting::before { background: var(--accent); }
+body[data-theme="raid"] .agent .ttl { font-weight: 400; font-size: 1.2rem; }
+
+/* registro de combate abajo a la izquierda */
+body[data-theme="raid"] #ticker { left: 1rem; right: auto; bottom: 1rem; top: auto; width: clamp(240px, 19vw, 460px); height: calc(100vh - 42vh - 4rem); min-height: 9rem;
+  flex-direction: column; align-items: stretch; padding: .6rem; background: var(--panel); box-shadow: var(--gold); border: 0; }
+body[data-theme="raid"] #ticker .tscroll { overflow: hidden; flex: 1; }
+body[data-theme="raid"] #log { flex-direction: column-reverse; gap: .12rem; justify-content: flex-end; height: 100%; }
+body[data-theme="raid"] #log .ev { display: block; white-space: normal; font-size: 1rem; line-height: 1.2; color: var(--ink); }
+body[data-theme="raid"] #log .ev > * { margin-right: .3rem; }
+body[data-theme="raid"] #log .ev:nth-child(n+13) { display: none; }
+body[data-theme="raid"] #log .ev time { color: var(--ink-3); }
+body[data-theme="raid"] #tall { position: absolute; bottom: .5rem; right: .5rem; background: #1d1916; border: 1px solid #c9a227; }
+
+/* medidor a la derecha */
+body[data-theme="raid"] #right { top: 1rem; right: 1rem; bottom: 1rem; width: clamp(260px, 21vw, 520px); padding: .8rem; }
+body[data-theme="raid"] .procs .bar i, body[data-theme="raid"] .procs i { background: #c9a227; }
+
+/* navegacion: botones de accion a la derecha de la barra */
+body[data-theme="raid"] #navbar { left: auto; right: calc(clamp(260px, 21vw, 520px) + 2.2rem); bottom: 8.6rem; transform: none; background: var(--panel); box-shadow: var(--gold); border: 0; }
+body[data-theme="raid"] #navbar button { background: #1d1916; border: 1px solid #5a4a2a; }
+
+/* el mundo entre las dos columnas, sobre la barra de accion */
+body[data-theme="raid"] #worldArea { display: block; top: 5rem; bottom: 7.6rem; left: calc(clamp(240px, 19vw, 460px) + 2rem); right: calc(clamp(260px, 21vw, 520px) + 2rem); }
+
+body[data-theme="raid"] .drawer { top: 1rem; bottom: 1rem; right: 1rem; }
+body[data-theme="raid"] .dstat { background: #1d1916; }
+body[data-theme="raid"] .btn { background: #2a2219; border: 1px solid #c9a227; color: var(--ink); }
+body[data-theme="raid"] .btn.ghost { background: none; }
+body[data-theme="raid"] .cc { font-family: var(--font); background: #1d1916; border-color: #5a4a2a; }
+
+/* novedades: cada una ocupa el ancho del cuadro y hace salto de linea (tambien las que se tocan) */
+body[data-theme="raid"] #log { align-items: stretch; width: 100%; min-width: 0; white-space: normal; }
+body[data-theme="raid"] #log .ev, body[data-theme="raid"] #log .ev.link { display: block; width: 100%; max-width: none; text-align: left; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; }
+body[data-theme="raid"] #log .ev .ic { display: inline-block; vertical-align: -2px; }

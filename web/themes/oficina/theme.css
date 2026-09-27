@@ -1,0 +1,42 @@
+/* Tema "Oficina": el HUD como una intranet corporativa: azul marino, tarjetas limpias con esquinas suaves y
+   un solo acento azul. El pixel art queda en los carteles de cada puesto. Todo bajo body[data-theme="oficina"]. */
+body[data-theme="oficina"] {
+  --bg: #1b2230; --bg-2: #232b3b; --panel: rgba(30, 38, 53, .94); --panel-solid: #1e2635;
+  --line: rgba(160, 180, 210, .18); --line-strong: rgba(160, 180, 210, .38);
+  --ink: #eef2f7; --ink-2: #b6c2d4; --ink-3: #7d8aa0;
+  --accent: #4f9dff; --good: #59e08a; --warn: #f0a040; --bad: #ff5a4a; --private: #f0a040;
+  --radius: 10px;
+  --chart-1: #4f9dff; --chart-2: #b6c2d4; --chart-3: #4f9dff; --chart-4: #ff5a4a;
+  background: var(--bg);
+}
+body[data-theme="oficina"] .panel, body[data-theme="oficina"] #top, body[data-theme="oficina"] .drawer, body[data-theme="oficina"] dialog, body[data-theme="oficina"] .menu, body[data-theme="oficina"] .tip {
+  background: var(--panel); backdrop-filter: none; border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+}
+body[data-theme="oficina"] h2 { font-family: var(--font); font-weight: 600; letter-spacing: .02em; text-transform: none; color: var(--ink); }
+body[data-theme="oficina"] h2 .pix { font-family: var(--font); letter-spacing: .02em; }
+body[data-theme="oficina"] .brand h1 { letter-spacing: .06em; }
+/* indicadores como tarjetas de un tablero de gestion */
+body[data-theme="oficina"] .kpi { background: #232b3b; border: 1px solid var(--line); border-radius: 8px; }
+body[data-theme="oficina"] .kpi .k { color: var(--ink-3); letter-spacing: .04em; }
+body[data-theme="oficina"] .kpi .bar { background: rgba(160, 180, 210, .15); border-radius: 3px; }
+body[data-theme="oficina"] .kpi .bar i { background: var(--accent); border-radius: 3px; }
+body[data-theme="oficina"] .agent { background: #232b3b; border-radius: 8px; }
+body[data-theme="oficina"] .agent::before { background: #d97a3a; }
+body[data-theme="oficina"] #left h2 .pix { font-size: 0; }
+body[data-theme="oficina"] #left h2 .pix::after { content: 'Compañeros'; font-size: .95rem; }
+body[data-theme="oficina"] #ticker { border-radius: 10px; }
+body[data-theme="oficina"] #navbar { background: var(--panel); border: 1px solid var(--line); }
+body[data-theme="oficina"] #worldArea { display: block; top: 6.6rem; bottom: 8.2rem; left: calc(clamp(250px, 21vw, 560px) + 2rem); right: calc(clamp(270px, 23vw, 600px) + 2rem); }
+
+/* mundo 3D: directorios como placas de acrilico */
+body[data-theme="oficina"] .w3-plaque { background: rgba(244, 246, 250, .95); border: 0; border-radius: 6px; box-shadow: 0 6px 18px rgba(0, 0, 0, .35); }
+body[data-theme="oficina"] .w3-plaque > b { font-family: var(--font); font-weight: 700; color: #1b2230; }
+body[data-theme="oficina"] .w3-plaque > small { color: #5a6680; }
+body[data-theme="oficina"] .w3-plaque .fishlist span { color: #2a3448; }
+body[data-theme="oficina"] .w3-plaque .fishlist span:hover { color: #000; }
+body[data-theme="oficina"] .w3-plaque .fishlist span.down { color: #d0342a; }
+body[data-theme="oficina"] .w3-plaque .fishlist img { width: 1.1em; height: 1.1em; }
+body[data-theme="oficina"] .w3-srv > b { border-color: #4f9dff; }
+body[data-theme="oficina"] .w3-item { background: rgba(244, 246, 250, .94); color: #1b2230; border-left-color: #4f9dff; border-radius: 3px; }
+body[data-theme="oficina"] .w3-item.down { color: #d0342a; border-left-color: #ff5a4a; }
+body[data-theme="oficina"] .w3-float { background: rgba(30, 38, 53, .92); border-radius: 4px; }

@@ -1,0 +1,98 @@
+{
+ "formato": 1,
+ "version": "2026.09.26.1",
+ "fecha": "2026-09-26",
+ "nota": "Definiciones de Atalaya Monitor Server: qué se detecta y cómo empezar a resolverlo. Se publican firmadas y cada Atalaya las actualiza sola. Las guías son un punto de partida, no un diagnóstico completo.",
+ "web": {
+  "sensibles": [
+   "secrets",
+   "shells"
+  ],
+  "familias": [
+   {
+    "id": "secrets",
+    "name": "Secretos y respaldos",
+    "pattern": "\\/\\.(env|git|svn|hg|aws|ssh|htpasswd|DS_Store|vscode|idea)(\\/|$|\\.|\\?)|\\/(wp-config\\.php|config\\.php|configuration\\.php|settings\\.php|database\\.yml|\\.?credentials|id_rsa|docker-compose\\.ya?ml|composer\\.(json|lock)|package\\.json|web\\.config)(\\.(bak|old|orig|save|swp|txt|zip|tar|gz|~)|~)|\\/[\\w.-]*(backup|dump|db|database|site|www|public_html|htdocs)[\\w.-]*\\.(sql|zip|tar|tgz|tar\\.gz|gz|rar|7z|bak)$|\\/\\.env\\.\\w+",
+    "flags": "i"
+   },
+   {
+    "id": "shells",
+    "name": "Webshells y puertas traseras",
+    "pattern": "\\/(shell|c99|r57|wso|b374k|alfa|alfacgiapi|marijuana|webshell|priv8|bypass|cmd|leaf|xl|lf|0x|wp-file-manager-shell)\\.php(\\?|$)|\\/wp-content\\/uploads\\/.*\\.php|\\/\\.well-known\\/.*\\.php|eval-stdin\\.php|\\/vendor\\/phpunit\\/",
+    "flags": "i"
+   },
+   {
+    "id": "panels",
+    "name": "Paneles de administración",
+    "pattern": "\\/(phpmyadmin|pma|myadmin|mysqladmin|dbadmin|adminer(-[\\d.]+)?\\.php|admin\\.php|administrator\\/?|manager\\/html|admin\\/login|login\\.php|user\\/login|solr\\/admin|actuator\\b|console\\/?$|jenkins|_profiler|telescope|horizon)",
+    "flags": "i"
+   },
+   {
+    "id": "exploits",
+    "name": "Intentos de explotación",
+    "pattern": "\\.\\.\\/|%2e%2e|\\/cgi-bin\\/|\\/etc\\/passwd|\\/proc\\/self|\\$\\{jndi:|union(\\s|%20|\\+)+select|<script|%3cscript|\\/boaform|\\/HNAP1|\\/GponForm|\\/setup\\.cgi|\\/shell\\?|\\/cgi-bin\\/luci|\\/\\?XDEBUG|allow_url_include|php:\\/\\/input|\\/solr\\/|\\/owa\\/auth|\\/remote\\/fgt_lang|\\/\\.netrc",
+    "flags": "i"
+   },
+   {
+    "id": "wordpress",
+    "name": "WordPress (login y xmlrpc)",
+    "pattern": "\\/(wp-login\\.php|xmlrpc\\.php|wp-admin\\/?(admin-ajax\\.php|install\\.php|setup-config\\.php)?|wp-includes\\/wlwmanifest\\.xml|wp-json\\/wp\\/v2\\/users)",
+    "flags": "i"
+   }
+  ],
+  "arreglos": {
+   "secrets": "Saque el archivo del docroot (o bórrelo si es un respaldo), bloquee el acceso a archivos ocultos en el .htaccess (RedirectMatch 404 /\\.(env|git)) y cambie todas las claves que tenía: si estuvo a la vista, hay que darlas por conocidas.",
+   "shells": "Posible puerta trasera. Revise el archivo (fecha y contenido), compárelo con un respaldo, bórrelo si no es suyo, y cambie las contraseñas de la cuenta, FTP y WordPress. Conviene escanear toda la cuenta.",
+   "gitdump": "Piden cada objeto por su hash exacto: alguien obtuvo el índice del repositorio (/.git/index o los refs) cuando estuvo a la vista. Si hoy responde 404 ya no puede bajar nada nuevo, pero dé por conocido el código y su historial: cambie las claves que hayan pasado por el repositorio y confirme que ninguna carpeta .git quede dentro del docroot.",
+   "panel": "Un panel de base de datos no debería estar abierto a Internet: restrínjalo por IP, protéjalo con una contraseña adicional o quítelo si no lo usa."
+  }
+ },
+ "correo": {
+  "rebotes": [
+   {
+    "id": "auth",
+    "why": "No pasó SPF/DKIM/DMARC (remitente sin autenticar)",
+    "pattern": "5\\.7\\.2[3-7]|unauthenticated|not authenticated|spf.*fail|dkim.*fail|dmarc",
+    "flags": "i"
+   },
+   {
+    "id": "nouser",
+    "why": "El destinatario no existe",
+    "pattern": "5\\.1\\.1|does not exist|no such user|user unknown|unknown user|mailbox unavailable|recipient.*rejected|invalid recipient|address rejected",
+    "flags": "i"
+   },
+   {
+    "id": "full",
+    "why": "Buzón lleno",
+    "pattern": "5\\.2\\.2|4\\.2\\.2|quota|mailbox (is )?full|over quota|insufficient storage",
+    "flags": "i"
+   },
+   {
+    "id": "spam",
+    "why": "Rechazado por spam o reputación",
+    "pattern": "5\\.7\\.\\d|spam|blocked|blacklist|block ?list|spamhaus|rbl|reputation|not authorized|policy",
+    "flags": "i"
+   },
+   {
+    "id": "domain",
+    "why": "El dominio no existe o no recibe correo",
+    "pattern": "5\\.1\\.2|host or domain name not found|domain.*not found|no mx|all relevant mx records|unrouteable",
+    "flags": "i"
+   },
+   {
+    "id": "rate",
+    "why": "Demasiados envíos (límite)",
+    "pattern": "4\\.7\\.|too many|rate limit|exceeded|temporarily deferred|try again later",
+    "flags": "i"
+   }
+  ],
+  "arreglos": {
+   "auth": "El dominio o el nombre del servidor que envía no tiene SPF/DKIM válidos. En cPanel › Email Deliverability repare SPF y DKIM de cada dominio; para el correo del sistema (cron, avisos), configure un remitente de un dominio autenticado en WHM › Basic WebHost Manager Setup o haga que esos avisos salgan desde una cuenta real.",
+   "nouser": "La dirección de destino no existe: revise formularios, listas y reenvíos que apunten a buzones viejos.",
+   "full": "El buzón del destinatario está lleno: no es un problema de su servidor, salvo que el buzón sea suyo.",
+   "spam": "El servidor remoto lo marcó como spam o la IP tiene mala reputación: revise si alguna cuenta envía masivo o si la IP está en listas negras.",
+   "domain": "El dominio de destino no existe o no recibe correo: suele ser un error de tipeo en la dirección.",
+   "rate": "El destino limitó la cantidad de envíos: reparta los envíos masivos en el tiempo."
+  }
+ }
+}

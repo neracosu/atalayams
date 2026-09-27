@@ -1,0 +1,65 @@
+{
+  "title": "Atalaya",
+  "subtitle": "mi-servidor",
+  "host": "127.0.0.1",
+  "port": 3950,
+  "stateDir": "/var/lib/atalaya",
+  "trustProxy": true,
+  "sessionDays": 30,
+  "privateOptions": [
+    15,
+    60,
+    240,
+    0
+  ],
+  "public": {
+    "showAccountNames": false,
+    "showAppNames": false
+  },
+  "accounts": {
+    "root": {
+      "label": "Torre de control",
+      "publicLabel": "Torre de control",
+      "color": "#f8fafc"
+    },
+    "cuenta1": {
+      "label": "cuenta1",
+      "publicLabel": "Distrito Norte",
+      "color": "#22d3ee"
+    },
+    "cuenta2": {
+      "label": "cuenta2",
+      "publicLabel": "Distrito Este",
+      "color": "#a78bfa"
+    }
+  },
+  "claude": {
+    "idleMinutes": 8,
+    "goneMinutes": 45,
+    "subagentGoneSeconds": 150
+  },
+  "logs": {},
+  "apps": {
+    "cuenta1/tienda": {
+      "label": "Tienda online",
+      "icon": "shop"
+    },
+    "cuenta1/reservas": {
+      "label": "Hotel · reservas",
+      "icon": "hotel"
+    },
+    "cuenta2/api-pagos": {
+      "label": "Pagos · API",
+      "icon": "card"
+    },
+    "cuenta2/n8n": {
+      "label": "Automatizaciones",
+      "icon": "gear"
+    }
+  },
+  "platform": {
+    "panel": "auto"
+  },
+  "sites": {},
+  "publicUrl": "https://atalaya.su-dominio.com"
+}

@@ -1,0 +1,692 @@
+<p align="center">
+  <img src="docs/banner.svg" alt="Atalaya Monitor Server: el monitor de servidores que se ve como un videojuego" width="100%">
+</p>
+
+<p align="center">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.66.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
+  <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
+  <img alt="Solo lectura" src="https://img.shields.io/badge/acceso-solo%20lectura-fbbf24?style=flat-square&labelColor=0b1530">
+  <img alt="VPS, hosting y WordPress" src="https://img.shields.io/badge/corre%20en-VPS%20%C2%B7%20hosting%20%C2%B7%20WordPress-f472b6?style=flat-square&labelColor=0b1530">
+</p>
+
+<p align="center">
+  <a href="#lo-nuevo"><b>Lo nuevo</b></a> ·
+  <a href="#así-se-ve"><b>Así se ve</b></a> ·
+  <a href="#temas"><b>Temas</b></a> ·
+  <a href="#qué-hace"><b>Qué hace</b></a> ·
+  <a href="#mapa-de-proyectos"><b>Proyectos</b></a> ·
+  <a href="#dónde-corre"><b>Dónde corre</b></a> ·
+  <a href="#atalaya-cloud"><b>Cloud</b></a> ·
+  <a href="#instalación"><b>Instalar</b></a> ·
+  <a href="#seguridad"><b>Seguridad</b></a> ·
+  <a href="#hoja-de-ruta"><b>Hoja de ruta</b></a>
+</p>
+
+<br>
+
+<p align="center">
+  <img src="docs/demo.webp" alt="Atalaya en vivo: el modo director recorre los distritos mientras llegan visitas, ataques y agentes de Claude Code" width="100%">
+</p>
+
+<p align="center"><sub>Pantalla real en <b>modo público</b>: sin nombres, dominios, rutas ni IPs.</sub></p>
+<p align="center"><b>Sitio del proyecto:</b> <a href="https://neracosu.com/atalaya/">neracosu.com/atalaya</a> · <a href="https://neracosu.com/atalaya/guias/">guías paso a paso</a> · pantallas en la nube: <a href="https://nube.neracosu.com">nube.neracosu.com</a></p>
+
+<br>
+
+**Atalaya Monitor Server** convierte todo lo que usted tiene publicado en un **mundo vivo** para la TV de la oficina,
+el monitor o el teléfono: una ciudad pixel, una oficina estilo hotel virtual, un acuario, una banda de
+MMO, un castillo gótico, una consola de fósforo verde… **diez temas** a elegir. Cada cuenta es un distrito, cada servicio
+un edificio (o un pez, o un escritorio), cada visita algo que viaja, cada ataque un invasor que choca
+contra el escudo, cada sitio bajo escaneo recibe **patrullas voladoras** que lo custodian, y cada sesión de
+Claude Code es un personaje que camina a lo que está haciendo.
+
+Pero no es solo bonito: **une** sus VPS, hostings compartidos, sitios WordPress, Vercel, Supabase y
+GitHub en una sola pantalla, arma **una ficha por proyecto** y le dice, en lenguaje simple, **qué
+revisar y cómo arreglarlo**.
+
+> **Atalaya mira; solo actúa cuando usted lo decide.** No reinicia servicios, no borra archivos, no toca
+> bases de datos. Lo pesado corre solo cuando usted lo pide, y los secretos nunca salen del servidor. La
+> única acción que puede tomar es **bloquear por un tiempo una IP que ataca**, y solo si usted pulsa el botón
+> o enciende la defensa automática.
+
+---
+
+## Lo nuevo
+
+<p align="center">
+  <img src="docs/vigilancia.webp" alt="Un sitio en vigilancia: dos patrullas voladoras suspendidas junto al edificio, otro con reflectores por un pico de visitas, y el rótulo del director arriba" width="100%">
+</p>
+<p align="center"><sub>Un escaneo con dos <b>patrullas voladoras</b> junto al edificio, un <b>pico de visitas</b> con reflectores y el <b>director</b> contando qué pasa. Datos del simulador, en modo público.</sub></p>
+
+<table>
+  <tr>
+    <td width="33%" valign="top"><img src="docs/icons/siren.svg" width="40"><br><b>Vigilancia con patrullas voladoras</b><br><sub>Si un sitio recibe un <b>escaneo</b> (cientos de sondeos a .env, phpinfo, paneles) o <b>scraping</b> (una sola IP que lo recorre entero), dos patrullas despegan de la torre de control, vuelan hasta el edificio y lo custodian con las luces encendidas. Cuando la amenaza pasa, vuelven a la torre.</sub></td>
+    <td width="33%" valign="top"><img src="docs/icons/fire.svg" width="40"><br><b>Picos de visitas</b><br><sub>Cuando un sitio recibe varias veces lo normal desde muchas IPs, se encienden <b>reflectores</b>: puede que se hizo viral o que es un ataque distribuido. Su ficha muestra países, referer y páginas para distinguirlo.</sub></td>
+    <td width="33%" valign="top"><img src="docs/icons/camera.svg" width="40"><br><b>El director sigue la acción</b><br><sub>La cámara ya no pasea al azar: va a lo que está pasando (un servicio caído, un archivo expuesto, un agente que pide permiso, un despliegue, una consulta lenta) y lo cuenta con un rótulo arriba.</sub></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src="docs/icons/db.svg" width="40"><br><b>Las bases, a la vista</b><br><sub>Cada cuenta tiene su <b>silo de datos</b> con tuberías a los sitios que usan sus bases; por ellas corren pulsos cuando hay consultas. Supabase, como silo verde unido a su app. Conexiones contra el máximo, consultas por segundo, las bases más ocupadas y la consulta más lenta, <b>sin sus valores</b>. Se activa con un botón que crea un usuario de MySQL que solo ve las consultas en curso: no puede leer ni cambiar datos.</sub></td>
+    <td valign="top"><img src="docs/icons/bot.svg" width="40"><br><b>Cada agente con su proyecto</b><br><sub>La tarjeta de cada sesión de Claude Code dice en qué proyecto y en qué cuenta trabaja. Al abrirse una sesión baja un haz de luz; al cerrarse, el robot sube y se va.</sub></td>
+    <td valign="top"><img src="docs/icons/shield.svg" width="40"><br><b>Defensa: detenerlos a tiempo</b><br><sub>Un botón en la ficha bloquea por un tiempo la IP que ataca, y las patrullas <b>se la llevan a la cárcel</b>, donde se ve cada IP bloqueada hasta que sale. Con la <b>defensa automática</b> encendida, bloquea sola a quien encontró una ruta expuesta, hace fuerza bruta, scraping o sondea varios sitios, y frena a los atacantes <b>antes de que el servidor se sature</b>.</sub></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src="docs/icons/phone.svg" width="40"><br><b>Alertas por Telegram y correo</b><br><sub>Lo grave llega al teléfono o al correo aunque nadie mire la pantalla: puertas traseras, caídas, el servidor al límite. Con horario de silencio, un enlace a la ficha y un resumen cada mañana.</sub></td>
+    <td colspan="2" valign="top"><img src="docs/icons/lock.svg" width="40"><br><b>Todo desde la pantalla</b><br><sub>Usuarios (dueño o solo ver), PIN y roles desde el menú, sin terminal. Autos pixel en la autopista, un globo para «Web» y una hoja con lápiz para «Editando».</sub></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src="docs/icons/chart.svg" width="40"><br><b>Analítica sin cookies</b><br><sub>Visitantes, páginas vistas, rebote y páginas por visita de cada sitio por día, semana, mes o año, comparados con el período anterior. De dónde llegan (Google, redes, asistentes de IA, otros sitios, campañas utm), páginas de entrada, países, dispositivos, horas y las páginas rotas que ven sus visitantes. Sale de los registros del servidor: <b>sin código en el sitio ni banner de cookies</b>, y cuenta también a quien usa bloqueador de anuncios.</sub></td>
+    <td valign="top"><img src="docs/icons/key.svg" width="40"><br><b>Quién entra a los paneles</b><br><sub>Contraseñas equivocadas en cPanel, WHM y webmail (sin contar escáneres), si root tiene verificación en dos pasos y las últimas entradas con su IP. Avisa por Telegram o correo si alguien entra desde una IP nueva, y en grave si esa IP venía fallando la contraseña.</sub></td>
+    <td valign="top"><img src="docs/icons/lock.svg" width="40"><br><b>Certificados y servicios</b><br><sub>Certificados SSL por vencer, vencidos o autofirmados, con aviso antes de que el navegador asuste a sus visitantes. Servicios que se caen y se levantan solos, los que quedaron fallidos y los procesos que el sistema mató por falta de memoria.</sub></td>
+  </tr>
+</table>
+
+---
+
+## Así se ve
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/overview.webp" alt="Vista general de la ciudad"><br><sub><b>La ciudad.</b> Distritos, edificios, visitas y agentes en vivo.</sub></td>
+    <td width="50%"><img src="docs/projects.webp" alt="Mapa de proyectos"><br><sub><b>Proyectos.</b> Cada proyecto con su puntaje de buenas prácticas.</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/detail.webp" alt="Ficha de la CPU"><br><sub><b>Cada indicador tiene su ficha.</b> En qué se va la CPU, cada núcleo y los procesos que más usan.</sub></td>
+    <td><img src="docs/disk.webp" alt="Mapa del disco"><br><sub><b>Disco.</b> Qué ocupa el espacio, con un consejo por tipo.</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/project.webp" alt="Ficha de un proyecto"><br><sub><b>Ficha de proyecto.</b> Dónde vive y qué revisar.</sub></td>
+    <td><img src="docs/install.webp" alt="Conectar un hosting o WordPress"><br><sub><b>Conectar.</b> Un hosting con una línea, un WordPress con un plugin.</sub></td>
+  </tr>
+</table>
+
+---
+
+## Temas
+
+Cada tema cambia **el mundo y el HUD**, no solo los colores. Se elige en el menú › **Tema** (para
+esta pantalla o, como dueño, para todas), con la tecla **T** o con `?theme=<id>` en la dirección.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/theme-ciudad.webp" alt="Tema Ciudad clásica"><br><sub><b>Ciudad clásica.</b> Distritos isométricos en pixel art, edificios, robots e invasores.</sub></td>
+    <td width="50%"><img src="docs/theme-ciudad3d.webp" alt="Tema Ciudad 3D"><br><sub><b>Ciudad 3D.</b> La ciudad de noche en tres dimensiones: torres que crecen con la memoria, ventanas que se encienden con las visitas.</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/theme-acuario.webp" alt="Tema Acuario"><br><sub><b>Acuario.</b> Una pared de peceras en 3D: cada cuenta en su pecera, con una placa que nombra a todos sus peces.</sub></td>
+    <td><img src="docs/theme-ops.webp" alt="Tema Ops"><br><sub><b>Ops.</b> Mesa táctica holográfica en 3D con fichas de sector a los costados: columnas, misiles y drones.</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/theme-villa.webp" alt="Tema Villa"><br><sub><b>Villa.</b> RPG de casillas en pixel art: castillo, pueblos amurallados, aldeanos, slimes y magos.</sub></td>
+    <td><img src="docs/theme-raid.webp" alt="Tema Raid"><br><sub><b>Raid.</b> Banda de MMO en pixel art: héroes con vida y maná, números de combate y El Intruso, el jefe.</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/theme-planta.webp" alt="Tema Planta"><br><sub><b>Planta.</b> Fábrica en 3D con paleta PICO-8: naves, máquinas, cintas, chatarra y drones.</sub></td>
+    <td><img src="docs/theme-oficina.webp" alt="Tema Oficina"><br><sub><b>Oficina.</b> Pixel art isométrico estilo hotel virtual: salas, escritorios con su empleado, aviones de papel y globos de diálogo.</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/theme-terminal.webp" alt="Tema Terminal"><br><sub><b>Terminal.</b> Consola de fósforo verde con ventanas de texto: cada proyecto en su línea, visitas por tail -f y sshd en vivo.</sub></td>
+    <td><img src="docs/theme-castillo.webp" alt="Tema Castillo"><br><sub><b>Castillo.</b> Castillo gótico de costado: torre del reloj, candelabros y vitrales, murciélagos, espectros y cazadoras.</sub></td>
+  </tr>
+</table>
+
+| En 2D (pixel art, PixiJS) | En 3D (three.js) | Solo texto |
+|---|---|---|
+| Ciudad clásica · Villa · Raid · Oficina · Castillo | Ciudad 3D · Acuario · Ops · Planta | Terminal |
+
+En todos, **cada proyecto se ubica sin hacer clic**: una placa o un directorio por cuenta nombra lo que
+tiene adentro, y al acercarse cada cosa lleva su nombre encima.
+
+Los temas son carpetas con un manifiesto, su mundo y su CSS: **cualquiera puede crear uno**. La guía
+está en [docs/TEMAS.md](docs/TEMAS.md), y el **kit de temas** (repositorio `atalaya-temas`) trae un
+simulador con datos reales en modo público para diseñar sin un servidor. Con solo decir dónde está cada cosa
+(`screenOf`), un tema recibe gratis la **capa de efectos** común: patrullas voladoras, reflectores, el director,
+los mensajes entre agentes, los robots que sondean, las consultas lentas, la **escolta a la cárcel** y las
+**cápsulas de cuarentena**. La cárcel, la oficina de correos, los silos de datos, la torre al límite con su atasco
+y las líneas de cuota los dibujan la Ciudad clásica y la Ciudad 3D. Los datos (`state.jail`, `state.silos`, `state.saturation`) están para cualquier tema.
+
+### En el teléfono y la tablet
+
+Todos los temas tienen su versión para pantallas chicas: el mundo ocupa el centro (se mueve con el dedo y
+se acerca pellizcando), los indicadores van en una tira que se desliza de lado y una barra de pestañas abre
+**Agentes**, **Métricas** y **Novedades** como hojas desde abajo. Con el teléfono acostado, las pestañas
+pasan a una barra vertical.
+
+<p align="center"><img src="docs/mobile.webp" alt="Atalaya en un teléfono: el mundo, los agentes y las métricas" width="760"></p>
+
+---
+
+## Qué hace
+
+<table>
+  <tr>
+    <td width="33%" valign="top"><img src="docs/icons/terminal.svg" width="40"><br><b>Todo el servidor, en vivo</b><br><sub>CPU, memoria, disco, red, procesos, PM2, systemd, Docker, visitas y errores por minuto. Cada indicador abre su detalle.</sub></td>
+    <td width="33%" valign="top"><img src="docs/icons/folder.svg" width="40"><br><b>Mapa de proyectos</b><br><sub>Une repo, despliegue, dominio y base aunque vivan en lugares distintos, y le pone un puntaje de 0 a 100.</sub></td>
+    <td width="33%" valign="top"><img src="docs/icons/bot.svg" width="40"><br><b>Claude Code a la vista</b><br><sub>Cada sesión es un robot. Se ve en qué proyecto y cuenta trabaja, qué hace, sus subagentes, los encargos y mensajes que se mandan y cuándo le pide permiso.</sub></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src="docs/icons/invader.svg" width="40"><br><b>Defensa</b><br><sub>Intentos de SSH, bloqueos de cPHulk, fail2ban y CSF, y los robots que buscan rutas vulnerables en cada sitio (.env, .git, wp-login, phpMyAdmin, webshells), con verificación de archivos expuestos. Escaneos, scraping y picos de visitas ponen al sitio <b>en vigilancia</b>, con patrullas o reflectores.</sub></td>
+    <td valign="top"><img src="docs/icons/db.svg" width="40"><br><b>Bases de datos</b><br><sub>Tamaño, tablas y qué sitio usa cada base, leído de los archivos. Y, si lo activa, su actividad en vivo con un usuario que solo ve las consultas en curso: nunca lee ni cambia datos.</sub></td>
+    <td valign="top"><img src="docs/icons/shield.svg" width="40"><br><b>Salud del servidor</b><br><sub>Respaldos, actualizaciones, cola de correo, tareas cron, puertos abiertos, certificados SSL por vencer, servicios que se reinician solos, accesos a cPanel y WHM, archivos .git/.env expuestos por cualquier nombre del sitio y apariciones en buscadores de filtraciones (LeakIX), revisados cada 15 minutos. Se ve junto al servidor en el mundo y en su ficha, cada hallazgo con su «cómo arreglarlo».</sub></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src="docs/icons/house.svg" width="40"><br><b>Hostings compartidos</b><br><sub>Un agente por cron para cPanel, Hostinger, GoDaddy o Namecheap. No toca <code>public_html</code> ni abre puertos.</sub></td>
+    <td valign="top"><img src="docs/icons/wp.svg" width="40"><br><b>Sitios WordPress</b><br><sub>Un plugin que se conecta solo: versión, plugins por actualizar, PHP sin soporte y errores visibles.</sub></td>
+    <td valign="top"><img src="docs/icons/cloud.svg" width="40"><br><b>Nube</b><br><sub>Vercel (proyectos, despliegues y visitas), Supabase (salud de cada base) y GitHub (revisión de repos).</sub></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src="docs/icons/lock.svg" width="40"><br><b>Público o privado</b><br><sub>En la TV, sin nombres, IPs ni rutas. Con el PIN, todo el detalle por un rato.</sub></td>
+    <td valign="top"><img src="docs/icons/search.svg" width="40"><br><b>Análisis a pedido</b><br><sub>Mapa del disco, auditoría de bases y revisión de proyectos. Solo con <b>Analizar ahora</b>, de a uno y con prioridad mínima.</sub></td>
+    <td valign="top"><img src="docs/icons/rocket.svg" width="40"><br><b>Se instala solo</b><br><sub>Un comando, una línea de cron o un plugin; lo demás, en un asistente web con código de un solo uso.</sub></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src="docs/icons/city.svg" width="40"><br><b>Diez temas</b><br><sub>En pixel art 2D o en 3D, cada uno con su mundo y su HUD. Se cambian en caliente, y la comunidad puede crear los suyos.</sub></td>
+    <td valign="top"><img src="docs/icons/phone.svg" width="40"><br><b>TV, monitor o teléfono</b><br><sub>Del teléfono al monitor ultra ancho: en pantallas chicas los paneles pasan a pestañas y hojas deslizables.</sub></td>
+    <td valign="top"><img src="docs/icons/star.svg" width="40"><br><b>Cada proyecto con su ícono</b><br><sub>El favicon real de cada sitio, descargado solo y sin IA. Sin favicon, un cartel pixel propio.</sub></td>
+  </tr>
+</table>
+
+---
+
+## Cómo se conecta todo
+
+```mermaid
+flowchart LR
+  subgraph Fuentes
+    VPS["VPS con root<br/>cPanel · Plesk · DirectAdmin<br/>CyberPanel · sin panel"]
+    HOST["Hosting compartido<br/>agente por cron"]
+    WP["Sitio WordPress<br/>plugin"]
+    NUBE["Vercel · Supabase<br/>GitHub"]
+    CC["Claude Code<br/>servidor y laptops"]
+  end
+  VPS -- "lectura local" --> A
+  HOST -- "HTTPS firmado" --> A
+  WP -- "HTTPS firmado" --> A
+  NUBE -- "API de solo lectura" --> A
+  CC -- "hooks" --> A
+  A(("Atalaya")) -- "en vivo (SSE)" --> TV["Pantalla<br/>modo público o privado"]
+```
+
+Los agentes y el plugin **solo envían**; Atalaya nunca entra a ellos. Solo puede pedirles dos
+cosas, de una lista cerrada: «mándame todo ya» y «dime qué ocupa el espacio».
+
+---
+
+## Mapa de proyectos
+
+Quien arma proyectos rápido (sobre todo con IA) termina con cosas regadas: el repo en GitHub, el
+frontend en Vercel, la base en Supabase, una API en un VPS y la landing en un hosting. Atalaya los
+**une solos** por repositorio (incluidos los alias SSH de las *deploy keys* y el repo vinculado en
+Vercel) y sugiere uniones por nombre parecido. Desde la ficha se une, separa, renombra u oculta.
+
+| Revisión | Qué mira |
+|---|---|
+| **Código** | ¿Está en un repositorio? ¿Es público? |
+| **Secretos** | `.env`, llaves, credenciales o volcados de base subidos al repo; `.gitignore` que no excluye los `.env` |
+| **Dependencias** | Alertas de seguridad de Dependabot; lockfile |
+| **Despliegue** | Último despliegue fallido, servicio caído, base pausada |
+| **Certificados** | SSL inválido, vencido o por vencer |
+| **Respuesta** | Código HTTP y tiempo de cada dominio |
+| **Dominio** | Fecha de vencimiento del registro (RDAP) |
+| **Abandono** | Sin cambios hace meses pero todavía publicado |
+
+Cada sitio y servicio muestra además sus **visitantes ahora** (personas en los últimos 5 minutos, sin
+robots), las **visitas y visitantes de hoy**, y de la última hora: páginas más pedidas, de dónde llegan,
+países, navegadores, robots y errores.
+
+Cada proyecto se muestra con **su propio ícono**: el favicon de su sitio, que Atalaya descarga solo
+(sin IA ni servicios externos, así que funciona en cualquier servidor). Se ve en modo privado; en público,
+y en los proyectos que no tienen favicon, cada uno recibe un cartel pixel propio.
+
+---
+
+## Dónde corre
+
+<table>
+  <tr>
+    <th width="20%"><img src="docs/icons/cloud.svg" width="32"><br>Atalaya Cloud</th>
+    <th width="20%"><img src="docs/icons/terminal.svg" width="32"><br>Atalaya VPS</th>
+    <th width="20%"><img src="docs/icons/house.svg" width="32"><br>Atalaya Hosting</th>
+    <th width="20%"><img src="docs/icons/phone.svg" width="32"><br>Atalaya Equipo</th>
+    <th width="20%"><img src="docs/icons/plug.svg" width="32"><br>Agentes</th>
+  </tr>
+  <tr>
+    <td valign="top">Para quien no tiene servidor: una pantalla alojada en <code>nube.neracosu.com/&lt;cliente&gt;</code>, con registro por invitación. Ve lo que el cliente conecta: nube, hostings, WordPress y laptops.</td>
+    <td valign="top">Servidores con root: cPanel/WHM, Plesk, DirectAdmin, CyberPanel o sin panel. Ve <b>todo el servidor</b>. Corre como servicio de systemd de solo lectura.</td>
+    <td valign="top">La pantalla completa dentro de una cuenta de hosting con Node (cPanel › <i>Setup Node.js App</i>). Ve <b>esa cuenta</b> y recibe otras.</td>
+    <td valign="top">Un <b>ejecutable único</b> para Windows, macOS o Linux: esa computadora, sus sesiones de Claude Code y los conectores de nube. Solo en 127.0.0.1.</td>
+    <td valign="top">Para lo que no tiene Node: un <b>script por cron</b> o el <b>plugin de WordPress</b> envían a cualquier Atalaya.</td>
+  </tr>
+</table>
+
+---
+
+## Atalaya Cloud
+
+Para quien no tiene servidor, o no quiere mantener uno: una pantalla alojada en
+[nube.neracosu.com](https://nube.neracosu.com), lista en minutos. Ve solo lo que usted le conecta (Vercel,
+Supabase, GitHub, hostings por agente, sitios WordPress y laptops con Claude Code) y nunca mira la máquina
+que la aloja.
+
+Durante la beta es por invitación y no se cobra: [pida acceso](https://nube.neracosu.com/solicitud?paquete=cloud).
+
+> Atalaya Cloud es un servicio de NERACOSU. Este repositorio trae la edición `cloud` del servidor, la misma
+> que usa cada pantalla alojada; el portal del servicio no forma parte de esta distribución.
+
+---
+
+## Instalación
+
+<details open>
+<summary><b>Atalaya VPS</b> (con root)</summary>
+
+<br>
+
+Desde otra Atalaya, menú › *Instalar* › **Servidor VPS** genera el comando (token de 24 h). Se pega
+como root en **WHM › Terminal**, **Plesk › SSH Terminal** o por SSH:
+
+```sh
+curl -fsSL https://SU-ATALAYA/get | sudo sh -s -- --token=XXXX [--domain=atalaya.su-dominio.com]
+```
+
+O desde el repositorio:
+
+```sh
+git clone https://github.com/neracosu/atalayams.git /opt/atalaya
+cd /opt/atalaya && sudo ./install.sh --web
+```
+
+Instala Node.js si falta, crea el servicio de solo lectura y muestra la **dirección y el código**
+del asistente web. En cPanel publica el subdominio con su certificado desde el mismo asistente.
+Volver a ejecutarlo actualiza sin tocar la configuración.
+
+</details>
+
+<details>
+<summary><b>Atalaya Equipo</b> (ejecutable único para Windows, macOS o Linux)</summary>
+<br>
+
+Un solo archivo con Node adentro (Node SEA): se descomprime y se abre. El dueño de un Atalaya VPS lo descarga desde su pantalla: menú › **Atalaya para su computadora**. La primera vez extrae la aplicación
+en la caché del usuario, elige un puerto libre desde el 3950, abre el navegador en el asistente con el
+código ya puesto, y queda escuchando **solo en 127.0.0.1**. Muestra esa computadora (CPU, memoria y
+disco; en Linux también red y procesos), sus sesiones de Claude Code (en Windows, las de VS Code y otros IDE y
+las que corren dentro de **WSL**, cada distribución como su distrito) y los conectores de nube. Los
+hostings y WordPress necesitan una dirección pública: para eso están Cloud y VPS.
+
+| | Datos | Caché de la aplicación |
+|---|---|---|
+| Windows | `%APPDATA%\Atalaya` | `%LOCALAPPDATA%\Atalaya\app` |
+| macOS | `~/Library/Application Support/Atalaya` | `~/Library/Caches/Atalaya` |
+| Linux | `~/.local/share/atalaya` | `~/.cache/atalaya` |
+
+Opciones: `--puerto N`, `--sin-navegador`, `--version`. Abrirlo dos veces abre la que ya corre.
+
+Para construirlo (en Linux, con red):
+
+```sh
+node scripts/build-exe.js                  # linux-x64, linux-arm64, darwin-x64, darwin-arm64 y win-x64
+node scripts/build-exe.js win-x64          # uno solo
+```
+
+Descarga el Node oficial de la misma versión (verificado con `SHASUMS256.txt`), inyecta la aplicación con
+`postject`, firma ad hoc los de macOS con `rcodesign` y quita la firma rota del `.exe`. Deja en `dist/`
+un `.zip` (Windows y macOS) o `.tar.gz` (Linux) con un `LEEME.txt`, más `SHA256SUMS-<versión>.txt`.
+Ni el `.exe` ni el binario de macOS tienen firma de un certificado comercial: Windows muestra
+«Windows protegió su PC» y macOS pide «Abrir de todas formas» la primera vez.
+
+</details>
+<details>
+<summary><b>Atalaya Hosting</b> (cuenta de hosting con Node, sin root)</summary>
+
+<br>
+
+Menú › *Instalar* › **Hosting compartido** › *Generar comando*. En el Terminal de cPanel:
+
+```sh
+curl -fsSL https://SU-ATALAYA/get | sh -s -- --hosting --token=XXXX --domain=atalaya.su-dominio.com
+```
+
+Queda en `~/atalaya` con los datos en `~/.atalaya-data`. En CloudLinux intenta crear la app Node
+solo; si no, se crea en **Setup Node.js App** (Node 20+, raíz `atalaya`, inicio `app.js`). El
+asistente conecta la cuenta con un clic.
+
+</details>
+
+<details>
+<summary><b>Conectar un hosting</b> (agente por cron)</summary>
+
+<br>
+
+Menú › *Conectar un hosting compartido* genera un código de un solo uso. En el hosting:
+
+```sh
+curl -fsSL https://SU-ATALAYA/install/agent.sh | sh -s -- https://SU-ATALAYA CODIGO
+```
+
+Sin terminal, la misma línea va como tarea **cada minuto** en *Trabajos de cron*: se instala y esa
+tarea se borra sola. Envía visitas y errores de PHP cada minuto, y cada 10 minutos dominios, cuota,
+bases, certificados, correo, recursos y cron (con los secretos tapados). Quitarlo:
+`curl -fsSL https://SU-ATALAYA/install/agent.sh | sh -s -- --uninstall`
+
+</details>
+
+<details>
+<summary><b>Conectar un sitio WordPress</b> (plugin, sin terminal)</summary>
+
+<br>
+
+1. Menú › *Conectar un hosting compartido* › **Descargar plugin**: un `.zip` ya configurado.
+2. En WordPress: **Plugins › Añadir nuevo › Subir plugin** y **Activar**. Se conecta solo.
+
+Ve la versión y las actualizaciones pendientes del núcleo, plugins y temas, PHP y su fin de
+soporte, la base, los usuarios y los errores. Avisa de `WP_DEBUG` visible, `debug.log` descargable,
+usuario «admin», registro abierto con rol peligroso, editor de archivos activo y WP-Cron atrasado.
+El plugin **no registra rutas públicas**: solo envía. WordPress 5.6+ y PHP 7.4+.
+
+</details>
+
+<details>
+<summary><b>Conectar la nube y Claude Code</b></summary>
+
+<br>
+
+```sh
+node cli.js connector add github      # token fine-grained de solo lectura
+node cli.js connector add vercel      # token (y secreto del Drain para ver visitas)
+node cli.js connector add supabase    # project ref + secret key
+node cli.js remote add laptop-ana     # hooks de Claude Code para una laptop
+node hooks/install.js                 # hooks de Claude Code en el servidor
+```
+
+También desde el asistente (menú › Asistente › Extras). Los secretos quedan en un archivo 600 y
+se toman en caliente.
+
+</details>
+
+---
+
+## Seguridad
+
+- **Solo lectura por diseño.** El servicio corre con una sola capacidad (`CAP_DAC_READ_SEARCH`) y
+  `ProtectSystem=strict`. Lo poco que hace el asistente pasa por un ayudante con **lista cerrada**.
+- **Bloqueos seguros.** La defensa bloquea IPs en una tabla propia de nftables (`inet atalaya`), aparte de
+  iptables, fail2ban y cPHulk, y **siempre con vencimiento**: al cumplirse, nftables la suelta sola. Nunca
+  bloquea Cloudflare (dejaría sin servicio a todos los que entran por ese nodo), redes privadas, el propio
+  servidor, la lista blanca ni IPs de usuarios de Atalaya; el ayudante lo vuelve a revisar antes de ejecutar.
+- **Acceso** con usuario y PIN de 6 dígitos (scrypt, bloqueo por intentos), cookies `HttpOnly` +
+  `SameSite=Strict` + `Secure`, CSP estricta y cabecera anti-CSRF.
+- **Modo público** filtrado **en el servidor**: en la TV nunca salen nombres, dominios, rutas, IPs,
+  comandos ni prompts. Aun en privado se tapan tokens y contraseñas evidentes.
+- **Secretos**: nunca en los argumentos de un proceso; de los tokens de agentes, laptops y hooks se
+  guarda solo el SHA-256.
+- **Agentes y plugin**: vinculación con código de un solo uso, envíos firmados, y ninguna ruta
+  pública nueva en el hosting ni en WordPress.
+- **Instalación remota**: tokens de 24 h y 5 usos; el paquete se verifica por SHA-256.
+- **Salud del servidor**: en la TV (modo público) solo se ve el estado y cuántos hallazgos hay; los
+  puertos, los comandos de cron y el detalle, solo en privado.
+- **Definiciones firmadas**: lo que Atalaya detecta y cómo empezar a resolverlo (familias de sondeos web,
+  motivos de rebote y sus arreglos) vive en `defs/definiciones.json` y se actualiza solo una vez al día desde
+  `nube.neracosu.com/definiciones/latest.json`, como las de un antivirus. Solo se aceptan paquetes firmados
+  (ed25519) con la clave pública que trae Atalaya, más nuevos y con reglas válidas; no se envía ningún dato.
+  Se apaga con `defs.updates: false` en `config.json`. Para publicar: `node scripts/defs.js publish`.
+- **Atalaya Cloud**: cada cliente en su propio proceso, carpeta y socket, bajo un usuario de sistema
+  que no ve `/home`, ni otros procesos, ni el estado de Atalaya VPS. En la nube no se lee nada de la
+  máquina que aloja, y las salidas a direcciones que da el cliente no alcanzan la red interna.
+- **Favicons**: se descargan en el servidor (quien mira la pantalla no se conecta a ningún sitio), solo
+  imágenes verificadas por su firma, sin seguir enlaces a IPs internas, y solo se muestran en privado.
+
+---
+
+## Referencia
+
+<details>
+<summary><b>Qué es cada cosa en la ciudad</b></summary>
+
+<br>
+
+| En el mundo | Qué es |
+|---|---|
+| Distrito | Una cuenta de cPanel, un usuario, un hosting, un WordPress o una cuenta de nube |
+| Edificio | Un proceso de PM2, un servicio de systemd, un contenedor o un proyecto de Vercel. Altura = memoria, techo naranja = CPU, ventanas = visitas |
+| Edificio bajo | Un sitio servido directo (WordPress, PHP, estático, en construcción) |
+| Luz del techo | Verde en línea, ámbar parcial o desplegando, roja caído |
+| Robot | Una sesión de Claude Code; camina a la estación de lo que hace |
+| Halo ámbar | El agente espera su permiso o su respuesta |
+| Autopista y peaje | Por la autopista llegan las visitas desde Internet; el peaje es el firewall |
+| Autos que viajan | Visitas reales: autos pixel del color de la visita (cian personas, gris robots, ámbar error del visitante, rojo error del servidor) |
+| Invasores | Intentos fallidos de acceso que revientan contra la barrera del peaje |
+| Auto con sirena | Un robot buscando rutas vulnerables en un sitio; si la ruta respondió, el edificio queda en rojo con «EXPUESTO» |
+| Patrullas voladoras | El sitio está **en vigilancia**: escaneo, scraping, fuerza bruta, una ruta expuesta o la misma IP en varios sitios. Salen de la torre, lo custodian y vuelven cuando pasa |
+| Patrullas con un auto oscuro | Una IP quedó **bloqueada**: las patrullas se la llevan a la cárcel |
+| Cárcel | Junto a la autopista: las IPs bloqueadas (a mano en el firewall y por la defensa), un auto tras las rejas por cada una. Al vencer, el auto sale con «LIBERADA» |
+| Reflectores | **Pico de visitas**: mucho más tráfico que lo normal, desde muchas IPs (viral o ataque distribuido) |
+| Bichos rojos sobre un edificio | Apareció un **archivo PHP sospechoso** en ese sitio (posible puerta trasera): la ficha permite ponerlo en cuarentena |
+| Silo en la esquina de un distrito | Las **bases MySQL** de esa cuenta: altura por tamaño, tapa brillante con consultas en curso, rojo con las conexiones al límite, anillos tenues con conexiones dormidas |
+| Tuberías con pulsos | Unen un silo con el sitio que usa esa base; los pulsos son consultas en curso |
+| Silo verde | Un proyecto de **Supabase**: luces por conexiones, línea de disco usado, gris si está pausado; tubería a su app |
+| Cilindro con reloj de arena | Una consulta a la base de ese sitio lleva más de 10 segundos |
+| Torre en rojo con ondas de calor | **Servidor al límite** (CPU, memoria, carga o conexiones de MySQL) |
+| Atasco en el peaje | Con el servidor al límite, las visitas esperan en fila |
+| Autos grises en fila junto a un edificio | Ese sitio se quedó **sin procesos PHP**: sus visitas esperan |
+| Haz de luz sobre un robot | Una sesión de Claude Code que empieza (baja) o termina (sube) |
+| Estaciones del robot | Escritorio (en pausa), libros (leyendo), hoja con lápiz (editando), monitor (terminal), globo (web), portal (subagentes) |
+| Oficina de correos y sobres | Junto a la autopista. Ámbar sale de su cuenta hacia internet, violeta entra y llega a su cuenta, rojo rebota y vuelve roto a quien lo envió con el motivo. La pila de sobres es la cola de correo |
+
+</details>
+
+<details>
+<summary><b>Plataformas detectadas</b></summary>
+
+<br>
+
+| | Cuentas y sitios | Visitas | Seguridad | Correo |
+|---|---|---|---|---|
+| **cPanel/WHM** | `/var/cpanel/users`, `userdata` | domlogs | cPHulk, fail2ban, CSF | Exim |
+| **Plesk** | suscripciones en `/var/www/vhosts` | logs por dominio | fail2ban | Postfix |
+| **DirectAdmin** | `data/users`, dominios y punteros | `/var/log/httpd/domains` | CSF/LFD | Exim |
+| **CyberPanel** | vhosts de OpenLiteSpeed | logs por sitio | fail2ban, CSF | Postfix |
+| **Sin panel** | sitios de Nginx y Apache | `access_log` de cada sitio | fail2ban, CSF | Postfix o Exim |
+| **Hosting compartido** | `uapi` o `~/domains/*` | `~/access-logs` | — | buzones por `uapi` |
+
+`node server/platform` muestra el diagnóstico. cPanel está probado en producción; las demás
+plataformas, con servidores simulados. La edición Hosting y el agente se probaron en una cuenta real
+de cPanel sin privilegios; el plugin de WordPress, en un WordPress simulado.
+
+</details>
+
+<details>
+<summary><b>Uso y teclas</b></summary>
+
+<br>
+
+- **Modo director**: la cámara sigue lo que pasa en el servidor (lo más grave primero) con un rótulo que lo
+  cuenta; sin novedades, muestra lo activo o recorre los distritos. Si usted mueve la cámara, se aparta.
+- **Clic** en cualquier cosa abre su detalle; **pasar el mouse** explica qué es.
+- **Navegar**: arrastrar para mover (o girar, en los temas 3D), rueda o pellizco para acercar, doble
+  clic para volver a la vista general.
+- **Teclas**: `T` tema · `D` director · `P` modo privado · `L` modo público · `F` pantalla completa ·
+  `?` leyenda · `Esc` cerrar.
+- **Teléfono y tablet**: pestañas abajo (Mundo, Agentes, Métricas, Novedades); con el teléfono
+  acostado, a la derecha.
+- **Novedades**: junto al nombre; al actualizarse, la pantalla se recarga sola y muestra qué cambió.
+
+</details>
+
+<details>
+<summary><b>Usuarios</b></summary>
+
+<br>
+
+Desde la pantalla: **menú › Usuarios** (un dueño con el modo privado activo). Ahí se agregan, se les cambia
+el PIN o el rol (**dueño**: modo privado y configuración; **solo ver**: para el TV) y se borran. Nadie puede
+borrarse a sí mismo ni dejar la pantalla sin dueños, y cambiar el PIN de alguien o borrarlo cierra sus
+sesiones al instante.
+
+Lo mismo por terminal, si la prefiere:
+
+```sh
+node cli.js user add neri              # dueño: modo privado y análisis
+node cli.js user add tv --viewer       # solo modo público
+node cli.js user pin neri              # cambiar PIN (cierra sus sesiones)
+node cli.js user del tv                # borrar (sus pantallas se cortan al instante)
+node cli.js sessions revoke            # cerrar todas las sesiones
+```
+
+</details>
+
+<details>
+<summary><b>Configuración</b></summary>
+
+<br>
+
+Casi todo se ajusta en el asistente (`<stateDir>/settings.json`). Para ajustes finos, `config.json`:
+
+| Clave | Para qué |
+|---|---|
+| `accounts` | Etiqueta privada, pública y color de cada cuenta |
+| `apps`, `sites` | Nombre e ícono de cada app o dominio (si no se indica, se usa su favicon o un cartel pixel propio) |
+| `theme` | Tema por defecto de todas las pantallas (también desde el menú › Tema) |
+| `services` | Unidades de systemd a incluir o esconder |
+| `public` | Mostrar nombres reales en modo público (por defecto no) |
+| `privateOptions` | Duraciones del modo privado |
+| `claude` | Cuándo una sesión pasa a pausa o se retira |
+| `logs`, `docker.socket`, `mysql.datadir` | Rutas si no se detectan solas |
+| `diskmap.daily` | Analizar el disco cada madrugada (por defecto, solo a pedido) |
+| `logs.traffic` | Registro de tráfico en vivo si no está en la ruta de cPanel |
+| `projects` | Uniones, nombres y proyectos ocultos (los escribe la ficha) |
+
+</details>
+
+<details>
+<summary><b>Arquitectura</b></summary>
+
+<br>
+
+Node.js 20+ **sin dependencias en el servidor**; HTTP + SSE para la pantalla en vivo; PixiJS 8,
+three.js, anime.js 4 y uPlot en el navegador.
+
+```
+server/             HTTP + SSE, autenticación, privacidad, historial, cola de tareas pesadas
+server/collectors/  sistema y PM2, Claude Code, logs, systemd, Docker, métricas, mapa del disco
+server/platform/    detección de plataforma (cpanel, plesk, directadmin, cyberpanel, none)
+server/connectors/  GitHub, Vercel y Supabase
+server/audits/      bases de datos y sondas web (TLS, HTTP, RDAP)
+server/agents.js    receptor de agentes de hosting y del plugin de WordPress
+server/projects.js  mapa de proyectos y puntaje de buenas prácticas
+server/favicons.js  descarga y guarda el favicon de cada proyecto
+server/audits/host.js salud del servidor: respaldos, actualizaciones, correo, cron y puertos
+server/audits/services.js certificados SSL y servicios que se reinician solos (chkservd, systemd, falta de memoria)
+server/audits/logins.js   accesos a cPanel, WHM y webmail: contraseñas equivocadas y entradas desde IPs nuevas
+server/analytics.js       analítica de visitas desde los registros: totales por día y sitio, sin cookies
+server/netguard.js  en la nube, ninguna salida hacia la red interna
+exe/                arranque del ejecutable único (edición Equipo); se arma con scripts/build-exe.js
+agent/              agente POSIX para hosting compartido
+wordpress/          plugin «Atalaya · Agente»
+app.js              entrada de Atalaya Hosting
+web/                el HUD, los íconos pixel, el asistente y los temas (web/themes/<id>)
+web/js/stage3d.js   motor compartido de los temas 3D; web/js/layout.js, placas y reparto de cuentas
+kit/                fuente del kit de temas (se exporta a atalaya-temas)
+hooks/              hooks de Claude Code
+scripts/            instaladores, versiones y recursos del README
+test/               pruebas con plataformas, APIs y WordPress simulados
+```
+
+</details>
+
+<details>
+<summary><b>Desarrollo y versiones</b></summary>
+
+<br>
+
+```sh
+npm test                                   # todas las pruebas
+node scripts/readme-assets.js banner       # banner animado del README
+node scripts/readme-assets.js icons        # íconos pixel del README
+node scripts/readme-assets.js capture      # capturas WebP de la pantalla real, de cada tema y del teléfono (siempre en modo público)
+node scripts/export-kit.js ../atalaya-temas  # regenera el kit de temas
+```
+
+Versionado semántico; cada cambio queda en [CHANGELOG.md](CHANGELOG.md) y la pantalla lo muestra
+en *Novedades*.
+
+</details>
+
+---
+
+## Hoja de ruta
+
+Atalaya es nuevo y crece con lo que piden quienes lo usan. Si algo le falta,
+[abra un issue](https://github.com/neracosu/atalayams/issues) o [pida acceso](https://nube.neracosu.com/solicitud) y cuéntenos.
+
+**Lo que viene:**
+
+- [ ] Más temas: los de la comunidad
+- [ ] Distribución de los ejecutables de la edición Equipo
+- [ ] Más revisiones: integridad de WordPress
+- [ ] **Historial largo en SQLite**: el registro de seguridad y las métricas pasan a una base SQLite (un solo archivo, sin servidor aparte, nunca el MySQL que se vigila) para expedientes de meses y gráficas históricas. Requiere Node 22. Usuarios, ajustes y cárcel siguen en JSON
+- [ ] Plugin de WHM y modo cuenta de cPanel
+- [ ] Tour guiado
+
+**Hecho:**
+
+- [x] Ciudad pixel, HUD, modo público y privado, Claude Code
+- [x] VPS en cPanel, Plesk, DirectAdmin, CyberPanel y sin panel
+- [x] Vercel, Supabase y GitHub
+- [x] Mapa del disco y auditoría de bases a pedido
+- [x] Hostings compartidos por cron y edición Hosting
+- [x] Mapa de proyectos con puntaje de buenas prácticas
+- [x] Plugin de WordPress
+- [x] Sistema de temas con cambio en caliente: **Ciudad clásica**, **Ciudad 3D**, **Acuario**, **Ops**, **Villa**, **Raid**, **Planta**, **Oficina**, **Terminal** y **Castillo**
+- [x] **Kit de temas para la comunidad**: repositorio aparte con simulador de datos reales (en modo público), para crear temas sin acceso a un servidor
+- [x] Versión para teléfonos y tablets, y pantallas ultra anchas
+- [x] Ícono real de cada proyecto (favicon) sin IA ni servicios externos
+- [x] **Atalaya Cloud**: una pantalla alojada para quien no tiene servidor, con registro por invitación y planes
+- [x] **Sitio del proyecto** con guías paso a paso ([neracosu.com/atalaya](https://neracosu.com/atalaya/))
+- [x] **Ejecutable único** para Windows, macOS y Linux (edición Equipo)
+- [x] **Comunicación entre agentes a la vista**: encargo y resultado, mensajes y el haz al proyecto que se lee o edita
+- [x] **Defensa web**: sondeos de rutas vulnerables por sitio, archivos expuestos verificados y descargas de .git
+- [x] **Correo con contexto**: cuenta, remitente, destinatario y motivo de cada rebote
+- [x] **Definiciones que se actualizan solas** (firmadas), como las de un antivirus
+- [x] Salud del servidor: respaldos, actualizaciones, cola de correo, cron y puertos
+- [x] **Vigilancia de sitios**: escaneos, scraping y picos de visitas, con patrullas voladoras y reflectores
+- [x] **Actividad de las bases**: conexiones, consultas por segundo y consultas lentas, sin leer datos
+- [x] **Director que sigue la acción**, con rótulo y marca en todos los temas
+- [x] Usuarios, PIN y roles desde la pantalla
+- [x] **Alertas por Telegram y por correo** (Gmail, Outlook, su hosting o cualquier SMTP) con horario de silencio, enlace a la ficha y resumen de cada mañana
+- [x] **Defensa**: bloqueo temporal de IPs con un botón o automático, y freno antes de la saturación
+- [x] **Saturación visible**: torre al límite, atasco en el peaje y sitios sin procesos PHP-FPM
+- [x] **Archivos PHP sospechosos** en los docroots, con cuarentena desde la ficha y quién los buscó
+- [x] Cuotas de disco, inodos y ancho de banda por cuenta; tareas cron que producen salida seguido
+- [x] **Expediente de cada preso** y registro de seguridad con historial por sitio
+- [x] **Certificados SSL** por vencer o autofirmados y **servicios que se reinician solos**, con aviso por Telegram y correo
+- [x] **Analítica sin cookies** desde los registros: visitantes, orígenes, páginas, países y dispositivos por día, con comparación
+- [x] **Accesos a cPanel y WHM**: contraseñas equivocadas (sin contar escáneres), entradas desde IPs nuevas y aviso si alguien entra después de fallar
+
+---
+
+## Créditos de terceros
+
+Se distribuyen en `web/vendor` y `web/fonts`; licencias en [`licenses/`](licenses/):
+[PixiJS](https://pixijs.com), [three.js](https://threejs.org), [anime.js](https://animejs.com) y [uPlot](https://github.com/leeoniya/uPlot) (MIT) ·
+[DB-IP Lite](https://db-ip.com) (CC-BY 4.0) ·
+fuentes [Silkscreen](https://github.com/googlefonts/silkscreen), [Space Grotesk](https://github.com/floriankarsten/space-grotesk),
+[VT323](https://fonts.google.com/specimen/VT323), [Pixelify Sans](https://fonts.google.com/specimen/Pixelify+Sans),
+[Jersey 10](https://fonts.google.com/specimen/Jersey+10) y [Jacquard 24](https://fonts.google.com/specimen/Jacquard+24) (SIL OFL 1.1) ·
+vencimiento de dominios por [RDAP](https://about.rdap.org).
+
+<br>
+
+<p align="center">
+  <img src="docs/icons/antenna.svg" width="28"><br>
+  <sub>© 2026 Neri Colón · NERACOSU. Todos los derechos reservados.</sub>
+</p>
+
+---
+
+## Licencia
+
+Atalaya Monitor Server se distribuye bajo la [GNU Affero General Public License 3.0](LICENSE): puede usarlo,
+estudiarlo, modificarlo y compartirlo; si ofrece una versión modificada como servicio, debe publicar sus
+cambios con la misma licencia. Atalaya Cloud (el servicio alojado) y la publicación de definiciones son de
+[NERACOSU](https://neracosu.com). Cómo contribuir: [CONTRIBUTING.md](CONTRIBUTING.md) · seguridad:
+[SECURITY.md](SECURITY.md) · conducta: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).

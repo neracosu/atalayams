@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <symbol id="mark" viewBox="0 0 64 64">
+    <path d="M32 4 L52 16 L52 40 L32 60 L12 40 L12 16 Z" fill="#0b1222" stroke="#22d3ee" stroke-width="3"/>
+    <path d="M24 44 L28 22 L36 22 L40 44 Z" fill="#22d3ee" opacity=".25"/>
+    <rect x="26" y="18" width="12" height="6" rx="1" fill="#22d3ee"/>
+    <circle cx="32" cy="14" r="3" fill="#f59e0b"/>
+    <path d="M14 28 Q32 20 50 28" fill="none" stroke="#a78bfa" stroke-width="2" opacity=".8"/>
+  </symbol>
+  <use href="#mark"/>
+</svg>

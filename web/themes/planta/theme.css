@@ -1,0 +1,89 @@
+/* Tema "Planta": sala de control industrial con la paleta de PICO-8. Regla de oro: solo sus 16 colores,
+   rayas de seguridad, pantallas de cristal liquido y tickets impresos. Todo bajo body[data-theme="planta"]. */
+body[data-theme="planta"] {
+  --bg: #15151b; --bg-2: #1d2b53; --panel: #1b1b22; --panel-solid: #1b1b22;
+  --line: #5f574f; --line-strong: #c2c3c7;
+  --ink: #fff1e8; --ink-2: #c2c3c7; --ink-3: #83769c;
+  --accent: #ffec27; --good: #00e436; --warn: #ffa300; --bad: #ff004d; --private: #ffa300;
+  --radius: 0; --font: 'Silkscreen', ui-monospace, monospace; --pixel: 'Silkscreen', ui-monospace, monospace; --mono: 'Silkscreen', ui-monospace, monospace;
+  --chart-1: #00e436; --chart-2: #29adff; --chart-3: #ffec27; --chart-4: #ff004d;
+  --hazard: repeating-linear-gradient(45deg, #ffec27 0 8px, #000000 8px 16px);
+  background: var(--bg); font-size: .92rem;
+}
+body[data-theme="planta"] *, body[data-theme="planta"] *::before, body[data-theme="planta"] *::after { border-radius: 0 !important; }
+body[data-theme="planta"] .panel, body[data-theme="planta"] #top, body[data-theme="planta"] .drawer, body[data-theme="planta"] dialog, body[data-theme="planta"] .menu, body[data-theme="planta"] .tip {
+  background: var(--panel); backdrop-filter: none; border: 2px solid #000000; box-shadow: inset 0 0 0 2px #5f574f;
+}
+body[data-theme="planta"] h2, body[data-theme="planta"] h3, body[data-theme="planta"] h4, body[data-theme="planta"] .pix { font-family: var(--pixel); letter-spacing: .04em; font-weight: 400; }
+body[data-theme="planta"] h2 { font-size: .95rem; color: var(--accent); }
+
+/* sala de control: barra superior con rayas de seguridad y pantallas LCD */
+body[data-theme="planta"] #top { top: 0; left: 0; right: 0; height: 5.2rem; border-width: 0 0 2px; padding-bottom: 10px; }
+body[data-theme="planta"] #top::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--hazard); }
+body[data-theme="planta"] .brand h1 { font-size: 1.3rem; color: var(--accent); }
+body[data-theme="planta"] .kpi { background: #0f2a14; border: 2px solid #000000; box-shadow: inset 0 0 0 1px #008751; padding: .3rem .55rem; }
+body[data-theme="planta"] .kpi .k { font-size: .62rem; color: #008751; }
+body[data-theme="planta"] .kpi .v { font-size: 1.25rem; font-weight: 400; color: #00e436; text-shadow: 0 0 0 transparent; }
+body[data-theme="planta"] .kpi .bar { background: #000000; height: 4px; }
+body[data-theme="planta"] .kpi .bar i { background: #00e436; }
+body[data-theme="planta"] .kpi.warn .v, body[data-theme="planta"] .kpi.warn .bar i { color: #ffa300; background-color: transparent; }
+body[data-theme="planta"] .kpi.bad .v { color: #ff004d; }
+body[data-theme="planta"] .clock #time { font-weight: 400; color: var(--accent); }
+body[data-theme="planta"] .mode { background: #000000; border: 2px solid #5f574f; }
+
+/* fichero de turnos (agentes) a la izquierda: tarjetas perforadas */
+body[data-theme="planta"] #left { top: 6.2rem; left: .8rem; bottom: .8rem; width: clamp(230px, 17vw, 440px); padding: .7rem; }
+body[data-theme="planta"] #left h2 .pix { font-size: 0; }
+body[data-theme="planta"] #left h2 .pix::after { content: 'FICHERO DE TURNOS'; font-size: .95rem; }
+body[data-theme="planta"] .agent { background: #ffccaa; color: #000000; border: 0; box-shadow: inset 0 0 0 2px #ab5236; }
+body[data-theme="planta"] .agent * { color: #000000 !important; }
+body[data-theme="planta"] .agent::before { width: 100%; height: 5px; top: 0; bottom: auto; background: repeating-linear-gradient(90deg, #ab5236 0 3px, transparent 3px 8px); }
+body[data-theme="planta"] .agent.waiting { box-shadow: inset 0 0 0 3px #ffa300; animation: none; }
+
+/* cinta de produccion (novedades) a la derecha, como tickets impresos */
+body[data-theme="planta"] #ticker { top: 6.2rem; right: .8rem; left: auto; bottom: auto; width: clamp(260px, 21vw, 520px); height: 16rem; flex-direction: column; align-items: stretch; padding: .6rem;
+  background: var(--panel); border: 2px solid #000; box-shadow: inset 0 0 0 2px #5f574f; }
+body[data-theme="planta"] #ticker::before { content: 'CINTA DE PRODUCCIÓN'; color: var(--accent); margin-bottom: .4rem; }
+body[data-theme="planta"] #ticker .tscroll { overflow: hidden; flex: 1; }
+body[data-theme="planta"] #log { flex-direction: column; gap: .3rem; }
+body[data-theme="planta"] #log .ev { display: block; white-space: normal; background: #fff1e8; color: #000000; padding: .2rem .45rem; font-size: .78rem; line-height: 1.25; border-left: 3px dashed #5f574f; }
+body[data-theme="planta"] #log .ev > * { margin-right: .3rem; }
+body[data-theme="planta"] #log .ev .tag { color: #7e2553; }
+body[data-theme="planta"] #log .ev time { color: #5f574f; }
+body[data-theme="planta"] #log .ev:nth-child(n+6) { display: none; }
+body[data-theme="planta"] #tall { position: absolute; top: .5rem; right: .5rem; background: #000; border: 2px solid #5f574f; }
+
+body[data-theme="planta"] #right { top: 23rem; right: .8rem; bottom: .8rem; width: clamp(260px, 21vw, 520px); padding: .7rem; font-size: .74rem; gap: .5rem; }
+body[data-theme="planta"] #right h2 { font-size: .82rem; margin-bottom: .35rem; }
+body[data-theme="planta"] #left { font-size: .8rem; }
+
+body[data-theme="planta"] #navbar { bottom: .8rem; background: #000; border: 2px solid #5f574f; }
+body[data-theme="planta"] #navbar button { background: #1b1b22; border: 2px solid #5f574f; }
+
+body[data-theme="planta"] #worldArea { display: block; top: 6.2rem; bottom: 4.4rem; left: calc(clamp(230px, 17vw, 440px) + 1.6rem); right: calc(clamp(260px, 21vw, 520px) + 1.6rem); }
+body[data-theme="planta"] .drawer { top: 6.2rem; bottom: .8rem; right: .8rem; }
+body[data-theme="planta"] .dstat { background: #000; }
+body[data-theme="planta"] .btn { background: #1d2b53; border: 2px solid #29adff; color: var(--ink); }
+body[data-theme="planta"] .btn.ghost { background: none; }
+body[data-theme="planta"] .cc { font-family: var(--font); background: #000; border-color: #5f574f; }
+
+/* columna mas corta (arriba va el parte de novedades): graficas mas bajas y 5 procesos */
+body[data-theme="planta"] #right .chart { height: clamp(3.5rem, 8vh, 6rem); }
+body[data-theme="planta"] #right .procs > :nth-child(n+6) { display: none; }
+body[data-theme="planta"] #right .projrow:nth-child(n+4) { display: none; }
+
+/* mundo 3D: placas de las naves como carteles de fabrica (negro y amarillo) */
+body[data-theme="planta"] .w3-plaque { background: #15151b; border: 0; box-shadow: 0 0 0 2px #000, 0 0 0 4px #5f574f; }
+body[data-theme="planta"] .w3-plaque > b { color: #fff1e8; }
+body[data-theme="planta"] .w3-plaque .fishlist span { color: #c2c3c7; }
+body[data-theme="planta"] .w3-plaque .fishlist span.down { color: #ff004d; }
+body[data-theme="planta"] .w3-plaque .fishlist img { width: 1.1em; height: 1.1em; }
+body[data-theme="planta"] .w3-central > b { border-color: #ffec27; }
+body[data-theme="planta"] .w3-item { border-left-color: #ffec27; background: rgba(21, 21, 27, .88); }
+body[data-theme="planta"] .w3-item.down { color: #ff77a8; border-left-color: #ff004d; }
+body[data-theme="planta"] .w3-float { background: #15151b; }
+
+/* novedades: cada una ocupa el ancho del cuadro y hace salto de linea (tambien las que se tocan) */
+body[data-theme="planta"] #log { align-items: stretch; width: 100%; min-width: 0; white-space: normal; }
+body[data-theme="planta"] #log .ev, body[data-theme="planta"] #log .ev.link { display: block; width: 100%; max-width: none; text-align: left; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; }
+body[data-theme="planta"] #log .ev .ic { display: inline-block; vertical-align: -2px; }

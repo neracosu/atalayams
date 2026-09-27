@@ -1,0 +1,30 @@
+{
+  "id": "terminal",
+  "name": "Terminal",
+  "description": "Una consola de fósforo verde de los 80 con ventanas de texto como tmux: el servidor es root@atalaya con barras ASCII y sus servicios como un arranque de systemd, cada cuenta es una ventana con una línea por servicio o sitio (barra de CPU al estilo htop, gráfica de visitas con caracteres y su estado), las visitas corren por un tail -f y los intentos de acceso por el registro de sshd. Todo es texto: cada proyecto se lee sin hacer clic.",
+  "author": "NERACOSU",
+  "version": "1.0.0",
+  "license": "Propietaria · fuente VT323 bajo SIL OFL 1.1",
+  "world": "world.js",
+  "css": "theme.css",
+  "preview": "preview.png",
+  "hud": { "layout": "clasico" },
+  "palette": { "ok": "#33ff66", "warn": "#ffb000", "crit": "#ff4d4d", "hostile": "#ff4d4d", "friendly": "#33ff66", "accent": "#33ff66", "bg": "#020a04", "ink": "#b6ffc4" },
+  "rule": "Solo texto; el color significa estado: verde bien, ámbar a medias, rojo caído.",
+  "credits": [{ "what": "Fuente VT323", "author": "The VT323 Project Authors", "license": "SIL OFL 1.1", "url": "https://fonts.google.com/specimen/VT323" }],
+  "legend": [
+    { "title": "Las ventanas", "items": [
+      { "icon": "terminal", "title": "root@atalaya", "text": "El servidor: CPU, memoria, disco y carga como barras al estilo htop, y sus servicios clave como un arranque de systemd ([  OK  ] o [ FALLO ])." },
+      { "icon": "house", "title": "Una ventana por cuenta", "text": "Con el color de la cuenta en su borde. Cada línea es un servicio o un sitio: su cartel, su nombre, la barra de CPU (o el tipo de sitio), la gráfica de visitas de los últimos minutos y su estado." },
+      { "color": "#ffb000", "title": "[ LENTO ]", "text": "Un servicio a medias (parcial). [ FALLO ] en rojo parpadeando: caído." },
+      { "icon": "chart", "title": "tail -f access.log", "text": "Las visitas en vivo: el código de respuesta y a qué proyecto fue (gris: robots; rojo: error del servidor). La línea del proyecto parpadea con cada visita." },
+      { "icon": "shield", "title": "journalctl -fu sshd", "text": "Los intentos de acceso fallidos y las IPs que quedan BLOQUEADAS." }
+    ] },
+    { "title": "Los agentes", "items": [
+      { "icon": "bot", "title": "Procesos claude", "text": "Las sesiones de Claude Code, al pie de la ventana de su cuenta, con lo que están haciendo y el cursor parpadeando. «¿Permitir? [s/N]» en ámbar: esperan su permiso." }
+    ] },
+    { "title": "La interfaz", "items": [
+      { "icon": "chart", "title": "Navegación", "text": "El director resalta una ventana a la vez. Los botones + y − agrandan la letra; doble clic vuelve a la vista general." }
+    ] }
+  ]
+}

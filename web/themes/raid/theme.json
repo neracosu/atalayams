@@ -1,0 +1,34 @@
+{
+  "id": "raid",
+  "name": "Raid",
+  "description": "Una banda de MMO de fantasía en una arena de mazmorra: cada cuenta es un grupo, cada servicio un héroe con su vida y su maná, cada visita un número de combate y cada intento de acceso un ataque de El Intruso, el jefe, contra el Guardián que es el servidor. Los agentes de Claude Code son jugadores con barra de lanzamiento.",
+  "author": "NERACOSU",
+  "version": "1.0.0",
+  "license": "Propietaria · arte propio · fuente Jersey 10 bajo SIL OFL 1.1",
+  "world": "world.js",
+  "css": "theme.css",
+  "preview": "preview.png",
+  "hud": { "layout": "banda" },
+  "palette": { "ok": "#3fcf4a", "warn": "#e8c55a", "crit": "#d94a3a", "hostile": "#b04aff", "friendly": "#3b82f6", "accent": "#e8c55a", "bg": "#141110", "ink": "#f4e7c5" },
+  "rule": "El color es la clase o el estado, nunca adorno. Los números de combate cuentan lo que pasa; los marcos son dorados y rectos.",
+  "credits": [{ "what": "Fuente Jersey 10", "author": "The Soft Type Project Authors", "license": "SIL OFL 1.1", "url": "https://fonts.google.com/specimen/Jersey+10" }],
+  "legend": [
+    { "title": "La arena", "items": [
+      { "icon": "shield", "title": "El Guardián", "text": "El servidor: protege a la banda y absorbe los ataques del jefe. Su escudo brilla cuando recibe uno." },
+      { "icon": "invader", "title": "El Intruso", "text": "El jefe. Cada intento de acceso fallido es uno de sus ataques; cada IP bloqueada es un golpe crítico que le baja la vida. Si llega a cero, cae y vuelve al rato." },
+      { "icon": "house", "title": "Grupos", "text": "Cada cuenta es un grupo de la banda, con su color en el borde." }
+    ] },
+    { "title": "Los héroes", "items": [
+      { "color": "#3fcf4a", "title": "Barra de vida", "text": "Verde: vivo (en línea). Amarilla a la mitad: herido (parcial). Vacía con lápida: muerto (caído); al reiniciarse, resucita." },
+      { "color": "#3b82f6", "title": "Barra de maná", "text": "En los servicios, la CPU que usan. En los sitios (naranja), cuánto tráfico reciben." },
+      { "icon": "gear", "title": "Clases", "text": "Guerrero: PM2. Paladín: systemd. Ingeniero: contenedor. Mago: Vercel. Sacerdote: Supabase. Arquero y pícaro: sitios." },
+      { "icon": "chart", "title": "Números de combate", "text": "+N verde: visitas que recibió ese héroe (gris si son robots). -502 rojo: un error del servidor." },
+      { "icon": "star", "title": "Jugadores", "text": "Los agentes de Claude Code, con aura dorada y barra de lanzamiento con lo que hacen. Un «?» dorado: espera su permiso." }
+    ] },
+    { "title": "La interfaz", "items": [
+      { "icon": "bolt", "title": "Barra de acción", "text": "Abajo al centro: CPU, memoria, disco, carga, red, visitas y errores como botones con su nivel de llenado." },
+      { "icon": "chat", "title": "Registro de combate", "text": "Abajo a la izquierda, lo más nuevo abajo." },
+      { "icon": "chart", "title": "Medidor", "text": "A la derecha: gráficas, procesos que más consumen, proyectos, defensa y correo." }
+    ] }
+  ]
+}
