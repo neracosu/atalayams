@@ -1,9 +1,9 @@
 {
   "id": "oficina",
   "name": "Oficina",
-  "description": "Un piso de oficina en pixel art isométrico, al estilo de los hoteles virtuales de los 2000: salas flotando en el vacío con sus muebles y personajitos. La sala de servidores es el servidor, cada cuenta una sala con su directorio, cada servicio un escritorio con su empleado y cada sitio un puesto con laptop. Las visitas llegan como aviones de papel, los intrusos se quedan en los torniquetes, los agentes de Claude Code son compañeros que caminan por su sala y los avisos salen en globos de diálogo.",
+  "description": "Un piso de oficina en pixel art isométrico, al estilo de los hoteles virtuales de los 2000: salas flotando en el vacío con sus muebles y personajitos. La sala de servidores es el servidor, cada cuenta una sala con su directorio, cada servicio un escritorio con su empleado y cada sitio un puesto con laptop. Las visitas llegan como aviones de papel, los intrusos se quedan en los torniquetes, los agentes de Claude Code son compañeros que caminan por su sala los avisos salen en globos de diálogo, los bloqueados quedan retenidos en Seguridad y el correo pasa por la Mensajería.",
   "author": "NERACOSU",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "Propietaria · arte propio en código",
   "world": "world.js",
   "css": "theme.css",
@@ -46,6 +46,21 @@
           "icon": "shield",
           "title": "Recepción y torniquetes",
           "text": "Por el ascensor entra todo. Los torniquetes son el cortafuegos: su luz se pone roja cuando rebotan a un intruso."
+        },
+        {
+          "icon": "jail",
+          "title": "Seguridad",
+          "text": "Las IPs bloqueadas son retenidos de mono naranja tras las rejas de la celda. Las cajas selladas con cinta roja son archivos PHP maliciosos en cuarentena."
+        },
+        {
+          "icon": "mail",
+          "title": "Mensajería",
+          "text": "Casilleros, la mesa de clasificar y el cartero: por aquí pasa todo el correo. Si la cola se atasca, las cartas se apilan en la mesa."
+        },
+        {
+          "icon": "db",
+          "title": "Archivador",
+          "text": "Las bases de datos de la sala: más cajones cuanto más pesan, rojizo si están al límite, y una «z» si hay conexiones dormidas. Los cables del piso llegan a los puestos que las usan, con pulsos cuando hay consultas."
         }
       ]
     },
@@ -86,6 +101,26 @@
           "icon": "chat",
           "title": "Globos de diálogo",
           "text": "Los avisos importantes: un despliegue, un servicio que cae o vuelve, una bienvenida en recepción o un agente que pide permiso."
+        }
+      ]
+    },
+    {
+      "title": "Cuando algo aprieta",
+      "items": [
+        {
+          "color": "#ff5a4a",
+          "title": "Servidor al límite",
+          "text": "Los racks se ponen rojos, los torniquetes pasan a ámbar y los aviones de papel hacen fila frente al ascensor: la recepción no da abasto."
+        },
+        {
+          "color": "#f5d76e",
+          "title": "Cuota",
+          "text": "Sobre el nombre de la sala, en ámbar o rojo, cuando la cuenta se acerca al límite de su disco o sus inodos."
+        },
+        {
+          "title": "Día y noche",
+          "text": "Las ventanas siguen la hora de quien mira: cielo claro, atardecer y, de noche, la ciudad encendida con la luna. El reloj de la recepción marca la hora.",
+          "icon": "clock"
         }
       ]
     }

@@ -178,6 +178,38 @@ function gateTex() {
 function binTex() {
   return tex('bin', () => furni(24, 26, cx => { const o = [12, 12]; box(cx, o, 0.3, 0.3, 0.4, 0.4, 0, 9, '#1a1e26', '#6a707a', '#8a909a'); }));
 }
+// caja de carton sellada con cinta roja: un archivo en cuarentena
+function qboxTex() {
+  return tex('qbox', () => furni(28, 26, cx => {
+    const o = [14, 12];
+    const b = box(cx, o, 0.15, 0.15, 0.7, 0.7, 0, 10, '#c89a5a', '#9a7040', '#b08450', '#4a2e14');
+    line(cx, b.T[0], b.T[2], '#d0342a'); line(cx, b.T[1], b.T[3], '#d0342a');
+    const m = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+    line(cx, m(b.L[0], b.L[3]), m(b.L[1], b.L[2]), '#d0342a'); line(cx, m(b.R[0], b.R[3]), m(b.R[1], b.R[2]), '#d0342a');
+  }));
+}
+// archivador metalico: las bases de datos de la sala (2, 3 o 4 cajones segun el tamano)
+function cabinetTex(n, hot) {
+  return tex('cab' + n + hot, () => furni(32, 22 + n * 9, cx => {
+    const o = [16, 14 + n * 9], H = n * 9;
+    const b = box(cx, o, 0.15, 0.15, 0.7, 0.7, 0, H, hot ? '#e0b0a8' : '#c4c8d0', hot ? '#a8706a' : '#8a909a', hot ? '#c08880' : '#a4aab4');
+    for (let k = 1; k < n; k++) line(cx, b.P(0.15, 0.85, k * 9), b.P(0.85, 0.85, k * 9), '#5a606a');
+    for (let k = 0; k < n; k++) { const q = b.P(0.5, 0.85, k * 9 + 5); cx.fillStyle = '#2e3440'; cx.fillRect(Math.round(q[0]) - 2, Math.round(q[1]), 4, 1); }
+  }));
+}
+// casilleros de la mensajeria contra la pared izquierda, con cartas en algunos
+function shelfTex() {
+  return tex('shelf', () => furni(58, 92, cx => {
+    const o = [46, 66];
+    const b = box(cx, o, 0, 0, 0.45, 2.6, 0, 60, '#9a7a5a', '#6a4a30', '#8a6a4a', '#2a1a10');
+    const P = b.P;
+    for (let i = 0; i < 6; i++) for (let k = 0; k < 4; k++) {
+      const g0 = i * 2.6 / 6 + 0.05, g1 = (i + 1) * 2.6 / 6 - 0.05, z0 = k * 15 + 2, z1 = (k + 1) * 15 - 2;
+      fillPoly(cx, [P(0.45, g0, z0), P(0.45, g1, z0), P(0.45, g1, z1), P(0.45, g0, z1)], '#3a2616');
+      if ((i * 7 + k * 3) % 5 < 3) fillPoly(cx, [P(0.45, g0 + 0.06, z0), P(0.45, g1 - 0.06, z0), P(0.45, g1 - 0.06, z0 + 7), P(0.45, g0 + 0.06, z0 + 7)], (i + k) % 4 ? '#f4efe0' : '#f0c890');
+    }
+  }));
+}
 const PLANE = furni(8, 5, cx => rows(cx, 0, 0, ['x.......', 'xxxx....', 'xxxxxxxx', '.xxxx...', '..x.....'], { x: '#ffffff' }));
 const PLANE_BOT = furni(8, 5, cx => rows(cx, 0, 0, ['x.......', 'xxxx....', 'xxxxxxxx', '.xxxx...', '..x.....'], { x: '#9aa3ad' }));
 const BALL = furni(4, 4, cx => rows(cx, 0, 0, ['.rr.', 'rRrr', 'rrRr', '.rr.'], { r: '#d9412b', R: '#ff7a5a' }));
@@ -199,6 +231,7 @@ export default class OficinaWorld {
     this.fx = []; this.t = 0; this.layoutKey = '';
     this.directorOn = true; this.insets = { top: 0, right: 0, bottom: 0, left: 0 };
     this.measured = new Map(); this.refits = 0;
+    this.jail = null; this.mailroom = null; this.mailLog = []; this.jamQ = 0; this.jamNext = 0; this.windows = [];
   }
 
   async init() {
@@ -228,6 +261,10 @@ export default class OficinaWorld {
   // donde esta cada cosa en la pantalla (comunicacion entre agentes); los subagentes van junto a su sesion
   screenOf(kind, id) {
     if (kind === 'session' || kind === 'agent') return pixiScreen(this.app, this.mates.get(String(id).split('/')[0]));
+    if (kind === 'jail') return this.jail ? pixiScreen(this.app, this.jail.bars) : null;          // aqui dejan a los bloqueados
+    if (kind === 'mail') return this.mailroom ? pixiScreen(this.app, this.mailroom.clerk) : null;
+    if (kind === 'gate') return this.gates ? pixiScreen(this.app, this.gates[0]) : null;           // de aqui salen las patrullas
+    if (kind === 'tower') return this.racks ? pixiScreen(this.app, this.racks[1].s) : null;
     return pixiScreen(this.app, this.desks.get(id));
   }
 
@@ -238,13 +275,16 @@ export default class OficinaWorld {
   roomBox(C, R) { return { x0: -R * TW / 2 - 4, x1: C * TW / 2 + 4, y0: -WALL - 34, y1: (C + R) * TH / 2 + 12, w: (C + R) * TW / 2 + 8, h: (C + R) * TH / 2 + WALL + 46 }; }
 
   layout(state) {
-    const key = layoutKeyOf(state);
+    const jailOn = !!state.jail, mailOn = !!state.mail && forEdition('TORRE DE CONTROL') === 'TORRE DE CONTROL';
+    const silos = new Set(((state.silos && state.silos.list) || []).map(x => x.account));
+    const key = layoutKeyOf(state) + (jailOn ? '|J' : '') + (mailOn ? '|M' : '') + '|' + [...silos].sort().join(',');
     if (key === this.layoutKey) return;
     if (key !== this.realKey) { this.realKey = key; this.refits = 0; }
     this.layoutKey = key;
     this.world.removeChildren().forEach(c => c.destroy({ children: true }));
     this.tags.removeChildren().forEach(c => c.destroy());
-    this.selG = null; this.racks = null; this.gateLamp = null; // se rearman con la sala
+    this.selG = null; this.racks = null; this.gateLamp = null; this.jail = null; this.mailroom = null; this.windows = []; this.cables = []; this.jamQ = 0; // se rearman con la sala
+    this.siloRooms = silos;
     for (const r of this.rooms.values()) if (r.plaque) r.plaque.remove();
     for (const m of this.mates.values()) m.dead = true;
     this.rooms.clear(); this.desks.clear(); this.mates.clear();
@@ -258,7 +298,7 @@ export default class OficinaWorld {
     const K = 22; // la letra del directorio mide 22 unidades del mundo (se ve de 11 a 17 px)
     const est = G => K * 1.3 * (2.8 + (this.compact ? 0 : Math.ceil(G.items.length / Math.max(1, Math.floor(G.box.w / (K * 10.5)))))) + 12;
     const plaqueH = G => (G.plaqueU = Math.max(est(G), this.measured.get(G.a.id) || 0));
-    const core = [{ id: 'srv', C: 4, R: 4 }, { id: 'rec', C: 5, R: 4 }].map(c => ({ ...c, box: this.roomBox(c.C, c.R) }));
+    const core = [{ id: 'srv', C: 4, R: 4 }, { id: 'rec', C: 5, R: 4 }, ...(jailOn ? [{ id: 'sec', C: 4, R: 4 }] : []), ...(mailOn ? [{ id: 'mail', C: 4, R: 4 }] : [])].map(c => ({ ...c, box: this.roomBox(c.C, c.R) }));
     const lead = core.reduce((n, c) => n + c.box.w + 56, 0);
     const W = this.app.screen.width - this.insets.left - this.insets.right, H = this.app.screen.height - this.insets.top - this.insets.bottom;
     const best = packRows(list, { w: G => G.box.w, h: G => G.box.h + plaqueH(G) + 40, gap: 56, lead, aspect: Math.max(0.5, W / Math.max(1, H)) });
@@ -271,6 +311,9 @@ export default class OficinaWorld {
       y += rowH;
     });
     this.bounds = { x0: -best.W / 2 - 20, x1: best.W / 2 + 20, y0: -20, y1: y };
+    this.drawWindows(true);
+    if (state.jail) { this.jail && (this.jail.n = this.jail.q = -1); this.drawJail(state.jail); }
+    this.updateSilos(state.silos);
     this.fit();
     this.camBase = { ...this.overview };
   }
@@ -301,12 +344,42 @@ export default class OficinaWorld {
     g.moveTo(o.x, o.y).lineTo(o.x, o.y - WALL - 8).stroke({ width: 2, color: 0x8a909a });
   }
   // ventana sobre la pared derecha, entre las casillas i0 e i1
+  // (el cielo se pinta aparte y sigue la hora de quien mira: dia, atardecer y noche con la ciudad encendida)
   windowOn(g, i0, i1) {
-    const a = iso(i0, 0), b = iso(i1, 0);
-    g.poly([a.x, a.y - 30, b.x, b.y - 30, b.x, b.y - 80, a.x, a.y - 80]).fill(0x9fd4f0);
-    g.poly([a.x, a.y - 30, b.x, b.y - 30, b.x, b.y - 80, a.x, a.y - 80]).stroke({ width: 3, color: 0xf4f6fa });
-    const m = iso((i0 + i1) / 2, 0);
-    g.moveTo(m.x, m.y - 30).lineTo(m.x, m.y - 80).stroke({ width: 2, color: 0xf4f6fa });
+    const w = new Graphics(); g.parent ? g.parent.addChildAt(w, g.parent.getChildIndex(g) + 1) : g.addChild(w);
+    this.windows.push({ g: w, i0, i1, seed: hash(i0 + ':' + i1 + ':' + this.windows.length) });
+  }
+  // cuanto de noche es segun la hora local: 0 de dia, 1 de noche, con atardecer y amanecer
+  nightness() {
+    const d = new Date(), h = this.hourOverride != null ? this.hourOverride : d.getHours() + d.getMinutes() / 60;
+    if (h >= 20 || h < 5.5) return 1;
+    if (h >= 18) return (h - 18) / 2;
+    if (h < 7) return 1 - (h - 5.5) / 1.5;
+    return 0;
+  }
+  drawWindows(force) {
+    const n = this.nightness();
+    if (!force && Math.abs(n - (this.nightN ?? -1)) < 0.02) return;
+    this.nightN = n;
+    const mix = (a, b, k) => { const c = (x, s) => (x >> s) & 255, m = s => Math.round(c(a, s) + (c(b, s) - c(a, s)) * k); return (m(16) << 16) | (m(8) << 8) | m(0); };
+    const sky = n < 0.5 ? mix(0x9fd4f0, 0xf0a878, n * 2) : mix(0xf0a878, 0x2a3a6a, (n - 0.5) * 2);
+    for (const W of this.windows) {
+      const a = iso(W.i0, 0), b = iso(W.i1, 0), g = W.g.clear();
+      const Q = (u, z) => [lerp(a.x, b.x, u), lerp(a.y, b.y, u) - z];
+      g.poly([...Q(0, 30), ...Q(1, 30), ...Q(1, 80), ...Q(0, 80)]).fill(sky);
+      if (n < 0.4) { const c = Q(0.3 + (W.seed % 40) / 100, 66); g.rect(c[0] - 7, c[1], 14, 3).fill({ color: 0xffffff, alpha: 0.8 * (1 - n * 2.5) }); }
+      if (n > 0.5) {
+        // la ciudad de noche: edificios bajos con ventanas encendidas y la luna en la primera ventana
+        for (let k = 0; k < 6; k++) {
+          const u0 = k / 6 + 0.02, u1 = (k + 1) / 6 - 0.02, hgt = 8 + ((W.seed >> k) & 7) * 3;
+          g.poly([...Q(u0, 30), ...Q(u1, 30), ...Q(u1, 30 + hgt), ...Q(u0, 30 + hgt)]).fill(0x121a33);
+          for (let j = 0; j < 3; j++) if (((W.seed >> (k + j * 5)) & 3) === 0) { const p = Q((u0 + u1) / 2, 33 + j * 5); if (p[1] > Q(0, 30 + hgt)[1] - 2) g.rect(p[0] - 1.5, p[1], 3, 3).fill({ color: 0xf5d76e, alpha: (n - 0.5) * 2 }); }
+        }
+        if (W === this.windows[0]) { const m = Q(0.75, 70); g.circle(m[0], m[1], 5).fill({ color: 0xf4f1e0, alpha: (n - 0.5) * 2 }); }
+      }
+      g.poly([...Q(0, 30), ...Q(1, 30), ...Q(1, 80), ...Q(0, 80)]).stroke({ width: 3, color: 0xf4f6fa });
+      const m = Q(0.5, 0); g.moveTo(m[0], m[1] - 30).lineTo(m[0], m[1] - 80).stroke({ width: 2, color: 0xf4f6fa });
+    }
   }
   // un mueble en la casilla (gx, gy) de una sala, ordenado por profundidad
   place(room, t, gx, gy, ox, oy, z = 0) {
@@ -351,6 +424,10 @@ export default class OficinaWorld {
       this.srvHealth = text('', 13, 0x4ade80, '700'); this.srvHealth.anchor.set(0.5, 1); this.srvHealth.y = -16 - 28; room.label.addChild(this.srvHealth);
       this.tappable(base, () => this.pick('system', 'root'), () => this.tipFor({ kind: 'system' }));
       this.srv = room;
+    } else if (c.id === 'sec') {
+      this.buildJail(room, base, ox, oy);
+    } else if (c.id === 'mail') {
+      this.buildMail(room, base, ox, oy);
     } else {
       this.drawRoom(base, c.C, c.R, '#d97a3a', '#d8c8a8', '#c8b898');
       // ascensor en la pared derecha
@@ -365,6 +442,8 @@ export default class OficinaWorld {
       this.gateLamp = new Graphics(); this.gateLamp.zIndex = 99; room.items.addChild(this.gateLamp);
       this.place(room, binTex(), 0.3, 3.4, 12, 12);
       this.place(room, plantTex(), 4.2, 3.3, 16, 30);
+      // reloj de pared con la hora de quien mira
+      const k = iso(0, 1.3); this.clock = { g: new Graphics(), x: k.x, y: k.y - 74 }; room.g.addChildAt(this.clock.g, room.g.getChildIndex(room.items));
       room.label = this.roomLabel(room, 'Recepción', 'por aquí entra todo', '#d97a3a');
       const W = (gx, gy, dy) => { const p = iso(gx, gy); return { x: ox + p.x, y: oy + p.y + dy }; };
       this.lift = W(3.8, 0.4, -40); this.gatePt = W(3.7, 2.9, -10); this.binPt = W(0.8, 3.9, -14); this.recPt = W(1.3, 1.5, -60);
@@ -372,6 +451,117 @@ export default class OficinaWorld {
       this.rec = room;
     }
     this.rooms.set(c.id, room);
+  }
+
+  // ------------------------------------------------------------------ seguridad y mensajeria
+  // Seguridad: las IPs bloqueadas son retenidos de mono naranja en la celda (hasta 6 a la vista) y los archivos
+  // en cuarentena, cajas selladas con cinta roja frente al guardia
+  buildJail(room, base, ox, oy) {
+    this.drawRoom(base, room.C, room.R, '#d0342a', '#a4a9b2', '#959aa4');
+    // la celda: piso mas oscuro y rejas en sus dos lados abiertos
+    const A = iso(0, 0), B = iso(2.2, 0), C2 = iso(2.2, 2.2), D = iso(0, 2.2);
+    base.poly([A.x, A.y, B.x, B.y, C2.x, C2.y, D.x, D.y]).fill({ color: 0x5a606a, alpha: 0.55 });
+    const bars = new Graphics(); bars.zIndex = 45;
+    const H = 66, edge = (p, q) => {
+      for (let k = 0; k <= 12; k++) { const x = lerp(p.x, q.x, k / 12), y = lerp(p.y, q.y, k / 12); bars.rect(x - 1, y - H, 2, H).fill(0x4a505a); }
+      bars.poly([p.x, p.y - H - 3, q.x, q.y - H - 3, q.x, q.y - H + 2, p.x, p.y - H + 2]).fill(0x6a707a);
+      bars.poly([p.x, p.y - 3, q.x, q.y - 3, q.x, q.y + 1, p.x, p.y + 1]).fill(0x6a707a);
+    };
+    edge(B, C2); edge(D, C2);
+    room.items.addChild(bars);
+    const prisoners = new Container(); prisoners.zIndex = 30; room.items.addChild(prisoners);
+    const boxes = new Container(); boxes.zIndex = 60; room.items.addChild(boxes);
+    // el guardia en su escritorio, mirando las camaras
+    this.place(room, chairTex(), 2.85, 2.45, 14, 12, -2);
+    this.place(room, avatarTex('#1a1a1a', '#b07a52', '#23324a', { seated: true }), 3.0, 2.55, 7, 19, -1);
+    this.place(room, deskTex(SCREEN.online), 2.9, 2.8, 20, 24);
+    this.place(room, plantTex(), 3.3, 0.3, 16, 30);
+    room.label = this.roomLabel(room, 'Seguridad', '', '#d0342a');
+    this.tappable(base, () => this.pick('jail', 'all'), () => ({ title: 'Seguridad', body: 'Las IPs <b>bloqueadas</b> quedan retenidas en la celda: las que se bloquearon a mano en el firewall y las que atrapó la defensa de Atalaya. Las <b>cajas selladas</b> con cinta roja son archivos PHP maliciosos en cuarentena: no pueden hacer daño y se pueden restaurar.',
+      meta: this.jail ? this.jailLine() : '', hint: 'Clic para ver cada uno' }));
+    this.jail = { room, bars, prisoners, boxes, n: -1, q: -1 };
+  }
+  jailLine() { const j = this.jail, n = Math.max(0, j.n), q = Math.max(0, j.q); return (n ? `${n} retenido${n === 1 ? '' : 's'}` : 'celda vacía') + (q ? ` · ${q} caja${q === 1 ? '' : 's'}` : ''); }
+  drawJail(J) {
+    const j = this.jail; if (!j || !J) return;
+    const n = J.n || 0, q = J.quarantine || 0;
+    if (n !== j.n) {
+      j.n = n; j.prisoners.removeChildren().forEach(o => o.destroy());
+      for (let i = 0; i < Math.min(6, n); i++) {
+        const gx = 0.45 + (i % 3) * 0.6, gy = 0.55 + Math.floor(i / 3) * 0.8, p = iso(gx, gy);
+        const sp = new Sprite(avatarTex('#1a1a1a', SKIN[i % SKIN.length], '#e07a2a')); sp.scale.set(PX); sp.anchor.set(0.5, 1);
+        sp.x = p.x; sp.y = p.y + 4; sp.fi = i; j.prisoners.addChild(sp);
+      }
+    }
+    if (q !== j.q) {
+      j.q = q; j.boxes.removeChildren().forEach(o => o.destroy());
+      for (let i = 0; i < Math.min(4, q); i++) { const p = iso(0.35 + i * 0.62, 3.05); const b = sprite(qboxTex(), p.x, p.y, 14, 12); b.pivot.set(14, 22); b.x += 14 * PX; b.y += 22 * PX; j.boxes.addChild(b); }
+    }
+    j.room.label.children[2].text = this.jailLine();
+  }
+  // Mensajeria: casilleros, la mesa de clasificar y el cartero. Las cartas se apilan en la mesa si la cola se atasca
+  buildMail(room, base, ox, oy) {
+    this.drawRoom(base, room.C, room.R, '#8a6fc8', '#d8d0e6', '#c8c0da');
+    this.place(room, shelfTex(), 0.05, 0.5, 46, 66);
+    this.place(room, counterTex(), 1.2, 2.3, 36, 22, 15); // la mesa va delante del cartero
+    const clerk = this.place(room, avatarTex('#6b3a1a', '#e8b890', '#8a6fc8'), 2.2, 2.05, 7, 24, 2);
+    this.place(room, binTex(), 3.2, 0.5, 12, 12);
+    this.windowOn(base, 1.2, 3);
+    room.label = this.roomLabel(room, 'Mensajería', '', '#8a6fc8');
+    this.tappable(base, () => this.pick('mail', 'all'), () => ({ title: 'Mensajería', body: 'Por aquí pasa el correo del servidor: los sobres <b>blancos</b> salen de una sala, los <b>violetas</b> llegan y los <b>naranjas</b> rebotaron y vuelven con el motivo. La pila en la mesa es la cola de correo esperando salir.', meta: this.postLine() + ' (último minuto)', hint: 'Clic para ver el correo' }));
+    const pile = new Container(); pile.zIndex = 80; room.items.addChild(pile);
+    const P = (gx, gy, dy) => { const p = iso(gx, gy); return { x: ox + p.x, y: oy + p.y + dy }; };
+    this.mailroom = { room, clerk, pile, pileN: -1, pt: P(2.2, 2.6, -46) };
+  }
+  postLine() {
+    const now = this.t; this.mailLog = this.mailLog.filter(x => now - x.t < 60);
+    const n = d => this.mailLog.filter(x => x.dir === d).length;
+    const parts = [[n('out'), 'salen'], [n('in'), 'llegan'], [n('bounce'), 'rebotan']].filter(x => x[0]).map(x => `${x[0]} ${x[1]}`);
+    return parts.length ? parts.join(' · ') : 'sin sobres';
+  }
+  drawPost() {
+    const M = this.mailroom; if (!M) return;
+    const line = this.postLine(); if (M.room.label.children[2].text !== line) M.room.label.children[2].text = line;
+    const q = this.mailQueue || 0, want = q > 1000 ? 9 : q > 100 ? 6 : q > 20 ? 3 : 0;
+    if (want === M.pileN) return;
+    M.pileN = want; M.pile.removeChildren().forEach(o => o.destroy());
+    for (let i = 0; i < want; i++) { const p = iso(1.7 + (i % 3) * 0.45, 2.55); const l = new Sprite(ENV); l.scale.set(PX); l.anchor.set(0.5, 1); l.x = p.x + (i % 2); l.y = p.y - 32 - Math.floor(i / 3) * 5; l.tint = q > 1000 ? 0xff9a8a : 0xffffff; M.pile.addChild(l); }
+  }
+
+  // ------------------------------------------------------------------ archivadores (bases de datos)
+  siloTip(room) {
+    const x = room.cab && room.cab.data; if (!x) return { title: 'Archivador', body: 'Las bases de datos de la sala.', hint: 'Clic para ver sus bases' };
+    const mb = n => n > 1073741824 ? (n / 1073741824).toFixed(1) + ' GB' : Math.round(n / 1048576) + ' MB';
+    return { title: 'Archivador · bases de datos', body: `${x.n} base${x.n === 1 ? '' : 's'} MySQL de la sala, ${mb(x.size)}. ${x.conns ? `<b>${x.conns}</b> conexión(es)${x.active ? `, <b>${x.active}</b> con consultas en curso` : ''}${x.sleep >= 10 ? `, <b>${x.sleep} dormidas</b> (las «z»)` : ''}.` : 'Sin conexiones ahora.'} Los cables del piso llegan a los puestos que las usan.`,
+      meta: x.busy ? `ocupado el ${x.busy}% de los últimos 15 min` : '', hint: 'Clic para ver sus bases' };
+  }
+  updateSilos(S) {
+    const hotAll = !!(S && S.hot >= 0.85);
+    for (const x of (S && S.list) || []) {
+      const r = this.rooms.get(x.account); if (!r || !r.cab) continue;
+      r.cab.data = x;
+      const size = x.size > 2 * 1073741824 ? 4 : x.size > 200 * 1048576 ? 3 : 2, hot = hotAll || (x.busy || 0) >= 85;
+      if (size !== r.cab.size || hot !== r.cab.hot) { r.cab.size = size; r.cab.hot = hot; r.cab.s.texture = cabinetTex(size, hot); const p = iso(r.cab.gx, r.cab.gy); r.cab.s.y = p.y - (14 + size * 9) * PX; }
+    }
+  }
+  // cables por el piso del archivador a cada puesto que usa sus bases; los pulsos corren si hay consultas
+  drawCables() {
+    for (const r of this.rooms.values()) {
+      const c = r.cab, g = r.cables; if (!c || !g) continue;
+      g.clear();
+      for (const l of (c.data && c.data.links) || []) {
+        const d = this.desks.get(l.id); if (!d || d.room !== r) continue;
+        const pts = [[c.gx + 0.35, c.gy + 0.9], [c.gx + 0.35, d.gy + 1.15], [d.gx + 0.5, d.gy + 1.15], [d.gx + 0.5, d.gy + 0.9]].map(([x, y]) => iso(x, y));
+        g.moveTo(pts[0].x, pts[0].y); for (const q of pts.slice(1)) g.lineTo(q.x, q.y);
+        g.stroke({ width: 4, color: 0x2e3440, alpha: 0.8 });
+        if (!l.active) continue;
+        const segs = pts.slice(1).map((q, i) => ({ a: pts[i], b: q, L: Math.hypot(q.x - pts[i].x, q.y - pts[i].y) })), L = segs.reduce((n, x) => n + x.L, 0) || 1, n = Math.min(4, 1 + l.active);
+        for (let i = 0; i < n; i++) {
+          let u = ((this.t * (0.35 + (l.busy || 0) / 200) + i / n) % 1) * L;
+          for (const sg of segs) { if (u <= sg.L) { const k = u / (sg.L || 1); g.rect(lerp(sg.a.x, sg.b.x, k) - 3, lerp(sg.a.y, sg.b.y, k) - 2, 6, 4).fill(0xbff4ff); break; } u -= sg.L; }
+        }
+      }
+    }
   }
 
   buildRoom(G, ox, oy) {
@@ -388,6 +578,12 @@ export default class OficinaWorld {
     if (G.C > 6) this.windowOn(base, G.C - 3, G.C - 1);
     this.place(room, plantTex(), 0.2, G.R - 1, 16, 30);
     this.place(room, coolerTex(), G.C - 0.9, G.R - 1.1, 16, 36);
+    if (this.siloRooms && this.siloRooms.has(a.id)) {
+      const cab = this.place(room, cabinetTex(2, false), G.C - 0.85, 0.15, 16, 32);
+      room.cab = { s: cab, gx: G.C - 0.85, gy: 0.15, size: -1, hot: false, data: null };
+      room.cables = new Graphics(); room.g.addChildAt(room.cables, room.g.getChildIndex(room.items));
+      this.tappable(cab, () => this.pick('databases', a.id), () => this.siloTip(room));
+    }
     const nA = items.filter(x => x._k === 'app').length;
     room.caption = accountCaption(a, nA, items.length - nA);
     room.label = this.roomLabel(room, a.label, room.caption, a.color);
@@ -454,6 +650,22 @@ export default class OficinaWorld {
     if (hl && this.srvHealth && this.srvHealth.text !== hl.text) { this.srvHealth.text = hl.text; this.srvHealth.style.fill = hl.color; }
     this.failed = (state.keys || []).some(k => k.state === 'failed');
     this.syncMates(state.sessions || []);
+    // seguridad, mensajeria y archivadores
+    this.drawJail(state.jail);
+    this.mailQueue = state.mailQueue; this.drawPost();
+    this.updateSilos(state.silos);
+    // servidor al limite: la recepcion no da abasto y los aviones hacen fila en el ascensor
+    const jam = !!(state.saturation && state.saturation.level === 'bad');
+    if (jam && !this.jam && this.recPt) this.bubble(this.recPt.x, this.recPt.y, 'Recepción', '¡No damos abasto!', 'crit');
+    if (!jam && this.jam) this.jamNext = 0;
+    this.jam = jam;
+    // cuota al limite: una linea sobre el nombre de la sala
+    for (const a of state.accounts) {
+      const r = this.rooms.get(a.id); if (!r || !r.label) continue;
+      const txt = a.quota ? `${String(a.quota.what).toUpperCase()} AL ${a.quota.pct} %` : '';
+      if (txt && !r.q) { r.q = text('', 13, 0xf5d76e, '700'); r.q.anchor.set(0.5, 1); r.q.y = -16 - 28; r.label.addChild(r.q); }
+      if (r.q) { r.q.text = txt; r.q.style.fill = a.quota && a.quota.level === 'bad' ? 0xff8a7a : 0xf5d76e; r.q.visible = !!txt; }
+    }
   }
 
   syncMates(sessions) {
@@ -490,7 +702,7 @@ export default class OficinaWorld {
       case 'attack': return this.intruder(false);
       case 'block': return this.intruder(true, priv ? e.ip : null);
       case 'login': return this.recPt && this.bubble(this.recPt.x, this.recPt.y, 'Recepción', priv && e.user ? `¡Bienvenido, ${e.user}!` : '¡Bienvenido, administrador!', 'ok');
-      case 'mail': return this.envelope(e.dir);
+      case 'mail': return this.envelope(e.dir, e);
       case 'deploy': {
         const d = this.desks.get(e.app);
         const T = { building: ['Estoy instalando mi equipo nuevo…', 'warn'], ready: ['¡Listo, equipo nuevo funcionando!', 'ok'], error: ['Falló la instalación', 'crit'], canceled: ['Cancelé la instalación', 'dim'] }[e.action];
@@ -531,13 +743,23 @@ export default class OficinaWorld {
   }
   // avion de papel: del ascensor al escritorio, en arco
   plane(d, bot, bad) {
+    let hold = 0, a = this.lift;
+    if (this.jam && !bot) {
+      if (this.jamQ >= 16) return; // la fila ya muestra el atasco: no crece sin fin
+      const slot = this.jamQ++;
+      this.jamNext = Math.max(this.jamNext || 0, this.t) + 0.8;
+      hold = this.jamNext - this.t;
+      a = { x: this.lift.x - 22 + (slot % 4) * 15, y: this.lift.y - 26 + Math.floor(slot / 4) * 13 }; // en fila frente al ascensor
+    }
     const s = new Sprite(bot ? PLANE_BOT : PLANE); s.scale.set(PX); s.anchor.set(0.5);
-    const a = this.lift, b = { x: d.world.x, y: d.world.y - 30 };
+    const b = { x: d.world.x, y: d.world.y - 30 };
     const mid = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - 120 };
     const dur = 1.4 + Math.hypot(b.x - a.x, b.y - a.y) / 900;
     const at = k => ({ x: (1 - k) * (1 - k) * a.x + 2 * (1 - k) * k * mid.x + k * k * b.x, y: (1 - k) * (1 - k) * a.y + 2 * (1 - k) * k * mid.y + k * k * b.y });
     this.addFx(s, f => {
-      const k = f.age / dur;
+      if (f.age < hold) { s.x = a.x; s.y = a.y + Math.sin(f.age * 5 + a.x) * 2; s.scale.x = -PX; return true; }
+      if (hold && !f.left) { f.left = true; this.jamQ = Math.max(0, this.jamQ - 1); }
+      const k = (f.age - hold) / dur;
       if (k >= 1) { d.lit = 1; if (bad) this.crumple(d); return false; }
       const p = at(k), q = at(Math.min(1, k + 0.02));
       s.x = p.x; s.y = p.y; s.scale.x = q.x < p.x ? -PX : PX;
@@ -549,12 +771,39 @@ export default class OficinaWorld {
     const a = { x: d.world.x, y: d.world.y - 30 }, b = this.binPt;
     this.addFx(s, f => { const k = Math.min(1, f.age / 1.3); s.x = lerp(a.x, b.x, k); s.y = lerp(a.y, b.y, k) - Math.sin(k * Math.PI) * 140; s.rotation = k * 8; return k < 1; });
   }
-  envelope(dir) {
+  envelope(dir, e = {}) {
+    if (this.mailroom) return this.letter(dir, e);
     if (!this.lift || !this.srv) return;
     const s = new Sprite(dir === 'bounce' ? ENV_BAD : ENV); s.scale.set(PX); s.anchor.set(0.5);
     const srv = { x: this.srv.x + iso(1.8, 0.8).x, y: this.srv.y + iso(1.8, 0.8).y - 40 };
     const [a, b] = dir === 'in' ? [this.lift, srv] : [srv, this.lift];
     this.addFx(s, f => { const k = Math.min(1, f.age / 1.6); s.x = lerp(a.x, b.x, k); s.y = lerp(a.y, b.y, k) - Math.sin(k * Math.PI) * 90; return k < 1; });
+  }
+  // sobre con mensajeria: sale de su sala, pasa por la mesa del cartero y se va por el ascensor; llega al reves;
+  // si rebota, vuelve naranja a su sala con el motivo
+  letter(dir, e) {
+    this.mailLog.push({ t: this.t, dir }); if (this.mailLog.length > 3000) this.mailLog.shift();
+    this.drawPost();
+    this.mailLast = this.mailLast || {};
+    if (this.t - (this.mailLast[dir] || -9) < 0.35 || this.fx.length > 200) return;
+    this.mailLast[dir] = this.t;
+    const r = e.account && this.rooms.get(e.account);
+    const home = r && r.G ? { x: r.x + (r.box.x0 + r.box.x1) / 2, y: r.y + r.box.y1 - 60 } : { x: this.srv.x + iso(1.8, 0.8).x, y: this.srv.y + iso(1.8, 0.8).y - 40 };
+    const post = this.mailroom.pt, lift = this.lift;
+    const pts = dir === 'in' ? [lift, post, home] : dir === 'bounce' ? [home, post, lift, post, home] : [home, post, lift];
+    const s = new Sprite(dir === 'bounce' ? ENV_BAD : ENV); s.scale.set(PX); s.anchor.set(0.5);
+    if (dir === 'in') s.tint = 0xc8b4f4;
+    const SHORT = { auth: 'SIN AUTENTICAR', nouser: 'NO EXISTE', full: 'BUZÓN LLENO', spam: 'SPAM', domain: 'DOMINIO', rate: 'DEMASIADOS' };
+    const legs = pts.slice(1).map((b, i) => ({ a: pts[i], b, d: 0.6 + Math.hypot(b.x - pts[i].x, b.y - pts[i].y) / 700 }));
+    this.addFx(s, f => {
+      let t0 = f.age, i = 0;
+      while (i < legs.length && t0 > legs[i].d) { t0 -= legs[i].d; i++; }
+      if (i >= legs.length) return false;
+      if (i !== f.leg) { f.leg = i; if (dir === 'bounce' && i === 2) this.bubble(post.x, post.y - 30, 'Mensajería', `Rebotó: ${SHORT[e.cat] || 'sin motivo'}`, 'warn'); }
+      const L = legs[i], k = t0 / L.d;
+      s.x = lerp(L.a.x, L.b.x, k); s.y = lerp(L.a.y, L.b.y, k) - Math.sin(k * Math.PI) * 70;
+      return true;
+    });
   }
   // intruso: sale del ascensor, choca con los torniquetes y vuelve
   intruder(blocked, ip) {
@@ -627,6 +876,8 @@ export default class OficinaWorld {
     else if (kind === 'district') f = this.roomFrame(id);
     else if (kind === 'system') f = this.roomFrame('srv');
     else if (kind === 'security') f = this.roomFrame('rec');
+    else if (kind === 'jail') f = this.roomFrame('sec');
+    else if (kind === 'mail') f = this.roomFrame('mail');
     if (f) { this.manualUntil = this.t + 90; this.camTarget = f; this.navChanged(); }
     if (this.onSelect) this.onSelect(kind, id);
   }
@@ -706,7 +957,39 @@ export default class OficinaWorld {
     if (this.gateLamp) {
       this.gateFlash = Math.max(0, (this.gateFlash || 0) - dt * 1.5);
       const g = this.gateLamp.clear();
-      for (const gx of [3.2, 4.2]) { const p = iso(gx + 0.45, 2.5); g.rect(p.x - 3, p.y - 34, 6, 5).fill(this.gateFlash > 0.05 ? (blink ? 0xff3b2e : 0x5a1010) : 0x59e08a); }
+      for (const gx of [3.2, 4.2]) { const p = iso(gx + 0.45, 2.5); g.rect(p.x - 3, p.y - 34, 6, 5).fill(this.gateFlash > 0.05 ? (blink ? 0xff3b2e : 0x5a1010) : this.jam ? (blink ? 0xf0a040 : 0x5a3a10) : 0x59e08a); }
+    }
+    // al limite: los racks se ponen rojos y los torniquetes, ambar
+    if (this.racks) for (const r of this.racks) r.s.tint = this.jam ? (blink ? 0xff9a8a : 0xffd0c8) : 0xffffff;
+    // seguridad: los retenidos se mueven en la celda; las cajas selladas se sacuden de a ratos
+    if (this.jail) {
+      this.jail.prisoners.children.forEach(sp => { const fr = Math.floor(t * 1.5 + sp.fi * 0.7) % 3 === 0 ? 1 : 0; if (sp.fr !== fr) { sp.fr = fr; sp.texture = avatarTex('#1a1a1a', SKIN[sp.fi % SKIN.length], '#e07a2a', { frame: fr }); } });
+      this.jail.boxes.children.forEach((b, i) => { const k = (t * 0.7 + i * 0.37) % 1; b.rotation = k < 0.08 ? Math.sin(k * 150) * 0.1 : 0; });
+    }
+    this.drawCables();
+    // archivadores con conexiones dormidas: sueltan una «z»
+    this.zT = (this.zT || 0) - dt;
+    if (this.zT <= 0) {
+      this.zT = 1.6;
+      for (const r of this.rooms.values()) if (r.cab && r.cab.data && r.cab.data.sleep >= 10) {
+        const p = iso(r.cab.gx + 0.5, r.cab.gy + 0.5), z = text('z', 14, 0xdfe6f2, '700'); z.anchor.set(0.5); const x0 = r.x + p.x, y0 = r.y + p.y - 20 - r.cab.size * 18;
+        this.addFx(z, f => { z.x = x0 + Math.sin(f.age * 3) * 5; z.y = y0 - f.age * 16; z.alpha = Math.max(0, 1 - f.age / 1.8); return f.age < 1.8; });
+      }
+    }
+    // reloj de pared y cielo de las ventanas, con la hora de quien mira
+    this.skyT = (this.skyT || 0) - dt;
+    if (this.skyT <= 0) {
+      this.skyT = 20; this.drawWindows(false);
+    }
+    if (this.clock) {
+      const d = new Date(), h = this.hourOverride != null ? this.hourOverride : d.getHours() + d.getMinutes() / 60, m = this.hourOverride != null ? 0 : d.getMinutes();
+      const key = Math.floor(h * 60);
+      if (key !== this.clock.key) {
+        this.clock.key = key; const { x, y } = this.clock, g = this.clock.g.clear();
+        g.ellipse(x, y, 11, 13).fill(0xf8f8f4).stroke({ width: 2, color: 0x2e3440 });
+        const hand = (a, L, w) => g.moveTo(x, y).lineTo(x + Math.sin(a) * L * 0.85, y - Math.cos(a) * L).stroke({ width: w, color: 0x2e3440 });
+        hand((h % 12) / 12 * Math.PI * 2, 6, 2); hand(m / 60 * Math.PI * 2, 9, 1.5);
+      }
     }
     // puestos: pantalla segun estado y actividad; el empleado teclea con la CPU
     const zoomed = this.overview && s > this.overview.s * 1.45;

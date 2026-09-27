@@ -14,6 +14,13 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.69.0] - 2026-09-27
+
+### Agregado
+- **Oficina, completa**: la sala de **Seguridad** (las IPs bloqueadas son retenidos de mono naranja tras las rejas y los archivos en cuarentena, cajas selladas con cinta roja frente al guardia), la **Mensajería** (casilleros, cartero y mesa donde se apilan las cartas si la cola se atasca; cada sobre pasa por ella y los rebotados vuelven con el motivo) y un **archivador** en cada sala con bases de datos, con cables por el piso hasta los puestos que las usan.
+- Oficina: con el servidor **al límite**, los racks se ponen rojos y los aviones de papel hacen fila frente al ascensor; la **cuota** aparece sobre el nombre de la sala.
+- Oficina: las ventanas siguen la **hora** de quien mira (día, atardecer y la ciudad encendida de noche) y la recepción tiene un reloj de pared.
+
 ## [0.68.0] - 2026-09-27
 
 ### Agregado
@@ -1337,7 +1344,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.68.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.69.0...HEAD
+[0.69.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.68.0...v0.69.0
 [0.68.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.67.0...v0.68.0
 [0.67.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.66.0...v0.67.0
 [0.66.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.65.1...v0.66.0
