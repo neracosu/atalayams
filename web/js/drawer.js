@@ -162,6 +162,20 @@ export class Drawer {
         if (r.error) { au.insertAdjacentHTML('afterend', `<span class="dmuted"> ${esc(r.error)}</span>`); au.disabled = false; } else this.load();
         return;
       }
+      const cp = e.target.closest('[data-copy]');
+      if (cp) { navigator.clipboard?.writeText(cp.dataset.copy).then(() => { cp.textContent = 'Copiado'; setTimeout(() => { cp.textContent = 'Copiar'; }, 1800); }); return; }
+      // informe mensual por correo: guardar destinatarios o enviarlo ya
+      const rp = e.target.closest('[data-report]');
+      if (rp) {
+        const box = rp.closest('.anarep'), out = box.querySelector('.anarep-out'), to = box.querySelector('input[type=email], input[type=text]').value.trim();
+        const act = rp.dataset.report, active = box.querySelector('input[type=checkbox]').checked;
+        rp.disabled = true; out.className = 'anarep-out dmuted'; out.textContent = act === 'send' ? 'Enviando…' : 'Guardando…';
+        const r = await fetch('api/reports/' + (act === 'send' ? 'send' : 'save'), { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Atalaya': '1' }, body: JSON.stringify({ id: box.dataset.id, to, active }) }).then(x => x.json()).catch(() => ({ error: 'Sin conexión' }));
+        rp.disabled = false;
+        out.className = 'anarep-out ' + (r.error ? 'bad' : 'good');
+        out.textContent = r.error ? r.error : act === 'send' ? `Enviado a ${r.to.join(', ')}.` : r.monthly.to.length ? `Guardado: ${r.monthly.active ? 'el día 1 de cada mes' : 'en pausa'}, a ${r.monthly.to.join(', ')}.` : 'Sin destinatarios: el informe queda apagado.';
+        return;
+      }
       const ar = e.target.closest('[data-ana-range]');
       if (ar) { this.anaRange = +ar.dataset.anaRange; this.body.querySelectorAll('[data-ana-range]').forEach(b => b.classList.toggle('on', b === ar)); this.load(); return; }
       const a = e.target.closest('[data-go]');
@@ -440,6 +454,33 @@ export class Drawer {
 
   // analitica completa de un sitio o app: periodo, cifras con comparacion, grafica por dia y de donde llegan
   renderAnalytics(d) {
+    // lo que mide el script opcional: tiempo real, rebote real, lectura y conversiones; si no esta, como instalarlo
+    const anaScript = d => {
+      const J = d.js, KIND = { whatsapp: 'WhatsApp', llamada: 'Llamadas', correo: 'Correos', formulario: 'Formularios enviados', descarga: 'Descargas', externo: 'Enlaces a otros sitios', propio: 'Eventos propios' };
+      const mmss = s => s == null ? '–' : s < 60 ? s + ' s' : Math.floor(s / 60) + ' min ' + String(s % 60).padStart(2, '0') + ' s';
+      if (J) return `<section class="dsec"><h4>${px('bolt')} Lo que hacen en la página</h4>
+        <div class="anakpi"><div><span>Tiempo en la página</span><b>${mmss(J.avgSecs)}</b></div><div><span>Rebote real</span><b>${J.bounce == null ? '–' : Math.round(J.bounce * 100) + '%'}</b></div>
+        <div><span>Cuánto leen</span><b>${J.scroll == null ? '–' : J.scroll + '%'}</b></div><div><span>Conversiones</span><b>${fmtNum(J.conv)}</b></div></div>
+        <p class="hint">Del script de Atalaya: tiempo con la página a la vista; rebote real = entró y se fue en menos de 10 segundos sin tocar nada.</p>
+        ${J.convKinds.length ? `<h5 class="anasub">Conversiones</h5><ul class="dlist">${bars(J.convKinds.map(x => ({ key: x.name, n: x.n })), k => esc(KIND[k] || k), J.conv)}</ul>` : ''}
+        ${!d.private && J.convPages.length ? `<h5 class="anasub">Dónde convierten</h5><ul class="dlist">${bars(J.convPages.map(x => ({ key: x.name, n: x.n })), k => `<span class="mono">${esc(k)}</span>`)}</ul>` : ''}
+        ${!d.private && J.times.length ? `<h5 class="anasub">Tiempo por página</h5><ul class="dlist">${J.times.map(x => `<li><span class="mono">${esc(x.name)}</span><b>${mmss(x.secs)}</b></li>`).join('')}</ul>` : ''}</section>`;
+      if (d.private || !d.siteToken) return '';
+      const snippet = `<script defer src="${new URL('a.js', location.href).href}" data-site="${d.siteToken}"></script>`;
+      return `<section class="dsec"><h4>${px('bolt')} Mida más: tiempo real, rebote real y conversiones</h4>
+        <p class="hint">Opcional. Pegue esta línea en el sitio (antes de &lt;/head&gt;) y la analítica suma el tiempo que la página estuvo a la vista, cuánto leen, el rebote real y las conversiones: clics en WhatsApp, llamadas, correos, formularios, descargas y enlaces externos. Sin cookies ni aviso de cookies: no guarda nada en el navegador ni datos de sus visitantes.</p>
+        <div class="copy"><pre class="cmd">${esc(snippet)}</pre><button class="btn small" data-copy="${esc(snippet)}">Copiar</button></div>
+        <p class="hint">Para contar algo propio (una compra, una reserva): <span class="mono">atalaya('event', 'compra')</span>. En WordPress, péguela con un plugin de código para la cabecera o en el tema.</p></section>`;
+    };
+    // el informe mensual (solo en privado): a quien le llega, si esta activo y un envio de prueba
+    const anaReport = d => { const M = d.monthly, id = d.id;
+      return `<section class="dsec anarep" data-id="${esc(id)}"><h4>${px('mail')} Informe mensual por correo</h4>
+        <p class="hint">El día 1 de cada mes, sus clientes reciben el mes anterior de este sitio: un resumen en palabras, visitantes, de dónde llegan, sus páginas, países y dispositivos, comparado con el mes previo.${M.lastSent ? ` Último enviado: ${esc(M.lastSent)}.` : ''}</p>
+        ${M.mail ? '' : '<p class="dmuted">Para enviarlo, primero conecte un correo en menú › Alertas: el informe sale desde ahí.</p>'}
+        <p class="row"><input type="text" inputmode="email" placeholder="cliente@ejemplo.com, otro@ejemplo.com" value="${esc(M.to.join(', '))}" aria-label="Correos que reciben el informe" style="flex:1 1 16rem;min-width:0"></p>
+        <p class="row"><label><input type="checkbox" ${M.active || !M.to.length ? 'checked' : ''}> Enviar cada mes</label></p>
+        <p class="row"><button class="btn small" data-report="save">Guardar</button><button class="btn small ghost" data-report="send" ${M.mail ? '' : 'disabled'}>Enviar el de ${esc(M.monthLabel)} ahora</button></p>
+        <p class="anarep-out dmuted" role="status"></p></section>`; };
     this.setHead('analytics:' + d.id, iconCanvas('chart', 4), 'Analítica', `${esc(d.name || '')}${d.go ? ` · <a data-go="${esc(d.go)}">volver a la ficha</a>` : ''}`, '');
     const T = d.totals, P = d.prev, range = d.range;
     const RANGES = [[1, 'Hoy'], [7, '7 días'], [30, '30 días'], [90, '90 días'], [365, '12 meses']];
@@ -481,6 +522,8 @@ export class Drawer {
       ${priv && d.notFound.length ? `<section class="dsec"><h4>Páginas que no existen</h4><p class="hint">Personas (no robots) que llegaron a un error 404: enlaces rotos o páginas que se movieron. Una redirección las recupera.</p>${list(d.notFound, k => `<span class="mono">${esc(k)}</span>`)}</section>` : ''}
       ${d.botNames.length ? `<section class="dsec"><h4>Robots que más la visitan</h4>${list(d.botNames, k => esc(k))}</section>` : ''}
       ${d.private ? '<p class="dmuted">Active el modo privado para ver las páginas, los sitios que la enlazan, las campañas y los errores 404.</p>' : ''}
+      ${anaScript(d)}
+      ${d.monthly ? anaReport(d) : ''}
       <p class="hint">${d.since ? `Se mide desde el ${new Date(d.since + 'T12:00:00').toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' })}. ` : ''}Sin cookies ni código en el sitio: sale de los registros del servidor, por eso cuenta también a quien usa bloqueador de anuncios. Un visitante es la misma IP y navegador en el día; rebote, quien vio una sola página.</p>`);
   }
 

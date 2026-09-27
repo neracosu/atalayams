@@ -543,6 +543,8 @@ function makePrivacy(cfg) {
       if (!key) return null;
       const r = ctx.analytics.report(key, opts.range || 30);
       const out = { kind, id, name, go, ...r };
+      if (priv && ctx.reports) out.monthly = ctx.reports.info(key); // informe mensual por correo (solo en privado)
+      if (priv) out.siteToken = ctx.analytics.siteToken(key); // para la linea del script (a.js)
       if (!priv) Object.assign(out, { pages: [], entries: [], refs: [], campaigns: [], notFound: [], private: true });
       return out;
     }
@@ -723,9 +725,19 @@ function makePrivacy(cfg) {
     return null;
   }
 
+  // de la ficha (site:<alias> o app:<alias>) a la clave de la analitica, con su nombre y dominio reales
+  // (para el informe mensual, que solo configura el dueno)
+  function analyticsTarget(ctx, id) {
+    const { host, logs } = ctx;
+    const [ek, ...rest] = String(id || '').split(':'), eid = rest.join(':');
+    if (ek === 'site') { const g = logs.sites.find(x => siteId(x) === eid); return g ? { key: 'site:' + g.id, name: g.domain, domain: g.domain, id: 'site:' + eid } : null; }
+    if (ek === 'app') { const a = host.apps.find(x => alias(x.account + '/' + x.name) === eid); if (!a) return null; const d = appDomain(ctx, a); return { key: a.account + '/' + a.name, name: d || a.name, domain: d || null, id: 'app:' + eid }; }
+    return null;
+  }
+
   // enlace directo a la ficha del sitio o app de un evento (mismo alias que usa la pantalla)
   const goOf = e => e.app && e.account ? 'app:' + alias(e.account + '/' + e.app) : e.site ? 'site:' + alias('site:' + e.site) : null;
-  return { state, event, detail, scrub, goOf };
+  return { state, event, detail, scrub, goOf, analyticsTarget };
 }
 
 module.exports = { makePrivacy, scrub };

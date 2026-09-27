@@ -171,3 +171,7 @@ if (toc) {
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { links.forEach(a => a.classList.remove('on')); links.get(e.target.id)?.classList.add('on'); } }), { rootMargin: '-20% 0px -70% 0px' });
   document.querySelectorAll('.guide[id]').forEach(s => io.observe(s));
 }
+
+// videos verticales: al reproducir uno se pausan los demas (y las animaciones del visor siguen su curso)
+const vids = document.querySelectorAll('.vid video');
+vids.forEach(v => v.addEventListener('play', () => vids.forEach(o => { if (o !== v) o.pause(); })));

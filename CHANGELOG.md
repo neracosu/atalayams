@@ -14,6 +14,15 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.76.0] - 2026-09-27
+
+### Agregado
+- **Script opcional de analítica, sin cookies**: una línea en el sitio (`<script defer src=".../a.js" data-site="...">`, se copia desde la analítica en modo privado) suma lo que los registros no ven: el tiempo que la página estuvo a la vista, cuánto se lee, el **rebote real** (entró y se fue en menos de 10 s sin tocar nada) y las **conversiones** que se reconocen solas (clics en WhatsApp, llamadas, correos, formularios, descargas y enlaces externos) o las propias con `atalaya('event', 'compra')`. No usa cookies ni guarda nada en el navegador, no envía la IP ni datos del visitante; solo acepta envíos desde los dominios del sitio. Funciona en sitios de una sola página y también en las pantallas de la nube. El informe mensual lo incluye.
+- **Informe mensual por correo para sus clientes**: en la analítica de cada sitio o app (modo privado, dueño) se anotan los correos que lo reciben. El día 1 de cada mes, desde las 8, les llega el mes anterior contra el previo: un resumen en palabras («recibió 1.234 visitantes, un 12 % más que en agosto; la mayoría llegó desde Google y el 68 % desde el celular»), visitantes, páginas vistas, páginas por visita y rebote, la curva por día, de dónde llegan, las páginas más vistas, países, dispositivos y las páginas rotas. Sale del correo de Alertas. Botón para enviarlo en el momento (si el mes anterior no se midió, va el mes en curso hasta hoy).
+
+### Corregido
+- Analítica: «Páginas que no existen» ya no muestra las rutas que buscan los robots de ataque (/.env, /.git, wp-config, copias de respaldo): esas las vigila la defensa.
+
 ## [0.75.0] - 2026-09-27
 
 ### Agregado
@@ -1388,7 +1397,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.75.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.76.0...HEAD
+[0.76.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.75.0...v0.76.0
 [0.75.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.74.0...v0.75.0
 [0.74.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.73.0...v0.74.0
 [0.73.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.72.0...v0.73.0

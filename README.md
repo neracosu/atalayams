@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.75.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.76.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -77,7 +77,7 @@ revisar y cómo arreglarlo**.
     <td colspan="2" valign="top"><img src="docs/icons/lock.svg" width="40"><br><b>Todo desde la pantalla</b><br><sub>Usuarios (dueño o solo ver), PIN y roles desde el menú, sin terminal. Autos pixel en la autopista, un globo para «Web» y una hoja con lápiz para «Editando».</sub></td>
   </tr>
   <tr>
-    <td valign="top"><img src="docs/icons/chart.svg" width="40"><br><b>Analítica sin cookies</b><br><sub>Visitantes, páginas vistas, rebote y páginas por visita de cada sitio por día, semana, mes o año, comparados con el período anterior. De dónde llegan (Google, redes, asistentes de IA, otros sitios, campañas utm), páginas de entrada, países, dispositivos, horas y las páginas rotas que ven sus visitantes. Sale de los registros del servidor: <b>sin código en el sitio ni banner de cookies</b>, y cuenta también a quien usa bloqueador de anuncios.</sub></td>
+    <td valign="top"><img src="docs/icons/chart.svg" width="40"><br><b>Analítica sin cookies</b><br><sub>Visitantes, páginas vistas, rebote y páginas por visita de cada sitio por día, semana, mes o año, comparados con el período anterior. De dónde llegan (Google, redes, asistentes de IA, otros sitios, campañas utm), páginas de entrada, países, dispositivos, horas y las páginas rotas que ven sus visitantes. Sale de los registros del servidor: <b>sin código en el sitio ni banner de cookies</b>, y cuenta también a quien usa bloqueador de anuncios. Y el día 1 de cada mes, un <b>informe por correo</b> para sus clientes. Con una línea opcional en el sitio, también el tiempo real en cada página, el rebote real y las conversiones (WhatsApp, llamadas, formularios), igual sin cookies.</sub></td>
     <td valign="top"><img src="docs/icons/key.svg" width="40"><br><b>Quién entra a los paneles</b><br><sub>Contraseñas equivocadas en cPanel, WHM y webmail (sin contar escáneres), si root tiene verificación en dos pasos y las últimas entradas con su IP. Avisa por Telegram o correo si alguien entra desde una IP nueva, y en grave si esa IP venía fallando la contraseña.</sub></td>
     <td valign="top"><img src="docs/icons/lock.svg" width="40"><br><b>Certificados y servicios</b><br><sub>Certificados SSL por vencer, vencidos o autofirmados, con aviso antes de que el navegador asuste a sus visitantes. Servicios que se caen y se levantan solos, los que quedaron fallidos y los procesos que el sistema mató por falta de memoria.</sub></td>
   </tr>

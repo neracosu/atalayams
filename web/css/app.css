@@ -666,3 +666,6 @@ small.down { color: var(--bad); font-weight: 700; margin-left: .3rem; }
 /* leyenda: arte pixel del tema y glifos de los temas de solo texto */
 .lico canvas.lart { image-rendering: pixelated; }
 .lglyph { font-family: 'VT323', ui-monospace, monospace; font-size: 1.35rem; line-height: 1; color: var(--accent); white-space: nowrap; }
+/* informe mensual por correo, en la analitica */
+.anarep input[type=text] { padding: .45rem .6rem; border: 1px solid var(--line-strong); border-radius: var(--radius, 8px); background: rgba(0, 0, 0, .25); color: var(--ink); font: inherit; }
+.anarep-out.good { color: var(--good, #4ade80); } .anarep-out.bad { color: var(--bad, #f87171); }

@@ -332,3 +332,14 @@ pre.cmd { position: relative; margin: .6rem 0 0; padding: .75rem .9rem; backgrou
 /* vuelta a neracosu.com: quien llega desde la home (o las redes) tiene cómo regresar */
 .born .home { color: var(--ink); text-decoration: none; font-weight: 600; padding: 2px 8px; border: 1px solid var(--line-strong); }
 .born .home:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------------------------------------------------------------- videos verticales (los de las redes) */
+.vids-head { margin: 3rem 0 1rem; }
+.vids-head h3 { margin: 0 0 .3rem; }
+.vids { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 300px); gap: 18px; justify-content: center; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 4px 14px; }
+.vid { margin: 0; scroll-snap-align: center; border-radius: 26px; padding: 10px; background: #0b1120; border: 1px solid var(--line-strong); box-shadow: 0 24px 60px rgba(0, 0, 0, .5); }
+.vid video { display: block; width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 18px; background: #060a14; }
+.vid figcaption { padding: .7rem .35rem .2rem; color: var(--ink-3); font-size: .88rem; line-height: 1.4; }
+.vid figcaption b { display: block; color: var(--ink); font-size: .98rem; margin-bottom: .15rem; }
+@media (max-width: 700px) { .vids { justify-content: start; grid-auto-columns: 78%; } }
+.vid figcaption .dl { display: inline-block; margin-top: .5rem; font-size: .82rem; color: var(--accent); text-decoration: none; border-bottom: 1px dashed currentColor; }

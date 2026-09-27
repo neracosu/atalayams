@@ -174,6 +174,9 @@ ctx.analytics = new Analytics(cfg, bus, { domainsOf: key => {
 ctx.analytics.start();
 // al detenerse, se guarda lo ultimo de la analitica (si no, se recupera releyendo los logs al arrancar)
 process.once('SIGTERM', () => { try { ctx.analytics.flush(); } catch { } process.exit(0); });
+// informe mensual de la analitica por correo, para el cliente final de cada sitio (sale del correo de las alertas)
+const { Reports } = require('./reports');
+ctx.reports = new Reports(cfg, ctx);
 const { Defense } = require('./defense');
 ctx.alerts = new Alerts(cfg, bus, secrets, { goOf: e => privacy.goOf(e),
   healthLine: () => { const h = ctx.hostAudit && ctx.hostAudit.summary(); return h ? (h.bad ? `Salud del servidor: ${h.bad} grave(s)${h.warn ? `, ${h.warn} para revisar` : ''}` : h.warn ? `Salud del servidor: ${h.warn} para revisar` : 'Salud del servidor: en orden') : ''; } });
@@ -220,6 +223,30 @@ function isHttps(req) { return req.headers['x-forwarded-proto'] === 'https'; }
 function getCookie(req, name) {
   const m = (req.headers.cookie || '').match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
   return m ? decodeURIComponent(m[1]) : null;
+}
+// un envio del script de analitica: el sitio debe existir y el envio venir de uno de sus dominios; tope por IP
+// (la IP solo se usa para el tope, no se guarda)
+const beaconHits = new Map(), beaconSites = { at: 0, map: new Map() };
+setInterval(() => beaconHits.clear(), 60000).unref();
+function beacon(req, text) {
+  const ip = clientIp(req), n = (beaconHits.get(ip) || 0) + 1; beaconHits.set(ip, n);
+  if (n > 120) throw new Error('tope');
+  if (/bot|crawl|spider|headless|lighthouse|preview/i.test(req.headers['user-agent'] || '')) throw new Error('robot');
+  let b; try { b = JSON.parse(text); } catch { throw new Error('json'); }
+  const id = String(b && b.s || '');
+  // del identificador fijo a la clave: se arma la tabla con todos los sitios y apps conocidos (se renueva cada minuto)
+  if (Date.now() - beaconSites.at > 60000) {
+    beaconSites.at = Date.now(); beaconSites.map.clear();
+    const keys = new Set(Object.values(ctx.analytics.index || {}));
+    for (const g of [...(logs.groups ? logs.groups.values() : []), ...(logs.sites || [])]) keys.add(g.app ? g.account + '/' + g.app : 'site:' + g.id);
+    for (const k of keys) beaconSites.map.set(ctx.analytics.siteToken(k), { key: k });
+  }
+  const t = beaconSites.map.get(id);
+  if (!t) throw new Error('sitio');
+  const from = (() => { try { return new URL(req.headers.origin || req.headers.referer || '').hostname.toLowerCase().replace(/^www\./, ''); } catch { return ''; } })();
+  const doms = ctx.analytics.doms(t.key).map(d => String(d).toLowerCase().replace(/^www\./, ''));
+  if (!from || !doms.some(d => from === d || from.endsWith('.' + d))) throw new Error('origen');
+  ctx.analytics.beacon(t.key, b);
 }
 function send(res, status, body, headers = {}) {
   res.writeHead(status, { ...SEC_HEADERS, 'Cache-Control': 'no-store', ...headers });
@@ -452,6 +479,18 @@ async function handle(req, res) {
     try { return send(res, 200, agents.push(id, raw, req.headers['content-encoding']) + '\n', { 'Content-Type': 'text/plain' }); }
     catch (e) { console.error('[agente]', id, e.message); return send(res, 400, 'no se pudo leer\n', { 'Content-Type': 'text/plain' }); }
   }
+  // analitica sin cookies (opcional): el script que se pega en los sitios y los envios que hace desde el navegador
+  if (p === '/a.js' && req.method === 'GET') {
+    return fs.readFile(ROOT + '/web/a.js', (err, data) => err ? send(res, 404, '') : send(res, 200, data, { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'public, max-age=86400', 'Access-Control-Allow-Origin': '*', 'Cross-Origin-Resource-Policy': 'cross-origin' }));
+  }
+  if (p === '/api/beacon') {
+    const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Content-Type' };
+    if (req.method === 'OPTIONS') return send(res, 204, '', cors);
+    if (req.method !== 'POST') return send(res, 405, '', cors);
+    let raw; try { raw = await readRaw(req, 4096); } catch { return send(res, 413, '', cors); }
+    try { beacon(req, raw.toString('utf8')); } catch (e) { if (!/^(sitio|origen|tope|robot|json)/.test(e.message)) console.error('[beacon]', e.message); }
+    return send(res, 204, '', cors); // siempre 204: el navegador del visitante no espera nada
+  }
   if ((p === '/install/agent.sh' || p === '/install/agent-run.sh') && req.method === 'GET') {
     return fs.readFile(ROOT + (p === '/install/agent.sh' ? '/agent/install.sh' : '/agent/agent.sh'), (err, data) => err ? send(res, 404, '') : send(res, 200, data, { 'Content-Type': 'text/x-shellscript; charset=utf-8' }));
   }
@@ -553,6 +592,17 @@ async function handle(req, res) {
         if (act === 'summary') { const ok = await A.send(A.summary(), { force: true }); return ok ? json(res, 200, { ok: true }) : json(res, 400, { error: 'No se pudo enviar' }); }
       } catch (e) { return json(res, 400, { error: e.message }); }
       return json(res, 404, { error: 'No encontrado' });
+    }
+    // informe mensual por correo: destinatarios de un sitio y envio inmediato (dueno con el modo privado activo)
+    if (p === '/api/reports/save' || p === '/api/reports/send') {
+      if (session.role !== 'owner') return json(res, 403, { error: 'Solo un dueño puede hacer esto' });
+      if (!auth.isPrivate(session)) return json(res, 403, { error: 'Active el modo privado' });
+      const t = privacy.analyticsTarget(ctx, body.id);
+      if (!t) return json(res, 404, { error: 'No existe ese sitio' });
+      try {
+        if (p === '/api/reports/save') { const info = ctx.reports.set(t.key, { to: body.to, active: body.active !== false, name: t.name }); console.log(`[informes] ${session.user} guardó el informe de ${t.name}: ${info.to.length} destinatario(s)`); return json(res, 200, { ok: true, monthly: info }); }
+        return json(res, 200, await ctx.reports.sendNow(t.key, { to: body.to, name: t.name, ym: body.ym }));
+      } catch (e) { return json(res, 400, { error: e.message }); }
     }
     if (p.startsWith('/api/users/') || p === '/api/maestro') {
       if (session.role !== 'owner') return json(res, 403, { error: 'Solo un dueño puede hacer esto' });

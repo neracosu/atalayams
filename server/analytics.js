@@ -19,6 +19,9 @@ const SOCIAL = [[/(^|\.)(facebook\.com|fb\.com|fb\.me|m\.facebook\.com|l\.facebo
   [/(^|\.)(t\.me|telegram\.org)$/i, 'Telegram'], [/(^|\.)threads\.net$/i, 'Threads']];
 const AI = /(^|\.)(chatgpt\.com|chat\.openai\.com|perplexity\.ai|claude\.ai|gemini\.google\.com|copilot\.microsoft\.com)$/i;
 
+// rutas que buscan los robots de ataque (/.env, /.git, wp-config, phpmyadmin...): no son enlaces rotos de sus
+// visitantes y en un informe para el cliente solo asustan. La defensa de Atalaya las vigila aparte
+const PROBE = /(^|\/)\.|wp-config|phpmyadmin|pma\/|adminer|\/vendor\/|\/cgi-bin|xmlrpc|\.(sql|bak|old|orig|swp|save|zip|tar|gz|rar|7z|ya?ml|ini|log|env|pem|key|conf)$|(^|\/)(backup|config|credentials|debug|shell|cmd|eval|setup|install)\b/i;
 const dayOf = t => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const bump = (o, k, n = 1) => { if (k == null || k === '') return; if (!(k in o) && Object.keys(o).length >= 500) k = '(otros)'; o[k] = (o[k] || 0) + n; };
 const trim = o => Object.fromEntries(Object.entries(o || {}).sort((a, b) => b[1] - a[1]).slice(0, TOP));
@@ -45,6 +48,16 @@ function isPage(e) {
 function emptyDay() {
   return { pv: 0, visitors: 0, bounces: 0, hits: 0, bots: 0, err: 0, hours: new Array(24).fill(0),
     pages: {}, entries: {}, sources: {}, refs: {}, search: {}, social: {}, campaigns: {}, cc: {}, dev: {}, browsers: {}, os: {}, notFound: {}, botNames: {} };
+}
+
+// lo del script (a.js) de un periodo: tiempo promedio, rebote real, lectura, conversiones y el tiempo por pagina
+function jsOut(J, P, top) {
+  if (!J.pv) return null;
+  const avg = (s, n) => n ? Math.round(s / n) : null;
+  const times = Object.entries(J.pages).filter(([, n]) => n >= 3).map(([name, n]) => ({ name, n, secs: avg(J.pageSecs[name] || 0, n) })).sort((x, y) => y.n - x.n).slice(0, 10);
+  const conv = Object.values(J.conv).reduce((a, n) => a + n, 0), pconv = Object.values(P.conv || {}).reduce((a, n) => a + n, 0);
+  return { pv: J.pv, avgSecs: avg(J.secs, J.pv), bounce: J.entries ? J.bounces / J.entries : null, scroll: avg(J.scroll, J.pv), conv, prev: P.pv ? { avgSecs: avg(P.secs, P.pv), bounce: P.entries ? P.bounces / P.entries : null, conv: pconv } : null,
+    convKinds: top(J.conv, 8), convPages: top(J.convPages, 10), times };
 }
 
 class Analytics {
@@ -133,6 +146,28 @@ class Analytics {
     } else if (n === 1) d.bounces--; // ya vio una segunda pagina: no reboto
   }
 
+  // identificador fijo de un sitio para el script (no cambia al reiniciar: sale de la sal guardada en disco)
+  siteToken(key) { return 'a' + crypto.createHash('sha1').update(this.salt + '|js|' + key).digest('hex').slice(0, 11); }
+  // lo que manda el script opcional (a.js) desde el navegador: tiempo visible en la pagina, cuanto se leyo, el
+  // rebote real y las conversiones. Sin cookies ni identificadores: cada envio es una pagina de una visita
+  beacon(key, b) {
+    const date = dayOf(Date.now()), d = this.day(key, date);
+    this.dirty.add(key + '|' + date.slice(0, 7));
+    const J = d.js || (d.js = { pv: 0, secs: 0, entries: 0, bounces: 0, scroll: 0, pages: {}, pageSecs: {}, conv: {}, convPages: {} });
+    const p = String(b.p || '/').split('?')[0].slice(0, 120) || '/';
+    if (b.t === 'pv') {
+      const sec = Math.max(0, Math.min(1800, Math.round(+b.sec || 0)));
+      if (b.f) {
+        J.pv++; bump(J.pages, p); J.scroll += Math.max(0, Math.min(100, Math.round(+b.sc || 0)));
+        if (b.e) { J.entries++; if (!b.n && sec < 10) J.bounces++; } // entro, no siguio a otra pagina ni se quedo 10 s: reboto de verdad
+      }
+      J.secs += sec; bump(J.pageSecs, p, sec);
+    } else if (b.t === 'ev') {
+      const k = String(b.k || '').slice(0, 20); if (!k) return;
+      bump(J.conv, k); bump(J.convPages, (k + ' · ' + (String(b.l || '').slice(0, 60) || p)).slice(0, 100));
+    }
+  }
+
   flush() {
     try { fs.mkdirSync(this.dir, { recursive: true, mode: 0o700 }); } catch { }
     for (const id of this.dirty) {
@@ -142,6 +177,7 @@ class Analytics {
       for (const [date, d] of Object.entries(m.days)) {
         const t = { ...d };
         for (const f of ['pages', 'entries', 'refs', 'search', 'social', 'campaigns', 'cc', 'browsers', 'os', 'notFound', 'botNames']) t[f] = trim(d[f]);
+        if (d.js) { t.js = { ...d.js }; for (const f of ['pages', 'pageSecs', 'conv', 'convPages']) t.js[f] = trim(d.js[f]); }
         out.days[date] = t;
       }
       const dir = path.join(this.dir, this.folder(key));
@@ -172,33 +208,46 @@ class Analytics {
     const end = new Date(now), start = new Date(now); start.setDate(start.getDate() - range + 1);
     const pEnd = new Date(start); pEnd.setDate(pEnd.getDate() - 1);
     const pStart = new Date(pEnd); pStart.setDate(pStart.getDate() - range + 1);
-    const cur = this.days(key, dayOf(start), dayOf(end)), prev = this.days(key, dayOf(pStart), dayOf(pEnd));
+    return this.period(key, dayOf(start), dayOf(end), dayOf(pStart), dayOf(pEnd), range);
+  }
+  // un mes calendario completo (AAAA-MM) contra el mes anterior: el informe mensual por correo
+  monthReport(key, ym) {
+    const [y, m] = ym.split('-').map(Number);
+    const last = d => dayOf(new Date(d.getFullYear(), d.getMonth() + 1, 0, 12));
+    const from = new Date(y, m - 1, 1, 12), pfrom = new Date(y, m - 2, 1, 12);
+    const days = new Date(y, m, 0).getDate();
+    return this.period(key, dayOf(from), last(from), dayOf(pfrom), last(pfrom), days);
+  }
+  period(key, from, to, pFrom, pTo, range) {
+    const cur = this.days(key, from, to), prev = this.days(key, pFrom, pTo);
     const sum = list => {
       const t = { pv: 0, visitors: 0, bounces: 0, hits: 0, bots: 0, err: 0, hours: new Array(24).fill(0) }, lists = {};
+      const J = { pv: 0, secs: 0, entries: 0, bounces: 0, scroll: 0, pages: {}, pageSecs: {}, conv: {}, convPages: {} };
       for (const { d } of list) {
         if (!d) continue;
         for (const k of ['pv', 'visitors', 'bounces', 'hits', 'bots', 'err']) t[k] += d[k] || 0;
         (d.hours || []).forEach((n, i) => { t.hours[i] += n; });
+        if (d.js) { for (const k of ['pv', 'secs', 'entries', 'bounces', 'scroll']) J[k] += d.js[k] || 0; for (const f of ['pages', 'pageSecs', 'conv', 'convPages']) for (const [k, n] of Object.entries(d.js[f] || {})) J[f][k] = (J[f][k] || 0) + n; }
         for (const f of ['pages', 'entries', 'sources', 'refs', 'search', 'social', 'campaigns', 'cc', 'dev', 'browsers', 'os', 'notFound', 'botNames']) {
           const o = lists[f] || (lists[f] = {}); for (const [k, n] of Object.entries(d[f] || {})) o[k] = (o[k] || 0) + n;
         }
       }
-      return { t, lists };
+      return { t, lists, J };
     };
     const a = sum(cur), b = sum(prev);
     const top = (o, k = 15) => Object.entries(o || {}).sort((x, y) => y[1] - x[1]).slice(0, k).map(([name, n]) => ({ name, n }));
     const rate = t => t.visitors ? t.bounces / t.visitors : null;
     const since = this.firstDay(key);
     return {
-      range, from: dayOf(start), to: dayOf(end), since,
+      range, from, to, since,
       // solo se compara si ya se medía durante todo el periodo anterior
-      comparable: range > 1 && !!since && since <= dayOf(pStart), // hoy va por la mitad: no se compara con un dia completo
+      comparable: range > 1 && !!since && since <= pFrom, // hoy va por la mitad: no se compara con un dia completo
       series: cur.map(({ date, d }) => ({ date, pv: d ? d.pv : 0, visitors: d ? d.visitors : 0, bots: d ? d.bots : 0 })),
       totals: { ...a.t, bounce: rate(a.t), pagesPerVisit: a.t.visitors ? a.t.pv / a.t.visitors : null },
       prev: { pv: b.t.pv, visitors: b.t.visitors, bots: b.t.bots, bounce: rate(b.t), pagesPerVisit: b.t.visitors ? b.t.pv / b.t.visitors : null },
       pages: top(a.lists.pages), entries: top(a.lists.entries), sources: top(a.lists.sources, 8), search: top(a.lists.search, 8), social: top(a.lists.social, 10),
       refs: top(a.lists.refs), campaigns: top(a.lists.campaigns, 10), cc: top(a.lists.cc, 12), dev: top(a.lists.dev, 3), browsers: top(a.lists.browsers, 8),
-      os: top(a.lists.os, 8), notFound: top(a.lists.notFound, 10), botNames: top(a.lists.botNames, 8),
+      js: jsOut(a.J, b.J, top), os: top(a.lists.os, 8), notFound: top(Object.fromEntries(Object.entries(a.lists.notFound || {}).filter(([k]) => !PROBE.test(k))), 10), botNames: top(a.lists.botNames, 8),
     };
   }
   // primer dia con datos de un sitio (para decir "desde cuando se mide")
@@ -220,4 +269,4 @@ class Analytics {
   }
 }
 
-module.exports = { Analytics, sourceOf, isPage, dayOf };
+module.exports = { Analytics, sourceOf, isPage, dayOf, PROBE };
