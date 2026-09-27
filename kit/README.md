@@ -19,6 +19,8 @@
   <a href="docs/TEMAS.md"><b>Guía completa</b></a>
 </p>
 
+<p align="center"><b>Atalaya Monitor Server:</b> <a href="https://neracosu.com/atalaya/">neracosu.com/atalaya</a> · <a href="https://neracosu.com/atalaya/vibe-coding/">para vibe coders</a> · <a href="https://github.com/neracosu/atalayams">código de Atalaya</a></p>
+
 <br>
 
 Todo lo necesario para **diseñar un tema de Atalaya** sin tener un servidor: la interfaz real de

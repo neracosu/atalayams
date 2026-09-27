@@ -30,7 +30,7 @@
 </p>
 
 <p align="center"><sub>Pantalla real en <b>modo público</b>: sin nombres, dominios, rutas ni IPs.</sub></p>
-<p align="center"><b>Sitio del proyecto:</b> <a href="https://neracosu.com/atalaya/">neracosu.com/atalaya</a> · <a href="https://neracosu.com/atalaya/guias/">guías paso a paso</a> · pantallas en la nube: <a href="https://nube.neracosu.com">nube.neracosu.com</a></p>
+<p align="center"><b>Sitio del proyecto:</b> <a href="https://neracosu.com/atalaya/">neracosu.com/atalaya</a> · <a href="https://neracosu.com/atalaya/vibe-coding/">para vibe coders</a> · <a href="https://neracosu.com/atalaya/guias/">guías paso a paso</a> · pantallas en la nube: <a href="https://nube.neracosu.com">nube.neracosu.com</a></p>
 
 <br>
 
