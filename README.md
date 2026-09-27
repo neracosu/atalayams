@@ -6,7 +6,7 @@
   <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.66.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
-  <img alt="Solo lectura" src="https://img.shields.io/badge/acceso-solo%20lectura-fbbf24?style=flat-square&labelColor=0b1530">
+  <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
   <img alt="VPS, hosting y WordPress" src="https://img.shields.io/badge/corre%20en-VPS%20%C2%B7%20hosting%20%C2%B7%20WordPress-f472b6?style=flat-square&labelColor=0b1530">
 </p>
 
@@ -41,14 +41,16 @@ un edificio (o un pez, o un escritorio), cada visita algo que viaja, cada ataque
 contra el escudo, cada sitio bajo escaneo recibe **patrullas voladoras** que lo custodian, y cada sesión de
 Claude Code es un personaje que camina a lo que está haciendo.
 
-Pero no es solo bonito: **une** sus VPS, hostings compartidos, sitios WordPress, Vercel, Supabase y
-GitHub en una sola pantalla, arma **una ficha por proyecto** y le dice, en lenguaje simple, **qué
+Pero no es solo bonito: **une** en una sola pantalla sus hostings compartidos, sitios WordPress, Vercel,
+Supabase, GitHub y las laptops con Claude Code (cada VPS tiene su propia Atalaya, que ve todo ese servidor), arma **una ficha por proyecto** y le dice, en lenguaje simple, **qué
 revisar y cómo arreglarlo**.
 
-> **Atalaya mira; solo actúa cuando usted lo decide.** No reinicia servicios, no borra archivos, no toca
-> bases de datos. Lo pesado corre solo cuando usted lo pide, y los secretos nunca salen del servidor. La
-> única acción que puede tomar es **bloquear por un tiempo una IP que ataca**, y solo si usted pulsa el botón
-> o enciende la defensa automática.
+> **Atalaya mira; solo actúa cuando usted lo decide.** No reinicia servicios, no toca sus sitios ni los
+> datos de sus bases. Lo pesado corre solo cuando usted lo pide, y los secretos nunca salen del servidor. Lo
+> que cambia algo pasa por una **lista cerrada de acciones** que usted pulsa: bloquear por un tiempo una IP
+> que ataca (o dejar que lo haga la defensa automática, si la enciende), poner en cuarentena un archivo PHP
+> sospechoso (se puede restaurar), activar el usuario de MySQL que solo ve las consultas en curso, instalar
+> los hooks de Claude Code y publicar su subdominio en cPanel.
 
 ---
 
@@ -138,7 +140,7 @@ En todos, **cada proyecto se ubica sin hacer clic**: una placa o un directorio p
 tiene adentro, y al acercarse cada cosa lleva su nombre encima.
 
 Los temas son carpetas con un manifiesto, su mundo y su CSS: **cualquiera puede crear uno**. La guía
-está en [docs/TEMAS.md](docs/TEMAS.md), y el **kit de temas** (repositorio `atalaya-temas`) trae un
+está en [docs/TEMAS.md](docs/TEMAS.md), y el **kit de temas** ([neracosu/atalaya-temas](https://github.com/neracosu/atalaya-temas)) trae un
 simulador con datos reales en modo público para diseñar sin un servidor. Con solo decir dónde está cada cosa
 (`screenOf`), un tema recibe gratis la **capa de efectos** común: patrullas voladoras, reflectores, el director,
 los mensajes entre agentes, los robots que sondean, las consultas lentas, la **escolta a la cárcel** y las
@@ -167,7 +169,7 @@ pasan a una barra vertical.
   <tr>
     <td valign="top"><img src="docs/icons/invader.svg" width="40"><br><b>Defensa</b><br><sub>Intentos de SSH, bloqueos de cPHulk, fail2ban y CSF, y los robots que buscan rutas vulnerables en cada sitio (.env, .git, wp-login, phpMyAdmin, webshells), con verificación de archivos expuestos. Escaneos, scraping y picos de visitas ponen al sitio <b>en vigilancia</b>, con patrullas o reflectores.</sub></td>
     <td valign="top"><img src="docs/icons/db.svg" width="40"><br><b>Bases de datos</b><br><sub>Tamaño, tablas y qué sitio usa cada base, leído de los archivos. Y, si lo activa, su actividad en vivo con un usuario que solo ve las consultas en curso: nunca lee ni cambia datos.</sub></td>
-    <td valign="top"><img src="docs/icons/shield.svg" width="40"><br><b>Salud del servidor</b><br><sub>Respaldos, actualizaciones, cola de correo, tareas cron, puertos abiertos, certificados SSL por vencer, servicios que se reinician solos, accesos a cPanel y WHM, archivos .git/.env expuestos por cualquier nombre del sitio y apariciones en buscadores de filtraciones (LeakIX), revisados cada 15 minutos. Se ve junto al servidor en el mundo y en su ficha, cada hallazgo con su «cómo arreglarlo».</sub></td>
+    <td valign="top"><img src="docs/icons/shield.svg" width="40"><br><b>Salud del servidor</b><br><sub>Respaldos, actualizaciones, cola de correo, tareas cron, puertos abiertos, certificados SSL por vencer, servicios que se reinician solos, accesos a cPanel y WHM, archivos .git/.env expuestos por cualquier nombre del sitio y apariciones en buscadores de filtraciones (LeakIX), revisados cada 15 minutos (los archivos expuestos y LeakIX, una vez al día; LeakIX pide una clave gratuita en el asistente). Se ve junto al servidor en el mundo y en su ficha, cada hallazgo con su «cómo arreglarlo».</sub></td>
   </tr>
   <tr>
     <td valign="top"><img src="docs/icons/house.svg" width="40"><br><b>Hostings compartidos</b><br><sub>Un agente por cron para cPanel, Hostinger, GoDaddy o Namecheap. No toca <code>public_html</code> ni abre puertos.</sub></td>
@@ -273,32 +275,72 @@ Durante la beta es por invitación y no se cobra: [pida acceso](https://nube.ner
 > Atalaya Cloud es un servicio de NERACOSU. Este repositorio trae la edición `cloud` del servidor, la misma
 > que usa cada pantalla alojada; el portal del servicio no forma parte de esta distribución.
 
+
 ---
 
 ## Instalación
 
+Atalaya se instala en un **VPS con root** (ve todo el servidor), en una **cuenta de hosting con Node**
+(ve esa cuenta) o en **su computadora** (Atalaya Equipo). En los tres casos termina en el mismo lugar: un
+**asistente web** donde crea su usuario y su PIN y conecta lo que quiera ver.
+
 <details open>
-<summary><b>Atalaya VPS</b> (con root)</summary>
+<summary><b>Atalaya VPS</b> (Linux con root)</summary>
 
 <br>
 
-Desde otra Atalaya, menú › *Instalar* › **Servidor VPS** genera el comando (token de 24 h). Se pega
-como root en **WHM › Terminal**, **Plesk › SSH Terminal** o por SSH:
+**Necesita:** Linux con systemd, acceso root y Node.js 20 o superior (si falta, el instalador le dice cómo
+instalarlo). Sirve con cPanel/WHM, Plesk, DirectAdmin, CyberPanel o sin panel.
 
-```sh
-curl -fsSL https://SU-ATALAYA/get | sudo sh -s -- --token=XXXX [--domain=atalaya.su-dominio.com]
-```
-
-O desde el repositorio:
+**1. Instale.** Como root (por SSH, en **WHM › Terminal** o en **Plesk › SSH Terminal**):
 
 ```sh
 git clone https://github.com/neracosu/atalayams.git /opt/atalaya
-cd /opt/atalaya && sudo ./install.sh --web
+cd /opt/atalaya && sudo ./install.sh
 ```
 
-Instala Node.js si falta, crea el servicio de solo lectura y muestra la **dirección y el código**
-del asistente web. En cPanel publica el subdominio con su certificado desde el mismo asistente.
-Volver a ejecutarlo actualiza sin tocar la configuración.
+El instalador detecta el panel, crea el servicio de solo lectura `atalaya` (escucha solo en
+`127.0.0.1:3950`), le pide el nombre del primer usuario y su PIN, y ofrece instalar los hooks de Claude
+Code. Con `--yes` acepta todo lo que tiene valor por defecto. Si prefiere contestar todo en el navegador,
+use `sudo ./install.sh --web`: no pregunta nada y deja el asistente web esperándolo (paso 3).
+
+**2. Publíquela en una dirección** para abrirla desde el TV o el teléfono. Atalaya no abre puertos: se ve
+detrás del servidor web que ya tiene, en un subdominio como `atalaya.su-dominio.com`.
+
+- **Con cPanel/WHM:** agregue su **dominio principal**, el de una cuenta que ya exista en cPanel, y el
+  instalador crea el subdominio `atalaya.` con su certificado y el proxy:
+
+  ```sh
+  sudo ./install.sh --domain=su-dominio.com                 # crea atalaya.su-dominio.com
+  sudo ./install.sh --domain=su-dominio.com --sub=monitor   # o monitor.su-dominio.com
+  ```
+
+  También puede hacerlo después, desde el asistente (paso «Publicar con su propio dominio»).
+- **Con otro panel o sin panel:** cree el subdominio en su panel (o su registro DNS) y copie el proxy que
+  corresponda. Al terminar, el instalador le dice cuál es:
+
+  | Panel o servidor web | Archivo | Dónde va |
+  |---|---|---|
+  | Plesk | `deploy/proxy/plesk-nginx.conf` | Directivas adicionales de nginx del subdominio |
+  | DirectAdmin | `deploy/proxy/directadmin.conf` | Custom HTTPD Configurations |
+  | CyberPanel / OpenLiteSpeed | `deploy/proxy/openlitespeed.conf` | vHost Conf del sitio |
+  | nginx | `deploy/proxy/nginx.conf` | un `server` en `sites-enabled` |
+  | Apache | `deploy/proxy/apache.conf` | un `VirtualHost` |
+  | cPanel a mano | `deploy/proxy/cpanel-htaccess` | `.htaccess` en la carpeta del subdominio |
+
+- **Solo para usted, sin publicar nada:** abra un túnel desde su computadora
+  (`ssh -L 3950:127.0.0.1:3950 root@su-servidor`) y entre a `http://localhost:3950`.
+
+**3. Termine en el asistente.** Entre a su dirección (`https://atalaya.su-dominio.com`, o
+`http://localhost:3950` por el túnel) con su usuario y PIN, y abra menú › **Asistente de configuración**:
+nombre de la pantalla, cuentas, dirección pública, base de países, hooks y conectores de nube. Si instaló con
+`--web`, el usuario todavía no existe: abra `https://atalaya.su-dominio.com/setup` y escriba el **código de
+configuración** que el instalador muestra al terminar. Mientras no haya usuario, también queda una entrada
+temporal en `http://IP-DEL-SERVIDOR:3951/setup` (si su firewall deja pasar ese puerto), que se cierra sola.
+
+**Actualizar:** `cd /opt/atalaya && git pull && sudo ./install.sh --yes`. Conserva `config.json`, los
+usuarios y todo lo configurado. Diagnóstico en cualquier momento: `node /opt/atalaya/server/platform`.
+
 
 </details>
 
@@ -306,7 +348,7 @@ Volver a ejecutarlo actualiza sin tocar la configuración.
 <summary><b>Atalaya Equipo</b> (ejecutable único para Windows, macOS o Linux)</summary>
 <br>
 
-Un solo archivo con Node adentro (Node SEA): se descomprime y se abre. El dueño de un Atalaya VPS lo descarga desde su pantalla: menú › **Atalaya para su computadora**. La primera vez extrae la aplicación
+Un solo archivo con Node adentro (Node SEA): se descomprime y se abre. El dueño de un Atalaya VPS lo descarga desde su pantalla (menú › **Atalaya para su computadora**), una vez armado en ese servidor con `node scripts/build-exe.js`. La primera vez extrae la aplicación
 en la caché del usuario, elige un puerto libre desde el 3950, abre el navegador en el asistente con el
 código ya puesto, y queda escuchando **solo en 127.0.0.1**. Muestra esa computadora (CPU, memoria y
 disco; en Linux también red y procesos), sus sesiones de Claude Code (en Windows, las de VS Code y otros IDE y
@@ -320,6 +362,16 @@ hostings y WordPress necesitan una dirección pública: para eso están Cloud y 
 | Linux | `~/.local/share/atalaya` | `~/.cache/atalaya` |
 
 Opciones: `--puerto N`, `--sin-navegador`, `--version`. Abrirlo dos veces abre la que ya corre.
+
+**Sin el ejecutable, desde el código** (con Node 20 o superior instalado):
+
+```sh
+ATALAYA_EDITION=equipo node server/index.js                 # Linux y macOS
+$env:ATALAYA_EDITION='equipo'; node server/index.js         # Windows (PowerShell)
+```
+
+Abra `http://127.0.0.1:3950/setup`; el código del asistente queda en `setup-token`, dentro de la carpeta de
+datos de la tabla.
 
 Para construirlo (en Linux, con red):
 
@@ -340,15 +392,25 @@ Ni el `.exe` ni el binario de macOS tienen firma de un certificado comercial: Wi
 
 <br>
 
-Menú › *Instalar* › **Hosting compartido** › *Generar comando*. En el Terminal de cPanel:
+**Necesita:** una cuenta de hosting con **Setup Node.js App** (Node 20 o superior), **Terminal** y
+**tareas cron**. Ve esa cuenta completa y puede recibir otras.
 
-```sh
-curl -fsSL https://SU-ATALAYA/get | sh -s -- --hosting --token=XXXX --domain=atalaya.su-dominio.com
-```
+1. **Cree el subdominio** donde vivirá, por ejemplo `atalaya.su-dominio.com` (cPanel › Dominios).
+2. **Descargue Atalaya** en la Terminal de cPanel:
 
-Queda en `~/atalaya` con los datos en `~/.atalaya-data`. En CloudLinux intenta crear la app Node
-solo; si no, se crea en **Setup Node.js App** (Node 20+, raíz `atalaya`, inicio `app.js`). El
-asistente conecta la cuenta con un clic.
+   ```sh
+   git clone https://github.com/neracosu/atalayams.git ~/atalaya
+   ```
+
+3. **Cree la app** en cPanel › **Setup Node.js App** › *Create Application*: Node 20 o superior, modo
+   *Production*, raíz `atalaya`, dirección `atalaya.su-dominio.com` y archivo de inicio `app.js`.
+4. **Abra** `https://atalaya.su-dominio.com/setup` y escriba el código del asistente, que está en
+   `~/.atalaya-data/setup-token` (`cat ~/.atalaya-data/setup-token` en la Terminal). Un clic conecta la
+   cuenta.
+
+Los datos quedan en `~/.atalaya-data`, nunca en `public_html`. Para actualizar: `cd ~/atalaya && git pull`
+y reinicie la app desde Setup Node.js App.
+
 
 </details>
 
@@ -357,7 +419,9 @@ asistente conecta la cuenta con un clic.
 
 <br>
 
-Menú › *Conectar un hosting compartido* genera un código de un solo uso. En el hosting:
+En su Atalaya: menú › **Conectar un hosting compartido**, escriba un nombre corto (ej. `cliente-godaddy`) y
+pulse **Generar código**. Le da la línea completa, con la dirección de su Atalaya (`SU-ATALAYA` abajo) y un
+código de un solo uso. En la Terminal del hosting:
 
 ```sh
 curl -fsSL https://SU-ATALAYA/install/agent.sh | sh -s -- https://SU-ATALAYA CODIGO
@@ -375,7 +439,8 @@ bases, certificados, correo, recursos y cron (con los secretos tapados). Quitarl
 
 <br>
 
-1. Menú › *Conectar un hosting compartido* › **Descargar plugin**: un `.zip` ya configurado.
+1. En su Atalaya: menú › **Conectar un hosting compartido**, escriba un nombre corto (ej. `blog-ana`) y pulse
+   **Descargar plugin**: un `.zip` ya configurado para su Atalaya.
 2. En WordPress: **Plugins › Añadir nuevo › Subir plugin** y **Activar**. Se conecta solo.
 
 Ve la versión y las actualizaciones pendientes del núcleo, plugins y temas, PHP y su fin de
@@ -390,6 +455,8 @@ El plugin **no registra rutas públicas**: solo envía. WordPress 5.6+ y PHP 7.4
 
 <br>
 
+Como root, dentro de la carpeta de Atalaya (`cd /opt/atalaya`):
+
 ```sh
 node cli.js connector add github      # token fine-grained de solo lectura
 node cli.js connector add vercel      # token (y secreto del Drain para ver visitas)
@@ -398,7 +465,7 @@ node cli.js remote add laptop-ana     # hooks de Claude Code para una laptop
 node hooks/install.js                 # hooks de Claude Code en el servidor
 ```
 
-También desde el asistente (menú › Asistente › Extras). Los secretos quedan en un archivo 600 y
+Más fácil desde la pantalla: menú › **Asistente de configuración** › paso *Extras* (ahí está también LeakIX). Los secretos quedan en un archivo 600 y
 se toman en caliente.
 
 </details>
@@ -412,7 +479,8 @@ se toman en caliente.
 - **Bloqueos seguros.** La defensa bloquea IPs en una tabla propia de nftables (`inet atalaya`), aparte de
   iptables, fail2ban y cPHulk, y **siempre con vencimiento**: al cumplirse, nftables la suelta sola. Nunca
   bloquea Cloudflare (dejaría sin servicio a todos los que entran por ese nodo), redes privadas, el propio
-  servidor, la lista blanca ni IPs de usuarios de Atalaya; el ayudante lo vuelve a revisar antes de ejecutar.
+  servidor, la lista blanca ni IPs de usuarios de Atalaya; antes de ejecutar, el ayudante vuelve a revisar redes privadas,
+  Cloudflare y las IPs del servidor. Los bloqueos manuales de iptables también se ven en la cárcel y se liberan desde ahí.
 - **Acceso** con usuario y PIN de 6 dígitos (scrypt, bloqueo por intentos), cookies `HttpOnly` +
   `SameSite=Strict` + `Secure`, CSP estricta y cabecera anti-CSRF.
 - **Modo público** filtrado **en el servidor**: en la TV nunca salen nombres, dominios, rutas, IPs,
@@ -425,13 +493,12 @@ se toman en caliente.
 - **Salud del servidor**: en la TV (modo público) solo se ve el estado y cuántos hallazgos hay; los
   puertos, los comandos de cron y el detalle, solo en privado.
 - **Definiciones firmadas**: lo que Atalaya detecta y cómo empezar a resolverlo (familias de sondeos web,
-  motivos de rebote y sus arreglos) vive en `defs/definiciones.json` y se actualiza solo una vez al día desde
+  motivos de rebote y sus arreglos) viene en `defs/definiciones.json` y se actualiza sola una vez al día desde
   `nube.neracosu.com/definiciones/latest.json`, como las de un antivirus. Solo se aceptan paquetes firmados
   (ed25519) con la clave pública que trae Atalaya, más nuevos y con reglas válidas; no se envía ningún dato.
-  Se apaga con `defs.updates: false` en `config.json`. Para publicar: `node scripts/defs.js publish`.
-- **Atalaya Cloud**: cada cliente en su propio proceso, carpeta y socket, bajo un usuario de sistema
-  que no ve `/home`, ni otros procesos, ni el estado de Atalaya VPS. En la nube no se lee nada de la
-  máquina que aloja, y las salidas a direcciones que da el cliente no alcanzan la red interna.
+  La versión bajada queda en la carpeta de datos. Se apaga con `defs.updates: false` en `config.json`.
+- **Edición cloud**: no lee nada de la máquina que la aloja, y las salidas a direcciones que da el cliente
+  (favicons, sondas web) no alcanzan la red interna.
 - **Favicons**: se descargan en el servidor (quien mira la pantalla no se conecta a ningún sitio), solo
   imágenes verificadas por su firma, sin seguir enlaces a IPs internas, y solo se muestran en privado.
 
@@ -505,7 +572,7 @@ de cPanel sin privilegios; el plugin de WordPress, en un WordPress simulado.
 - **Navegar**: arrastrar para mover (o girar, en los temas 3D), rueda o pellizco para acercar, doble
   clic para volver a la vista general.
 - **Teclas**: `T` tema · `D` director · `P` modo privado · `L` modo público · `F` pantalla completa ·
-  `?` leyenda · `Esc` cerrar.
+  `?` o `H` leyenda · `Esc` cierra la ficha abierta (sin nada abierto, pasa a modo público).
 - **Teléfono y tablet**: pestañas abajo (Mundo, Agentes, Métricas, Novedades); con el teléfono
   acostado, a la derecha.
 - **Novedades**: junto al nombre; al actualizarse, la pantalla se recarga sola y muestra qué cambió.
@@ -545,15 +612,15 @@ Casi todo se ajusta en el asistente (`<stateDir>/settings.json`). Para ajustes f
 |---|---|
 | `accounts` | Etiqueta privada, pública y color de cada cuenta |
 | `apps`, `sites` | Nombre e ícono de cada app o dominio (si no se indica, se usa su favicon o un cartel pixel propio) |
-| `theme` | Tema por defecto de todas las pantallas (también desde el menú › Tema) |
-| `services` | Unidades de systemd a incluir o esconder |
+| `theme` | Tema inicial; el que se elige en el menú › Tema se guarda aparte y manda |
+| `services` | Unidades de systemd: `include`, `exclude` o `disabled: true` |
 | `public` | Mostrar nombres reales en modo público (por defecto no) |
 | `privateOptions` | Duraciones del modo privado |
 | `claude` | Cuándo una sesión pasa a pausa o se retira |
 | `logs`, `docker.socket`, `mysql.datadir` | Rutas si no se detectan solas |
 | `diskmap.daily` | Analizar el disco cada madrugada (por defecto, solo a pedido) |
 | `logs.traffic` | Registro de tráfico en vivo si no está en la ruta de cPanel |
-| `projects` | Uniones, nombres y proyectos ocultos (los escribe la ficha) |
+| `projects` | Uniones, nombres y proyectos ocultos: los guarda la ficha, aquí solo sirven de valor inicial |
 
 </details>
 
@@ -570,7 +637,7 @@ server/             HTTP + SSE, autenticación, privacidad, historial, cola de t
 server/collectors/  sistema y PM2, Claude Code, logs, systemd, Docker, métricas, mapa del disco
 server/platform/    detección de plataforma (cpanel, plesk, directadmin, cyberpanel, none)
 server/connectors/  GitHub, Vercel y Supabase
-server/audits/      bases de datos y sondas web (TLS, HTTP, RDAP)
+server/audits/      revisiones: bases, sondas web (TLS, HTTP, RDAP), archivos expuestos, LeakIX, PHP nuevos, cuotas
 server/agents.js    receptor de agentes de hosting y del plugin de WordPress
 server/projects.js  mapa de proyectos y puntaje de buenas prácticas
 server/favicons.js  descarga y guarda el favicon de cada proyecto
@@ -579,9 +646,14 @@ server/audits/services.js certificados SSL y servicios que se reinician solos (c
 server/audits/logins.js   accesos a cPanel, WHM y webmail: contraseñas equivocadas y entradas desde IPs nuevas
 server/analytics.js       analítica de visitas desde los registros: totales por día y sitio, sin cookies
 server/netguard.js  en la nube, ninguna salida hacia la red interna
+server/helper.js    ayudante con permisos de root: solo las acciones de su lista cerrada
+server/defense.js   cárcel: bloqueos con vencimiento (nftables) y defensa automática
+server/webdefense.js, watch.js, saturation.js  sondeos web, vigilancia (escaneo, scraping, picos) y servidor al límite
+server/alerts.js    alertas por Telegram y correo; seclog.js, registro de seguridad; defs.js, definiciones firmadas
+server/collectors/dbactivity.js  actividad de las bases (conexiones y consultas, sin datos)
 exe/                arranque del ejecutable único (edición Equipo); se arma con scripts/build-exe.js
 agent/              agente POSIX para hosting compartido
-wordpress/          plugin «Atalaya · Agente»
+wordpress/          plugin «Atalaya Monitor Server · Agente»
 app.js              entrada de Atalaya Hosting
 web/                el HUD, los íconos pixel, el asistente y los temas (web/themes/<id>)
 web/js/stage3d.js   motor compartido de los temas 3D; web/js/layout.js, placas y reparto de cuentas
@@ -666,7 +738,7 @@ Atalaya es nuevo y crece con lo que piden quienes lo usan. Si algo le falta,
 
 ## Créditos de terceros
 
-Se distribuyen en `web/vendor` y `web/fonts`; licencias en [`licenses/`](licenses/):
+Se distribuyen en `web/vendor`, `web/fonts` y `web/themes/<id>`; la base de DB-IP no viene incluida, se descarga al instalar. Licencias en [`licenses/`](licenses/):
 [PixiJS](https://pixijs.com), [three.js](https://threejs.org), [anime.js](https://animejs.com) y [uPlot](https://github.com/leeoniya/uPlot) (MIT) ·
 [DB-IP Lite](https://db-ip.com) (CC-BY 4.0) ·
 fuentes [Silkscreen](https://github.com/googlefonts/silkscreen), [Space Grotesk](https://github.com/floriankarsten/space-grotesk),
@@ -678,7 +750,9 @@ vencimiento de dominios por [RDAP](https://about.rdap.org).
 
 <p align="center">
   <img src="docs/icons/antenna.svg" width="28"><br>
-  <sub>© 2026 Neri Colón · NERACOSU. Todos los derechos reservados.</sub>
+  <sub>© 2026 Neri Colón · NERACOSU.
+  Distribuido bajo la licencia AGPL-3.0.
+  </sub>
 </p>
 
 ---
