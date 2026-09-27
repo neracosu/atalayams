@@ -14,6 +14,15 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.71.0] - 2026-09-27
+
+### Agregado
+- **Raid, completo**: la **jaula** junto al estrado (las IPs bloqueadas son esbirros del Intruso capturados y los archivos en cuarentena, cofres malditos encadenados), el **buzón** (cada correo es un pergamino que pasa por él; los rebotados vuelven con el motivo y la cola se apila encima) y el **banco** de cada grupo con bases de datos, con hilos dorados hasta los héroes que las usan.
+- Raid: con el servidor **al límite**, El Intruso se enfurece (crece, se tiñe de rojo y la pantalla arde en los bordes) y las visitas hacen cola; la **cuota** aparece junto al nombre del grupo.
+
+### Corregido
+- Raid: el subtítulo de un grupo ya no pisa el nombre del grupo vecino; si no cabe, baja una línea.
+
 ## [0.70.0] - 2026-09-27
 
 ### Agregado
@@ -1353,7 +1362,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.70.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.71.0...HEAD
+[0.71.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.70.0...v0.71.0
 [0.70.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.69.0...v0.70.0
 [0.69.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.68.0...v0.69.0
 [0.68.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.67.0...v0.68.0

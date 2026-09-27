@@ -10,7 +10,7 @@
 // Regla de oro: el color es la clase o el estado, nunca adorno; los numeros de combate cuentan lo que pasa.
 import { Application, Container, Graphics, Sprite, Text, Texture, Rectangle } from '../../vendor/pixi.csp.mjs';
 import { esc, fmtBytes } from '../../js/hud.js';
-import { accountCaption } from '../../js/accounts.js';
+import { accountCaption, forEdition } from '../../js/accounts.js';
 import { healthLine } from '../../js/layout.js';
 import { pixiScreen } from '../../js/commfx.js';
 
@@ -63,6 +63,17 @@ function heroRows(cls) {
   return base.map(r => r.join(''));
 }
 const TOMB = ['....kkkk....', '...kssssk...', '..ksssssssk.', '..kssksssk..', '..ksskkkssk.', '..kssksssk..', '..ksssssssk.', '..ksssssssk.', '..ksssssssk.', '.kkkkkkkkkkk', 'kddddddddddk'];
+// esbirro del Intruso capturado (una IP bloqueada), cofre maldito con cadenas (archivo en cuarentena),
+// buzon, pergamino (un correo) y cofre del banco del grupo (bases de datos: 1 a 3 montones de oro)
+const MINION = [['...kkkk...', '..kvvvvk..', '.kvrvvrvk.', '.kvvvvvvk.', '..kvkkvk..', '.kkvvvvkk.', 'kvkvvvvkvk', '..kvvvvk..', '..kv..vk..', '..kk..kk..'],
+  ['...kkkk...', '..kvvvvk..', '.kvrvvrvk.', '.kvvvvvvk.', '..kvkkvk..', 'kkkvvvvkkk', '..kvvvvk..', '..kvvvvk..', '.kv....vk.', '.kk....kk.']];
+const CURSED = ['.kkkkkkkkkk.', 'kvvvvvvvvvvk', 'kvsvvvvvvsvk', 'kkkkkkkkkkkk', 'kwwwssswwwwk', 'kwwsyysswwwk', 'kwwwssswwwwk', 'kssssssssssk', 'kkkkkkkkkkkk'];
+const MAILBOX = ['..kkkkkkkk..', '.krrrrrrrrk.', 'krRRRRRRRRrk', 'krRkkkkkkRrk', 'krRRRRRRRRrk', 'krRRRRyRRRrk', 'krRRRRRRRRrk', 'kkkkkkkkkkkk', '....kwwk....', '....kwwk....', '....kwwk....', '....kwwk....', '....kwwk....', '...kkwwkk...', '..kddddddk..'];
+const SCROLL = ['.kkkkkk.', 'kxxxxxxk', 'kxkkkkxk', 'kxxxxxxk', 'kxkkkxxk', '.kkkkkk.'];
+function bankRows(fill) {
+  const top = fill >= 3 ? ['...yYyyYy...', '.yYyyYyyYyy.'] : fill >= 2 ? ['............', '..yYyyYyy...'] : ['............', '............'];
+  return [...top, 'kkkkkkkkkkkk', 'kwwwwwwwwwwk', 'kwYwwwwwwYwk', 'kkkkkyykkkkk', 'kwwwwyywwwwk', 'kwYwwwwwwYwk', 'kwwwwwwwwwwk', 'kkkkkkkkkkkk'];
+}
 const TORCH = [['..y..', '.yoy.', '.oro.', '..r..', '.kwk.', '.kwk.', '.kwk.'], ['.y...', '.yoy.', '.oor.', '..r..', '.kwk.', '.kwk.', '.kwk.']];
 
 export default class RaidWorld {
@@ -74,6 +85,7 @@ export default class RaidWorld {
     this.directorOn = true; this.insets = { top: 0, right: 0, bottom: 0, left: 0 };
     this.cam = { s: 1, x: 0, y: 0 }; this.camTarget = null; this.manualUntil = 0; this.shotT = 0; this.shotIdx = 0;
     this.pending = new Map(); // visitas agrupadas por heroe (para no llenar de "+1")
+    this.cage = null; this.mailbox = null; this.mailLog = []; this.jam = false;
   }
   T(key, make) { if (!this.tex.has(key)) this.tex.set(key, make()); return this.tex.get(key); }
   heroTex(cls, dead) { return dead ? this.T('tomb', () => rowsTex(TOMB, P)) : this.T('h' + cls, () => rowsTex(heroRows(cls), { ...P, ...CLASSES[cls] })); }
@@ -129,6 +141,9 @@ export default class RaidWorld {
   // donde esta cada cosa en la pantalla (comunicacion entre agentes); los subagentes van junto a su sesion
   screenOf(kind, id) {
     if (kind === 'session' || kind === 'agent') return pixiScreen(this.app, this.players.get(String(id).split('/')[0]));
+    if (kind === 'jail') return this.cage ? pixiScreen(this.app, this.cage.s) : null;          // aqui dejan a los bloqueados
+    if (kind === 'mail') return this.mailbox ? pixiScreen(this.app, this.mailbox.s) : null;
+    if (kind === 'gate' || kind === 'tower') return this.guard ? pixiScreen(this.app, this.guard.s) : null; // de aqui salen las patrullas
     return pixiScreen(this.app, this.heroes.get(id));
   }
 
@@ -140,16 +155,18 @@ export default class RaidWorld {
     const by = {};
     for (const a of state.apps) (by[a.account] = by[a.account] || []).push({ ...a, _k: 'app' });
     for (const x of state.sites || []) (by[x.account] = by[x.account] || []).push({ ...x, _k: 'site' });
-    const key = accounts.map(a => a.id + ':' + (by[a.id] || []).map(x => x.id + (x.source || x.type)).join(',')).join('|');
+    const jailOn = !!state.jail, mailOn = !!state.mail && forEdition('TORRE DE CONTROL') === 'TORRE DE CONTROL';
+    const silos = new Set(((state.silos && state.silos.list) || []).map(x => x.account));
+    const key = accounts.map(a => a.id + ':' + (silos.has(a.id) ? 'b' : '') + ':' + (by[a.id] || []).map(x => x.id + (x.source || x.type)).join(',')).join('|') + (jailOn ? '|J' : '') + (mailOn ? '|M' : '');
     if (key === this.layoutKey) return;
     this.layoutKey = key;
     for (const c of [this.floor, this.scene, this.screen, this.fxL]) c.removeChildren().forEach(o => o.destroy({ children: true }));
-    this.fx = []; this.heroes.clear(); this.groups.clear(); this.players.clear();
+    this.fx = []; this.heroes.clear(); this.groups.clear(); this.players.clear(); this.cage = null; this.mailbox = null; this.queueT = null; this.enrageV = null; // sus textos se destruyen con la capa de pantalla
     // grupos en dos columnas si hace falta; cada heroe ocupa 28 x 44 pixeles de arte
     const COLS = 10, HW = 28, HH = 46, GAP = 30;
     const groups = accounts.map(a => ({ a, items: (by[a.id] || []).sort((x, y) => (x._k === y._k ? 0 : x._k === 'app' ? -1 : 1)) }))
       .filter(g => g.items.length).sort((x, y) => y.items.length - x.items.length);
-    groups.forEach(g => { const n = g.items.length; g.cols = Math.min(COLS, n); g.rows = Math.ceil(n / COLS); g.w = g.cols * HW + 40; g.h = g.rows * HH + 28; });
+    groups.forEach(g => { const n = g.items.length; g.cols = Math.min(COLS, n); g.rows = Math.ceil(n / COLS); g.bank = silos.has(g.a.id); g.w = g.cols * HW + 40 + (g.bank ? 34 : 0); g.h = g.rows * HH + 28; });
     const totalH = groups.reduce((n, g) => n + g.h + GAP, 0);
     const twoCols = totalH > 520;
     const colX = twoCols ? [-340, 30] : [-170], colY = twoCols ? [0, 0] : [0];
@@ -202,8 +219,20 @@ export default class RaidWorld {
       this.tipOn(hit, () => ({ title: g.a.label, body: `Grupo de ${g.items.length} héroes: servicios y sitios de esta cuenta.`, meta: g.caption, hint: 'Clic para ver el grupo' }));
       this.scene.addChild(hit);
       g.items.forEach((it, i) => this.addHero(it, g.x + 34 + (i % COLS) * HW, g.y + 50 + Math.floor(i / COLS) * HH, g.a));
+      if (g.bank) {
+        const bx = g.x + g.w - 24, by = g.y + 50;
+        const b = new Sprite(this.T('bank1', () => rowsTex(bankRows(1), P))); b.anchor.set(0.5, 1); b.scale.set(1.6); b.x = bx; b.y = by; b.zIndex = by;
+        b.eventMode = 'static'; b.cursor = 'pointer';
+        b.on('pointertap', () => { if (!this.dragMoved) this.pick('databases', g.a.id); });
+        this.tipOn(b, () => this.bankTip(g));
+        this.scene.addChild(b);
+        g.bankS = { s: b, x: bx, y: by, fill: 1, hot: false, data: null };
+      }
       this.groups.set(g.a.id, g);
     });
+    // jaula a la izquierda del estrado y buzon a la derecha (si el servidor los tiene)
+    if (jailOn) this.buildCage();
+    if (mailOn) this.buildMailbox();
     this.fit(true);
   }
 
@@ -220,6 +249,124 @@ export default class RaidWorld {
     });
     this.scene.addChild(s);
     this.heroes.set(it.id, h);
+  }
+
+  // ------------------------------------------------------------------ jaula, buzon y bancos
+  // Jaula, a la izquierda del estrado: las IPs bloqueadas son esbirros del Intruso capturados (hasta 6 a la vista);
+  // los archivos en cuarentena, cofres malditos encadenados delante
+  buildCage() {
+    const A = this.arena, cx = (A.x0 + 12 - 90) / 2, top = A.y0 + 16;
+    const s = new Sprite(this.T('cage', () => canvasTex(44, 40, px => {
+      px(0, 0, P.k, 44, 3); px(0, 37, P.k, 44, 3); px(1, 1, '#6b6f78', 42, 1); px(1, 38, '#55504a', 42, 1);
+      for (let x = 1; x < 44; x += 6) { px(x, 3, P.k, 3, 34); px(x + 1, 3, '#8a8f99', 1, 34); }
+      px(0, 18, P.k, 44, 2); px(19, 17, '#e8c55a', 6, 4);
+    })));
+    s.anchor.set(0.5, 0); s.scale.set(2); s.x = cx; s.y = top; s.zIndex = top + 80;
+    s.eventMode = 'static'; s.cursor = 'pointer';
+    s.on('pointertap', () => { if (!this.dragMoved) this.pick('jail', 'all'); });
+    this.tipOn(s, () => ({ title: 'Jaula', body: 'Las IPs <b>bloqueadas</b> son esbirros del Intruso capturados: las que se bloquearon a mano en el firewall y las que atrapó la defensa de Atalaya. Los <b>cofres malditos</b> encadenados son archivos PHP maliciosos en cuarentena: no pueden hacer daño y se pueden restaurar.', meta: this.cageLine(), hint: 'Clic para ver cada uno' }));
+    const minions = new Container(); minions.zIndex = top + 40;
+    const chests = new Container(); chests.zIndex = top + 100;
+    this.scene.addChild(minions, s, chests);
+    this.cage = { s, minions, chests, n: -1, q: -1, x: cx, top, name: this.label('Jaula', 20, '#e8c55a'), sub: this.label('', 15, '#cdbf9c') };
+  }
+  cageLine() { const c = this.cage; if (!c) return ''; const n = Math.max(0, c.n), q = Math.max(0, c.q); return (n ? `${n} esbirro${n === 1 ? '' : 's'}` : 'vacía') + (q ? ` · ${q} cofre${q === 1 ? '' : 's'} maldito${q === 1 ? '' : 's'}` : ''); }
+  drawCage(J) {
+    const c = this.cage; if (!c || !J) return;
+    const n = J.n || 0, q = J.quarantine || 0;
+    if (n !== c.n) {
+      if (c.n >= 0 && n > c.n) this.combat(c.x, c.top - 6, '¡Capturado!', '#ffd24a', 24);
+      c.n = n; c.minions.removeChildren().forEach(o => o.destroy());
+      for (let i = 0; i < Math.min(6, n); i++) { const m = new Sprite(this.T('min0', () => rowsTex(MINION[0], P))); m.anchor.set(0.5, 1); m.scale.set(1.6); m.x = c.x - 26 + (i % 3) * 26; m.y = c.top + 36 + Math.floor(i / 3) * 36; m.fi = i; c.minions.addChild(m); }
+    }
+    if (q !== c.q) {
+      c.q = q; c.chests.removeChildren().forEach(o => o.destroy());
+      for (let i = 0; i < Math.min(4, q); i++) { const k = new Sprite(this.T('cursed', () => rowsTex(CURSED, P))); k.anchor.set(0.5, 1); k.scale.set(1.8); k.x = c.x - 33 + i * 22; k.y = c.top + 104; c.chests.addChild(k); }
+    }
+    c.sub.text = this.cageLine();
+  }
+  // Buzon, a la derecha del estrado: cada correo es un pergamino que pasa por el; los rebotados vuelven con el motivo
+  buildMailbox() {
+    const A = this.arena, cx = (90 + A.x1 - 12) / 2, by = A.y0 + 104;
+    const s = new Sprite(this.T('mailbox', () => rowsTex(MAILBOX, { ...P, R: '#b53a2e' }))); s.anchor.set(0.5, 1); s.scale.set(2.4); s.x = cx; s.y = by; s.zIndex = by;
+    s.eventMode = 'static'; s.cursor = 'pointer';
+    s.on('pointertap', () => { if (!this.dragMoved) this.pick('mail', 'all'); });
+    this.tipOn(s, () => ({ title: 'Buzón', body: 'Por aquí pasa el correo del servidor: los pergaminos salen de un grupo, llegan de afuera o <b>rebotan</b> y vuelven con el motivo. Los que se apilan encima son la cola de correo esperando salir.', meta: this.postLine() + ' (último minuto)', hint: 'Clic para ver el correo' }));
+    const pile = new Container(); pile.zIndex = by + 1;
+    this.scene.addChild(s, pile);
+    this.mailbox = { s, pile, pileN: -1, x: cx, y: by - 30, top: by - 36, name: this.label('Buzón', 20, '#e8c55a'), sub: this.label('', 15, '#cdbf9c') };
+  }
+  postLine() {
+    const now = this.t; this.mailLog = this.mailLog.filter(x => now - x.t < 60);
+    const n = d => this.mailLog.filter(x => x.dir === d).length;
+    const parts = [[n('out'), 'salen'], [n('in'), 'llegan'], [n('bounce'), 'rebotan']].filter(x => x[0]).map(x => `${x[0]} ${x[1]}`);
+    return parts.length ? parts.join(' · ') : 'sin correo';
+  }
+  drawPost() {
+    const M = this.mailbox; if (!M) return;
+    const line = this.postLine(); if (M.sub.text !== line) M.sub.text = line;
+    const q = this.mailQueue || 0, want = q > 1000 ? 7 : q > 100 ? 5 : q > 20 ? 3 : 0;
+    if (want === M.pileN) return;
+    M.pileN = want; M.pile.removeChildren().forEach(o => o.destroy());
+    for (let i = 0; i < want; i++) { const l = new Sprite(this.T('scroll', () => rowsTex(SCROLL, P))); l.anchor.set(0.5, 1); l.scale.set(1.6); l.x = M.x + (i % 2 ? 4 : -4); l.y = M.top - i * 7; l.tint = q > 1000 ? 0xff9a8a : 0xffffff; M.pile.addChild(l); }
+  }
+  // pergamino: sale del grupo, pasa por el buzon y se va por arriba; llega al reves; si rebota, vuelve con el motivo
+  letter(dir, e) {
+    this.mailLog.push({ t: this.t, dir }); if (this.mailLog.length > 3000) this.mailLog.shift();
+    this.drawPost();
+    this.mailLast = this.mailLast || {};
+    if (this.t - (this.mailLast[dir] || -9) < 0.35 || this.fx.length > 220) return;
+    this.mailLast[dir] = this.t;
+    const g = e.account && this.groups.get(e.account), A = this.arena;
+    const home = g ? { x: g.x + g.w / 2, y: g.y } : { x: this.guard.x, y: this.guard.y - 20 };
+    const box = { x: this.mailbox.x, y: this.mailbox.y }, sky = { x: this.mailbox.x + 40, y: A.y0 - 60 };
+    const pts = dir === 'in' ? [sky, box, home] : dir === 'bounce' ? [home, box, { x: box.x + 20, y: (box.y + sky.y) / 2 }, box, home] : [home, box, sky];
+    const sp = new Sprite(this.T('scroll', () => rowsTex(SCROLL, P))); sp.anchor.set(0.5); sp.scale.set(1.6);
+    sp.tint = dir === 'bounce' ? 0xff9a6a : dir === 'in' ? 0xc8b4f4 : 0xffffff;
+    const SHORT = { auth: 'SIN AUTENTICAR', nouser: 'NO EXISTE', full: 'BUZÓN LLENO', spam: 'SPAM', domain: 'DOMINIO', rate: 'DEMASIADOS' };
+    const legs = pts.slice(1).map((b, i) => ({ a: pts[i], b, d: 0.5 + Math.hypot(b.x - pts[i].x, b.y - pts[i].y) / 260 }));
+    this.addFx(sp, f => {
+      let t0 = f.age, i = 0;
+      while (i < legs.length && t0 > legs[i].d) { t0 -= legs[i].d; i++; }
+      if (i >= legs.length) return false;
+      if (i !== f.leg) { f.leg = i; if (dir === 'bounce' && i === 2) this.combat(box.x, box.y - 40, `Rebotó: ${SHORT[e.cat] || 'sin motivo'}`, '#ff9a4d', 22); }
+      const L = legs[i], k = t0 / L.d;
+      sp.x = L.a.x + (L.b.x - L.a.x) * k; sp.y = L.a.y + (L.b.y - L.a.y) * k - Math.sin(k * Math.PI) * 24; sp.rotation = Math.sin(f.age * 8) * 0.2;
+      return true;
+    });
+  }
+  // banco del grupo: el cofre se llena de oro con el tamano de las bases; rojizo al limite; hilos dorados a los heroes
+  bankTip(g) {
+    const x = g.bankS && g.bankS.data; if (!x) return { title: 'Banco del grupo', body: 'Las bases de datos del grupo.', hint: 'Clic para ver sus bases' };
+    const mb = n => n > 1073741824 ? (n / 1073741824).toFixed(1) + ' GB' : Math.round(n / 1048576) + ' MB';
+    return { title: 'Banco del grupo · bases de datos', body: `${x.n} base${x.n === 1 ? '' : 's'} MySQL, ${mb(x.size)}. ${x.conns ? `<b>${x.conns}</b> conexión(es)${x.active ? `, <b>${x.active}</b> con consultas en curso` : ''}${x.sleep >= 10 ? `, <b>${x.sleep} dormidas</b> (las «z»)` : ''}.` : 'Sin conexiones ahora.'} Los hilos dorados llegan a los héroes que las usan.`,
+      meta: x.busy ? `ocupado el ${x.busy}% de los últimos 15 min` : '', hint: 'Clic para ver sus bases' };
+  }
+  updateBanks(S) {
+    const hotAll = !!(S && S.hot >= 0.85);
+    for (const x of (S && S.list) || []) {
+      const g = this.groups.get(x.account); if (!g || !g.bankS) continue;
+      g.bankS.data = x;
+      const fill = x.size > 2 * 1073741824 ? 3 : x.size > 200 * 1048576 ? 2 : 1, hot = hotAll || (x.busy || 0) >= 85;
+      if (fill !== g.bankS.fill) { g.bankS.fill = fill; g.bankS.s.texture = this.T('bank' + fill, () => rowsTex(bankRows(fill), P)); }
+      g.bankS.hot = hot;
+    }
+  }
+  drawBankLinks(g0) {
+    for (const g of this.groups.values()) {
+      const B = g.bankS; if (!B || !B.data) continue;
+      B.s.tint = B.hot ? (Math.floor(this.t * 3) % 2 ? 0xff9a8a : 0xffd0c8) : 0xffffff;
+      for (const l of B.data.links || []) {
+        const h = this.heroes.get(l.id); if (!h) continue;
+        const a = { x: B.x, y: B.y - 20 }, b = { x: h.x, y: h.y - 30 }, m = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - 14 };
+        const at = k => ({ x: (1 - k) * (1 - k) * a.x + 2 * (1 - k) * k * m.x + k * k * b.x, y: (1 - k) * (1 - k) * a.y + 2 * (1 - k) * k * m.y + k * k * b.y });
+        g0.moveTo(a.x, a.y); for (let k = 1; k <= 12; k++) { const p = at(k / 12); g0.lineTo(p.x, p.y); }
+        g0.stroke({ width: 1, color: 0xe8c55a, alpha: 0.45 });
+        if (!l.active) continue;
+        const n = Math.min(4, 1 + l.active);
+        for (let i = 0; i < n; i++) { const p = at((this.t * (0.35 + (l.busy || 0) / 200) + i / n) % 1); g0.rect(p.x - 1.5, p.y - 1.5, 3, 3).fill(0xffd24a); }
+      }
+    }
   }
 
   label(text, size, color) {
@@ -247,6 +394,21 @@ export default class RaidWorld {
       }
     }
     this.syncPlayers(state.sessions || []);
+    // jaula, buzon y bancos
+    this.drawCage(state.jail);
+    this.mailQueue = state.mailQueue; this.drawPost();
+    this.updateBanks(state.silos);
+    // servidor al limite: el Intruso se enfurece y las visitas hacen cola para entrar
+    const jam = !!(state.saturation && state.saturation.level === 'bad');
+    if (jam && !this.jam && this.guard) this.combat(this.guard.x, this.guard.y - 60, '¡El Intruso se enfurece!', '#ff4d3d', 32);
+    this.jam = jam;
+    // cuota al limite: junto al nombre del grupo
+    for (const a of state.accounts) {
+      const g = this.groups.get(a.id); if (!g) continue;
+      const txt = a.quota ? `${String(a.quota.what).toUpperCase()} AL ${a.quota.pct} %` : '';
+      if (txt && !g.q) g.q = this.label('', 18, '#f5d76e');
+      if (g.q) { g.q.text = txt; g.q.style.fill = a.quota && a.quota.level === 'bad' ? '#ff8a7a' : '#f5d76e'; g.q.visible = !!txt; }
+    }
   }
 
   syncPlayers(sessions) {
@@ -288,7 +450,7 @@ export default class RaidWorld {
       case 'attack': return this.bossAttack(false);
       case 'block': return this.bossAttack(true, priv ? e.ip : null);
       case 'login': return this.combat(this.guard.x, this.guard.y - 40, priv && e.user ? `${e.user} entró` : 'Refuerzos: acceso SSH', '#8dffa0', 24);
-      case 'mail': if (e.dir === 'bounce') this.combat(this.guard.x + 60, this.guard.y - 20, 'Carta rebotada', '#ff9a4d', 22); return;
+      case 'mail': if (this.mailbox) return this.letter(e.dir, e); if (e.dir === 'bounce') this.combat(this.guard.x + 60, this.guard.y - 20, 'Carta rebotada', '#ff9a4d', 22); return;
       case 'deploy': {
         const h = this.heroes.get(e.app);
         if (!h) return;
@@ -362,12 +524,19 @@ export default class RaidWorld {
   tick(dt) {
     this.t += dt;
     // visitas agrupadas cada medio segundo: "+3" en vez de tres "+1"
+    // al limite las visitas hacen cola: se sueltan de a poco y el guardian muestra cuantas esperan
     this.flushT = (this.flushT || 0) - dt;
     if (this.flushT <= 0) {
-      this.flushT = 0.5;
-      for (const [id, n] of this.pending) { const h = this.heroes.get(id); if (h && !h.dead) { this.combat(h.x + (Math.random() - 0.5) * 12, h.y - 24, `+${n}`, h.data.bot ? '#b5b5b5' : '#6dff7a', n > 4 ? 26 : 20); h.flash = 0.6; } }
-      this.pending.clear();
+      this.flushT = this.jam ? 1.6 : 0.5;
+      let budget = this.jam ? 3 : Infinity;
+      for (const [id, n] of this.pending) {
+        if (budget-- <= 0) break;
+        const h = this.heroes.get(id); if (h && !h.dead) { this.combat(h.x + (Math.random() - 0.5) * 12, h.y - 24, `+${n}`, h.data.bot ? '#b5b5b5' : '#6dff7a', n > 4 ? 26 : 20); h.flash = 0.6; }
+        this.pending.delete(id);
+      }
     }
+    if (!this.queueT && this.guard) this.queueT = this.label('', 18, '#ff9a4d');
+    if (this.queueT) { let q = 0; for (const n of this.pending.values()) q += n; this.queueT.text = this.jam && q ? `En cola: ${q} visitas` : ''; }
     // barras de vida y mana sobre cada heroe
     const g = this.bars; g.clear();
     for (const h of this.heroes.values()) {
@@ -401,6 +570,22 @@ export default class RaidWorld {
       // escudo del guardian
       g.circle(this.guard.x, this.guard.y - 10, 34 + (this.guard.flash || 0) * 6).stroke({ width: 2, color: 0xb04aff, alpha: 0.25 + (this.guard.flash || 0) * 0.6 });
     }
+    this.drawBankLinks(g);
+    // jaula: los esbirros se agitan; los cofres malditos se sacuden y sueltan un brillo violeta
+    if (this.cage) {
+      const fr = Math.floor(this.t * 3) % 2;
+      this.cage.minions.children.forEach(m => { const f2 = (fr + m.fi) % 2; m.texture = this.T('min' + f2, () => rowsTex(MINION[f2], P)); });
+      this.cage.chests.children.forEach((k, i) => { const u = (this.t * 0.6 + i * 0.37) % 1; k.rotation = u < 0.08 ? Math.sin(u * 150) * 0.1 : 0; g.ellipse(k.x, k.y - 8, 12, 5).fill({ color: 0x8a4fd0, alpha: 0.12 + 0.08 * Math.sin(this.t * 3 + i) }); });
+    }
+    // bancos con conexiones dormidas: sueltan una «z»
+    this.zT = (this.zT || 0) - dt;
+    if (this.zT <= 0) {
+      this.zT = 1.6;
+      for (const gr of this.groups.values()) if (gr.bankS && gr.bankS.data && gr.bankS.data.sleep >= 10) this.combat(gr.bankS.x + 6, gr.bankS.y - 26, 'z', '#d8d0ff', 20);
+    }
+    // furia: el jefe crece y se tine de rojo; el escudo del guardian se pone rojo
+    if (this.bossS) { const k = this.jam ? 1.12 + 0.04 * Math.sin(this.t * 6) : 1; this.bossS.scale.set(2 * k); if (this.jam && !(this.bossFlash > 0.05)) this.bossS.tint = Math.floor(this.t * 3) % 2 ? 0xff8a7a : 0xffc0b0; }
+    if (this.jam && this.guard) g.circle(this.guard.x, this.guard.y - 10, 40).stroke({ width: 3, color: 0xff4d3d, alpha: 0.4 + 0.3 * Math.sin(this.t * 6) });
     // jugadores (agentes de Claude)
     const frame = Math.floor(this.t * 4) % 2;
     for (const p of this.players.values()) {
@@ -433,7 +618,23 @@ export default class RaidWorld {
     // encima del guardian (debajo va la fila de grupos)
     if (this.guardName) { const p = toS({ x: 0, y: 150 - 60 }); this.guardName.x = this.guardHealth.x = p.x; this.guardHealth.y = p.y - 4 * ts; this.guardName.y = p.y - 26 * ts; this.guardName.scale.set(ts); this.guardHealth.scale.set(ts); }
     if (this.bossName) this.bossName.scale.set(ts);
-    for (const gr of this.groups.values()) { const p = toS(gr.labelPos); gr.label.scale.set(ts); gr.sub.scale.set(ts); gr.label.x = p.x; gr.label.y = p.y; gr.sub.x = p.x + gr.label.width + 14 * ts; gr.sub.y = p.y - 2 * ts; }
+    for (const gr of this.groups.values()) {
+      const p = toS(gr.labelPos); gr.label.scale.set(ts); gr.sub.scale.set(ts); gr.label.x = p.x; gr.label.y = p.y;
+      // si el nombre y el subtitulo no caben en el ancho del grupo, el subtitulo baja una linea (no pisa al grupo vecino)
+      const qw = gr.q && gr.q.visible ? gr.q.width + 14 * ts : 0, room = (gr.w - 20) * this.cam.s;
+      if (gr.label.width + 14 * ts + gr.sub.width + qw <= room) { gr.sub.x = p.x + gr.label.width + 14 * ts; gr.sub.y = p.y - 2 * ts; }
+      else { gr.sub.x = p.x; gr.sub.y = p.y + 17 * ts; }
+      if (gr.q) { gr.q.anchor.set(0, 1); gr.q.scale.set(ts); gr.q.x = gr.sub.x + gr.sub.width + 14 * ts; gr.q.y = gr.sub.y; }
+    }
+    for (const o of [this.cage, this.mailbox]) if (o) {
+      const p = toS({ x: o.x, y: o === this.cage ? o.top - 4 : o.top - 30 });
+      const zs = ts * clamp(this.cam.s / Math.max(0.01, this.overview?.s || 1), 0.8, 1.3);
+      o.name.scale.set(zs); o.sub.scale.set(zs); o.name.x = o.sub.x = p.x; o.name.y = p.y - 18 * zs; o.sub.y = p.y;
+    }
+    if (this.queueT && this.guard) { const p = toS({ x: this.guard.x, y: this.guard.y + 34 }); this.queueT.scale.set(ts); this.queueT.x = p.x; this.queueT.y = p.y; }
+    if (this.jam) { if (!this.enrageV) { this.enrageV = new Graphics(); this.screen.addChildAt(this.enrageV, 0); } const a = 0.35 + 0.2 * Math.sin(this.t * 5), v = this.enrageV.clear(); for (let k = 0; k < 4; k++) v.rect(k * 6, k * 6, W - k * 12, H - k * 12).stroke({ width: 6, color: 0xd94a3a, alpha: a * (1 - k / 4) }); }
+    else if (this.enrageV) this.enrageV.clear();
+    if (this.bossName) { const txt = this.jam ? 'El Intruso · ¡ENFURECIDO!' : 'El Intruso'; if (this.bossName.text !== txt) this.bossName.text = txt; }
     for (const p of this.players.values()) if (p.castPos) { const q = toS(p.castPos); p.castT.x = q.x; p.castT.y = q.y; p.castT.visible = this.cam.s > 1.2; }
     for (const f of this.fx) if (f.world) { const p = toS(f.world); f.obj.x = p.x; f.obj.y = p.y; }
     if (this.manualUntil && this.manualUntil < this.t) { this.manualUntil = 0; this.camTarget = this.overview; this.navChanged(); }
@@ -493,6 +694,9 @@ export default class RaidWorld {
     else if (kind === 'district') { const g = this.groups.get(id); if (g) p = { x: g.x + g.w / 2, y: g.y + g.h / 2, s: 2.5 }; }
     else if (kind === 'system') p = { x: 0, y: this.guard.y, s: 3 };
     else if (kind === 'security') p = { x: 0, y: this.arena.y0 + 80, s: 3 };
+    else if (kind === 'jail' && this.cage) p = { x: this.cage.x, y: this.cage.top + 50, s: 3.5 };
+    else if (kind === 'mail' && this.mailbox) p = { x: this.mailbox.x, y: this.mailbox.y - 10, s: 3.5 };
+    else if (kind === 'databases') { const g = this.groups.get(id); if (g) p = { x: g.x + g.w / 2, y: g.y + g.h / 2, s: 2.5 }; }
     if (p) { this.manual(); this.camTarget = this.frameOn(p.x, p.y, Math.max(p.s, this.overview ? this.overview.s : 1)); }
     if (this.onSelect) this.onSelect(kind, id);
   }
