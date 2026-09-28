@@ -465,7 +465,7 @@ export default class Ciudad3D extends Stage3D {
       per[s.account] = (per[s.account] || 0) + 1;
       const main = add(s.id, false, null);
       main.slot = per[s.account] - 1;
-      if (main.label) main.label.d.innerHTML = s.waitKind ? 'Agente <em>ESPERA SU PERMISO</em>' : '';
+      if (main.label) main.label.d.innerHTML = s.waitKind ? `Agente <em>${({ question: 'TIENE UNA PREGUNTA', idle: 'TERMINÓ: LO ESPERA' }[s.waitKind] || 'ESPERA SU PERMISO')}</em>` : '';
       (s.subagents || []).slice(0, 4).forEach((sa, i) => { const r = add(s.id + '/' + (sa.id || i), true, main); r.slot = i; });
     }
     for (const [id, r] of this.robots) if (!seen.has(id)) { this.scene.remove(r.spr, r.halo); if (r.label) r.label.remove(); this.pickables = this.pickables.filter(p => p !== r.spr); this.robots.delete(id); }
@@ -495,7 +495,7 @@ export default class Ciudad3D extends Stage3D {
         const r = this.robots.get(e.sid) || [...this.robots.entries()].find(([k]) => e.sid && k.startsWith(e.sid))?.[1];
         if (!r) return;
         const p = r.spr.position.clone();
-        if (e.action === 'permission') { this.attention(p, 2.6); this.float(p.clone().setY(p.y + 1.8), '¿Me da permiso?', 'warn'); }
+        if (e.action === 'permission') { this.attention(p, 2.6); this.float(p.clone().setY(p.y + 1.8), ({ question: 'Tengo una pregunta', idle: 'Listo. ¿Qué sigue?' }[e.waitKind] || '¿Me da permiso?'), e.waitKind === 'idle' ? 'ok' : 'warn'); }
         else if (e.action === 'done') { this.sparks(p.clone().setY(p.y + 0.8), 'ok', 10); this.float(p.clone().setY(p.y + 1.8), 'Listo', 'ok'); }
         else if (e.action === 'prompt') this.float(p.clone().setY(p.y + 1.8), priv && e.text ? e.text.slice(0, 60) : 'Nueva instrucción', 'accent');
         else if (e.action === 'error') this.sparks(p.clone().setY(p.y + 0.8), 'crit', 8);

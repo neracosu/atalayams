@@ -77,6 +77,33 @@ class ClaudeCollector {
     this.ended = new Map(Object.entries(saved).filter(([, v]) => Date.now() - v.at < 86400000).map(([k, v]) => [k, v.size]));
     this.endedAt = new Map(Object.entries(saved).map(([k, v]) => [k, v.at]));
     this.homes = [{ user: 'root', home: '/root' }, ...host.accountsHome]; // lo actualiza el registro de cuentas
+    // las sesiones de equipos remotos no tienen transcript que releer: sin esto, cada reinicio de Atalaya (una
+    // actualizacion) las borraba de la pantalla hasta que Claude volviera a hacer algo
+    this.remoteFile = cfg.stateDir + '/remote-sessions.json';
+    this.loadRemote();
+  }
+
+  // De cada sesion remota se guarda lo minimo para volver a dibujarla: nunca instrucciones, archivos ni comandos
+  remoteRows() {
+    return [...this.sessions.entries()].filter(([, s]) => s.remote).map(([key, s]) => ({ key, id: s.id, user: s.user, machine: s.machine, cwd: s.cwd, since: s.since,
+      lastActivity: s.lastActivity, state: s.state === 'waiting' ? 'idle' : s.state, tools: s.tools, errors: s.errors, permMode: s.permMode }));
+  }
+  saveRemote(force) {
+    const rows = this.remoteRows(), sig = JSON.stringify(rows.map(r => [r.key, r.state, r.cwd]));
+    if (!force && sig === this.remoteSig) return;
+    this.remoteSig = sig;
+    try { writeJSONAtomic(this.remoteFile, rows); } catch (e) { console.error('[claude] no se pudo guardar remote-sessions.json', e.message); }
+  }
+  loadRemote() {
+    const goneMs = ((this.cfg.claude || {}).goneMinutes || 45) * 60000;
+    for (const r of readJSON(this.remoteFile, []) || []) {
+      if (!r || typeof r.key !== 'string' || !r.key.startsWith('remote:') || !/^[0-9a-f-]{36}$/i.test(String(r.id || '')) || this.sessions.has(r.key)) continue;
+      if (Date.now() - (r.lastActivity || 0) > goneMs || this.ended.has(r.key)) continue;
+      // vuelve en reposo: si estaba trabajando, el proximo paso de Claude la pone al dia
+      this.sessions.set(r.key, new Agent({ id: r.id, user: String(r.user || ''), file: r.key, kind: 'session', remote: true, machine: String(r.machine || ''), hooks: true,
+        cwd: String(r.cwd || '').slice(0, 200), since: r.since || Date.now(), lastActivity: r.lastActivity, state: 'idle', tools: r.tools || 0, errors: r.errors || 0, permMode: String(r.permMode || '') }));
+    }
+    this.remoteSig = JSON.stringify(this.remoteRows().map(r => [r.key, r.state, r.cwd]));
   }
 
   // Un transcript solo se lee si es un archivo normal (no enlace) y su dueno es la cuenta:
@@ -98,6 +125,7 @@ class ClaudeCollector {
     setInterval(() => this.scan(false), 3000);
     setInterval(() => this.pollAll(), 1000);
     setInterval(() => this.expire(), 5000);
+    setInterval(() => this.saveRemote(), 5000).unref();
     setInterval(() => this.checkApprovals(), 1500);
   }
 
@@ -359,9 +387,8 @@ class ClaudeCollector {
         const msg = String(ev.message || '').slice(0, 200);
         // el aviso generico solo cuenta si no hay ya un PermissionRequest registrado
         if (t === 'permission_prompt' || /permission/i.test(msg)) { if (!s.waits.size) wait('notif:permission', 'permission', null, null, msg); }
-        // en su propia computadora, una sesion que termino y quedo abierta no es un pendiente: la persona la tiene
-        // delante. Solo avisa lo que de verdad frena a Claude (un permiso o una pregunta)
-        else if (t === 'idle_prompt') { if (!s.remote && (s.state === 'idle' || s.state === 'waiting')) wait('notif:idle', 'idle', null, null, msg); }
+        // termino y quedo esperando la proxima instruccion: se avisa, pero con su nombre (no es un permiso)
+        else if (t === 'idle_prompt') { if (s.state === 'idle' || s.state === 'waiting') wait('notif:idle', 'idle', null, null, msg); }
         else if (t === 'elicitation_dialog') wait('notif:question', 'question', null, null, msg);
         return;
       }

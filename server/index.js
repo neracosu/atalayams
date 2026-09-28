@@ -197,7 +197,7 @@ ctx.analytics = new Analytics(cfg, bus, { domainsOf: key => {
 } });
 ctx.analytics.start();
 // al detenerse, se guarda lo ultimo de la analitica (si no, se recupera releyendo los logs al arrancar)
-process.once('SIGTERM', () => { try { ctx.analytics.flush(); } catch { } try { beats.stop(); } catch { } process.exit(0); });
+process.once('SIGTERM', () => { try { ctx.analytics.flush(); } catch { } try { claude.saveRemote(true); } catch { } try { beats.stop(); } catch { } process.exit(0); });
 // informe mensual de la analitica por correo, para el cliente final de cada sitio (sale del correo de las alertas)
 const { Reports } = require('./reports');
 ctx.reports = new Reports(cfg, ctx);

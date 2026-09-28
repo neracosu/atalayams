@@ -418,7 +418,7 @@ export default class Planta3D extends Stage3D {
       }
       b.s = s; b.H = H;
       per[H.a.id] = (per[H.a.id] || 0) + 1; b.slot = per[H.a.id] - 1;
-      b.label.d.innerHTML = s.waitKind ? 'Robot <em>ESPERA SU PERMISO</em>' : '';
+      b.label.d.innerHTML = s.waitKind ? `Robot <em>${({ question: 'TIENE UNA PREGUNTA', idle: 'TERMINÓ: LO ESPERA' }[s.waitKind] || 'ESPERA SU PERMISO')}</em>` : '';
     }
     for (const [id, b] of this.bots) if (!seen.has(id)) { this.scene.remove(b.spr, b.box); b.label.remove(); this.pickables = this.pickables.filter(p => p !== b.spr); this.bots.delete(id); }
   }

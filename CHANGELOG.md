@@ -14,6 +14,15 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.85.2] - 2026-09-28
+
+### Corregido
+- **Claude Code desde su computadora**: cada vez que Atalaya se actualizaba, sus sesiones desaparecían de la pantalla hasta que Claude volvía a hacer algo. Ahora siguen ahí después de una actualización. No hace falta volver a conectar nada. En disco queda solo lo mínimo para dibujarlas: nunca sus instrucciones, archivos ni comandos.
+
+### Cambiado
+- **Agentes de Claude Code**: cuando un agente termina y queda esperando su próxima instrucción, Atalaya lo dice con ese nombre («Terminó y lo espera», «Listo. ¿Qué sigue?»). Antes varios temas mostraban «espera su permiso», como si algo hubiera quedado frenado. El aviso sigue saliendo en la pantalla, en todos los temas.
+- Vuelve el aviso de «terminó y lo espera» para las sesiones de su computadora, que la versión anterior había quitado.
+
 ## [0.85.1] - 2026-09-28
 
 ### Cambiado
@@ -1583,7 +1592,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.1...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.2...HEAD
+[0.85.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.1...v0.85.2
 [0.85.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.0...v0.85.1
 [0.85.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.4...v0.85.0
 [0.84.4]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.3...v0.84.4

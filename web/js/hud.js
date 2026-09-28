@@ -142,7 +142,7 @@ function agentHtml(s, acc, priv) {
   // que proyecto y que cuenta (lo que importa de un vistazo); abajo, la carpeta exacta y el modelo
   const proj = s.target ? s.target.name : '';
   const where = priv ? [s.project, s.model].filter(Boolean).join(' · ') : s.model || '';
-  const WAIT = { permission: 'Espera su permiso', question: 'Le hizo una pregunta', idle: 'Espera su respuesta' };
+  const WAIT = { permission: 'Espera su permiso', question: 'Le hizo una pregunta', idle: 'Terminó y lo espera' };
   const act = s.waitKind ? `${WAIT[s.waitKind] || 'Lo espera'} hace ${ago(Date.now() - s.waitSince)}${priv && s.detail && s.waitKind === 'permission' ? ' · ' + s.detail : ''}`
     : s.state === 'idle' ? `Sin actividad hace ${ago(Date.now() - s.lastActivity)}`
     : priv && s.detail ? s.detail : s.activity || '';
@@ -228,7 +228,7 @@ export function tickerEvent(e, accounts, priv) {
     case 'claude':
       if (e.action === 'tool') return; // demasiado frecuente: se ve en el mundo
       if (e.action === 'permission') {
-        const what = { permission: 'Un agente espera su permiso', question: 'Un agente le hizo una pregunta', idle: 'Un agente espera su respuesta' }[e.waitKind] || 'Un agente lo espera';
+        const what = { permission: 'Un agente espera su permiso', question: 'Un agente le hizo una pregunta', idle: 'Un agente terminó y espera su próxima instrucción' }[e.waitKind] || 'Un agente lo espera';
         addTicker('ask', tag, what + (priv && e.detail ? ` · ${e.tool ? e.tool + ': ' : ''}${e.detail}` : ''), '#fbbf24', 'session:' + e.sid);
         return;
       }

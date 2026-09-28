@@ -600,7 +600,7 @@ export default class CastilloWorld {
         const h = this.hunters.get(e.sid) || [...this.hunters.entries()].find(([k]) => e.sid && k.startsWith(e.sid))?.[1];
         if (!h) return;
         const y = h.R.walkY - 60;
-        if (e.action === 'permission') { this.urgent = { id: h.R.a.id, until: this.t + 12 }; this.bubble(h.x, y, 'Cazadora', '¿Me da permiso?', 'warn'); }
+        if (e.action === 'permission') { this.urgent = { id: h.R.a.id, until: this.t + 12 }; this.bubble(h.x, y, 'Cazadora', ({ question: 'Tengo una pregunta', idle: 'Listo. ¿Qué sigue?' }[e.waitKind] || '¿Me da permiso?'), e.waitKind === 'idle' ? 'ok' : 'warn'); }
         else if (e.action === 'done') this.bubble(h.x, y, 'Cazadora', '¡Misión cumplida!', 'ok');
         else if (e.action === 'prompt') this.bubble(h.x, y, 'Cazadora', priv && e.text ? e.text.slice(0, 60) : 'Una misión nueva', 'accent');
         else if (e.action === 'error') this.bubble(h.x, y, 'Cazadora', 'Algo salió mal', 'crit');

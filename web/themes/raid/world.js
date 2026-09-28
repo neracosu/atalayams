@@ -599,7 +599,7 @@ export default class RaidWorld {
         const k = ((this.t - p.castStart) % 4) / 4;
         this.bars.rect(p.x - 24, p.y + 5, 48, 6).fill(0x0b0908).rect(p.x - 23, p.y + 6, 46 * k, 4).fill(0xe8c55a);
       }
-      const txt = waiting ? 'Espera su permiso' : p.s.state === 'idle' ? 'Descansando' : (p.s.activity || '');
+      const txt = waiting ? ({ question: 'Le hizo una pregunta', idle: 'Terminó y lo espera' }[p.s.waitKind] || 'Espera su permiso') : p.s.state === 'idle' ? 'Descansando' : (p.s.activity || '');
       if (p.castT.text !== txt) p.castT.text = txt;
       p.castPos = { x: p.x, y: p.y + 12 };
     }

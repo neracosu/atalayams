@@ -455,7 +455,7 @@ export default class Acuario3D extends Stage3D {
       }
       d.s = s;
       per[tank.a.id] = (per[tank.a.id] || 0) + 1; d.slot = per[tank.a.id] - 1;
-      d.label.d.innerHTML = s.waitKind ? 'Buzo <em>ESPERA SU PERMISO</em>' : '';
+      d.label.d.innerHTML = s.waitKind ? `Buzo <em>${({ question: 'TIENE UNA PREGUNTA', idle: 'TERMINÓ: LO ESPERA' }[s.waitKind] || 'ESPERA SU PERMISO')}</em>` : '';
     }
     for (const id of [...this.divers.keys()]) if (!seen.has(id)) this.dropDiver(id);
   }

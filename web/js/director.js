@@ -31,7 +31,8 @@ export class Director {
     let c = null;
     if (e.kind === 'claude') {
       if (e.action === 'start') c = { kind: 'session', id: e.sid, icon: 'bot', score: 55, text: n => `Nueva sesión de Claude${n ? ' en ' + n : ''}`, later: true };
-      else if (e.action === 'permission') c = { kind: 'session', id: e.sid, icon: 'ask', score: 85, urgent: true, text: n => `Un agente espera su permiso${n ? ' · ' + n : ''}` };
+      else if (e.action === 'permission') c = e.waitKind === 'idle' ? { kind: 'session', id: e.sid, icon: 'ok', score: 45, text: n => `Un agente terminó y lo espera${n ? ' · ' + n : ''}` } // no es urgente: nada quedo frenado
+        : { kind: 'session', id: e.sid, icon: 'ask', score: 85, urgent: true, text: n => `Un agente ${e.waitKind === 'question' ? 'le hizo una pregunta' : 'espera su permiso'}${n ? ' · ' + n : ''}` };
       else if (e.action === 'spawn') c = { kind: 'session', id: e.sid, icon: 'bot', score: 40, text: n => `Lanzó un subagente${n ? ' · ' + n : ''}` };
       else if (e.action === 'touch' && e.mode === 'edit') { const [k, id] = where(e.app, e.site); if (k) c = { kind: k, id, icon: 'bot', score: 35, text: n => `Un agente edita ${n || 'un proyecto'}` }; }
     } else if (e.kind === 'pm2' && e.action === 'down') c = { kind: 'app', id: e.app, icon: 'fire', score: 90, urgent: true, text: () => `${e.appName || 'Una app'} se detuvo` };

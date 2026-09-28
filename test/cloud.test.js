@@ -119,14 +119,29 @@ supavisor_connections_active{mode="session",db_name="postgres"} 2
   assert.strictEqual(C.list()[0].state, 'waiting');
   H('PostToolUse', { tool_name: 'Bash', tool_use_id: 't2' });
   H('Stop'); assert.strictEqual(C.list()[0].state, 'idle');
-  // termino y la sesion quedo abierta: en una laptop eso no es un pendiente
-  const quiet = cb.ev.length;
+  // termino y la sesion quedo abierta: se avisa como lo que es, no como un permiso
   H('Notification', { notification_type: 'idle_prompt', message: 'Claude is waiting for your input' });
-  assert.strictEqual(C.list()[0].state, 'idle'); assert.ok(!C.list()[0].waitKind); assert.strictEqual(cb.ev.length, quiet, 'ni aviso ni globo');
-  // una pregunta si frena a Claude: esa se avisa
+  assert.strictEqual(C.list()[0].state, 'waiting'); assert.strictEqual(C.list()[0].waitKind, 'idle');
+  assert.strictEqual(cb.ev[cb.ev.length - 1].waitKind, 'idle');
+  H('UserPromptSubmit', {}); H('Stop');
+  // una pregunta frena a Claude a mitad de tarea
   H('Notification', { notification_type: 'elicitation_dialog', message: 'pregunta' });
   assert.strictEqual(C.list()[0].state, 'waiting'); assert.strictEqual(C.list()[0].waitKind, 'question');
   H('UserPromptSubmit', {}); H('Stop'); assert.strictEqual(C.list()[0].state, 'idle');
+  // Atalaya se reinicia (una actualizacion): la sesion de la laptop sigue en la pantalla, sin nada de texto en disco
+  H('UserPromptSubmit', { prompt: 'texto que no debe guardarse' }); H('PreToolUse', { tool_name: 'Edit', tool_input: { file_path: '/Users/ana/tienda/secreto.env' }, tool_use_id: 't3' });
+  C.saveRemote(true);
+  const onDisk = fs.readFileSync(path.join(tmp, 'remote-sessions.json'), 'utf8');
+  assert.ok(!onDisk.includes('no debe guardarse') && !onDisk.includes('secreto.env'), 'en disco, ni instrucciones ni archivos');
+  const C2 = new ClaudeCollector({ stateDir: tmp, claude: { idleMinutes: 8, goneMinutes: 45, subagentGoneSeconds: 150 } }, bus(), { accountsHome: [], uidOf: () => 1000, nowTicks: () => 0, claudeProcs: {} });
+  assert.strictEqual(C2.list().length, 1, 'la sesion vuelve sola tras el reinicio');
+  assert.strictEqual(C2.list()[0].id, sid); assert.strictEqual(C2.list()[0].account, '_dev-laptop-ana'); assert.strictEqual(C2.list()[0].state, 'idle'); assert.ok(C2.list()[0].remote);
+  C2.onRemoteHook({ hook_event_name: 'PreToolUse', session_id: sid, cwd: 'tienda', tool_name: 'Read', tool_use_id: 't4' }, 'laptop-ana');
+  assert.strictEqual(C2.list().length, 1, 'sigue siendo la misma, no una nueva'); assert.strictEqual(C2.list()[0].state, 'working');
+  // una sesion vieja (mas de 45 minutos callada) no vuelve
+  const old = JSON.parse(onDisk); old[0].lastActivity = Date.now() - 46 * 60000; fs.writeFileSync(path.join(tmp, 'remote-sessions.json'), JSON.stringify(old));
+  assert.strictEqual(new ClaudeCollector({ stateDir: tmp, claude: { idleMinutes: 8, goneMinutes: 45, subagentGoneSeconds: 150 } }, bus(), { accountsHome: [], uidOf: () => 1000, nowTicks: () => 0, claudeProcs: {} }).list().length, 0);
+  H('Stop');
   H('SessionEnd', { reason: 'other' }); assert.strictEqual(C.list().length, 0);
   H('PostToolUse', { tool_name: 'Read', tool_use_id: 't9' }); assert.strictEqual(C.list().length, 0, 'hook atrasado no resucita');
   assert.ok(cb.ev.some(e => e.action === 'prompt' && e.text === 'agrega el boton de pagar'));

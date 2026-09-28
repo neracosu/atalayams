@@ -715,7 +715,7 @@ export default class OficinaWorld {
         const m = this.mates.get(e.sid) || [...this.mates.entries()].find(([k]) => e.sid && k.startsWith(e.sid))?.[1];
         if (!m) return;
         const x = m.room.x + m.spr.x, y = m.room.y + m.spr.y - 56;
-        if (e.action === 'permission') { this.urgent = { id: m.room.id, until: this.t + 12 }; this.bubble(x, y, 'Compañero', '¿Me da permiso?', 'warn'); }
+        if (e.action === 'permission') { this.urgent = { id: m.room.id, until: this.t + 12 }; this.bubble(x, y, 'Compañero', ({ question: 'Tengo una pregunta', idle: 'Listo. ¿Qué sigue?' }[e.waitKind] || '¿Me da permiso?'), e.waitKind === 'idle' ? 'ok' : 'warn'); }
         else if (e.action === 'done') this.bubble(x, y, 'Compañero', '¡Tarea entregada!', 'ok');
         else if (e.action === 'prompt') this.bubble(x, y, 'Compañero', priv && e.text ? e.text.slice(0, 60) : 'Recibí un encargo nuevo', 'accent');
         else if (e.action === 'error') this.bubble(x, y, 'Compañero', 'Algo salió mal', 'crit');

@@ -19,7 +19,7 @@ function defsLine(st) {
 
 const STATE_LABEL = { working: 'Trabajando', thinking: 'Pensando', waiting: 'Lo espera', idle: 'En pausa' };
 const STATUS_LABEL = { online: 'En línea', degraded: 'Parcial', down: 'Caído' };
-const WAIT_LABEL = { permission: 'Espera su permiso', question: 'Le hizo una pregunta', idle: 'Espera su respuesta' };
+const WAIT_LABEL = { permission: 'Espera su permiso', question: 'Le hizo una pregunta', idle: 'Terminó y lo espera' };
 const hhmm = t => new Date(t).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 const dur = s => { s = Math.round(s || 0); const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
   return d ? `${d} d ${h} h` : h ? `${h} h ${m} min` : m ? `${m} min` : `${s} s`; };

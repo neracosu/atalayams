@@ -347,7 +347,7 @@ export default class Ops3D extends Stage3D {
       }
       d.s = s;
       per[s.account] = (per[s.account] || 0) + 1; d.slot = per[s.account] - 1;
-      d.label.d.innerHTML = `ESC-${String(n + 1).padStart(2, '0')}${s.waitKind ? ' <em>ESPERA PERMISO</em>' : ''}`;
+      d.label.d.innerHTML = `ESC-${String(n + 1).padStart(2, '0')}${s.waitKind ? ` <em>${({ question: 'TIENE UNA PREGUNTA', idle: 'TERMINÓ: LO ESPERA' }[s.waitKind] || 'ESPERA PERMISO')}</em>` : ''}`;
     });
     for (const [id, d] of this.drones) if (!seen.has(id)) { this.scene.remove(d.mesh); d.label.remove(); this.pickables = this.pickables.filter(p => p !== d.mesh); this.drones.delete(id); }
   }

@@ -860,7 +860,7 @@ export class World {
   }
   robotTip(r) {
     const a = r.info || {}, L = { working: 'Trabajando', thinking: 'Pensando', waiting: 'Lo espera', idle: 'En pausa' };
-    const W = { permission: 'espera su permiso', question: 'le hizo una pregunta', idle: 'espera su respuesta' };
+    const W = { permission: 'espera su permiso', question: 'le hizo una pregunta', idle: 'terminó y lo espera' };
     return {
       title: a.title || (r.small ? 'Subagente de Claude' : 'Agente de Claude'),
       body: `${r.small ? 'Un <b>subagente</b>: ayudante que lanzó un agente principal.' : 'Una <b>sesión de Claude Code</b> trabajando en el servidor.'} Ahora: <b>${L[a.state] || ''}</b>${a.waitKind ? ` — ${W[a.waitKind] || 'lo espera'}` : ''}${a.activity && a.state !== 'idle' ? ` · ${esc(a.activity)}` : ''}.`,
@@ -1086,7 +1086,7 @@ export class World {
         const r = this.robotFor(e);
         if (!r) return;
         if (e.action === 'permission') {
-          const q = { permission: '¿Me da permiso?', question: 'Tengo una pregunta', idle: 'Lo espero…' }[e.waitKind] || '¿Me da permiso?';
+          const q = { permission: '¿Me da permiso?', question: 'Tengo una pregunta', idle: 'Listo. ¿Qué sigue?' }[e.waitKind] || '¿Me da permiso?';
           r.say(priv && e.tool && e.waitKind === 'permission' ? `${q} ${e.tool}` : q, 12, 0xfbbf24);
           this.focus(this.stations.has(e.account) ? e.account : 'root', 12);
           this.ring(r.x, r.y - 20, 0xfbbf24);
