@@ -14,6 +14,14 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.83.0] - 2026-09-28
+
+### Agregado
+- **Toda su cuenta de Supabase con un solo dato.** Con el token de su cuenta, Atalaya encuentra todos sus proyectos y conecta cada base, sin pegar las llaves una por una. Le dice el resultado de cada proyecto; los que están pausados lo avisan.
+- **Correo del proyecto**: la ficha de cada base de Supabase muestra por dónde envía correo (Mailtrap, Resend, SES, un servidor propio…), el remitente, el tope por hora y si las cuentas nuevas confirman su correo. No hay que conectar el correo aparte.
+- Avisa si el proyecto envía al **buzón de pruebas de Mailtrap** (los correos no le llegan a nadie) o con el **correo de prueba de Supabase** (muy pocos envíos por hora).
+- El asistente explica el alcance del token de cuenta: Supabase no ofrece uno de solo lectura; Atalaya solo lo usa para leer y nunca lee el usuario ni la contraseña del servidor de correo. Conectar proyecto por proyecto, con su llave, sigue disponible.
+
 ## [0.82.0] - 2026-09-28
 
 ### Agregado
@@ -1521,7 +1529,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.82.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.83.0...HEAD
+[0.83.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.82.0...v0.83.0
 [0.82.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.4...v0.82.0
 [0.81.4]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.3...v0.81.4
 [0.81.3]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.2...v0.81.3

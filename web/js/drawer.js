@@ -582,7 +582,7 @@ export class Drawer {
       : d.source === 'supabase' ? `<div class="dstats">${stat('Disco', d.disk ? `${d.disk.pct.toFixed(0)}% de ${fmtBytes(d.disk.total)}` : '–', d.disk && d.disk.pct > 85 ? 'warn' : '')}
         ${stat('Memoria total', d.memTotal ? fmtBytes(d.memTotal) : '–')}${stat('Conexiones (pooler)', d.pooler ?? '–')}${stat('Conexiones a Postgres', d.dbConns ?? '–')}
         ${stat('Tamaño de la base', d.dbSize ? fmtBytes(d.dbSize) : '–')}${stat('Reinicios de Postgres', d.restartsTotal ?? 0, d.restartsTotal ? 'warn' : '')}</div>
-        <p class="dmuted">${d.metrics ? `${d.metrics} métricas · última lectura ${d.lastScrape ? ago(Date.now() - d.lastScrape) : '–'}` : 'Sin métricas todavía (se leen cada minuto).'}${d.region ? ' · región ' + esc(d.region) : ''}${d.ref ? ` · <span class="mono">${esc(d.ref)}</span>` : ''}</p>` : '';
+        <p class="dmuted">${d.metrics ? `${d.metrics} métricas · última lectura ${d.lastScrape ? ago(Date.now() - d.lastScrape) : '–'}` : 'Sin métricas todavía (se leen cada minuto).'}${d.region ? ' · región ' + esc(d.region) : ''}${d.ref ? ` · <span class="mono">${esc(d.ref)}</span>` : ''}</p>` + sbMail(d) : '';
     const tr = this.trafficHtml(d);
     const events = d.events.length ? d.events.slice().reverse().map(e => `<li><time>${hhmm(e.t)}</time><span>${e.action === 'down' ? px('fire') + ' Se cayó' : px('refresh') + ' Se reinició'}</span></li>`).join('')
       : '<li class="dmuted">Sin reinicios ni caídas desde que Atalaya lo vigila.</li>';
@@ -1262,4 +1262,16 @@ function beatHtml(d) {
       ${stat('A tiempo', b.pct == null ? '–' : String(b.pct).replace('.', ',') + '%')}${stat('Señales', fmtNum(b.beats || 0))}${stat('Con fallo', fmtNum(b.fails || 0), b.fails ? 'warn' : '')}</div>
     ${bars}
     <p class="hint">Un latido es una dirección secreta que su tarea toca al terminar bien. Si deja de tocarla, Atalaya avisa. Para cambiarlo o ver la dirección: menú › Vigilar sitios y latidos.</p></section>`;
+}
+
+// Supabase: por donde envia correo el proyecto (sale de su configuracion, con el token de la cuenta)
+function sbMail(d) {
+  const m = d.mail;
+  if (!m) return `<section class="dsec"><h4>${px('mail')} Correo del proyecto</h4><p class="dmuted">Para ver por dónde envía correo este proyecto, conéctelo con el token de su cuenta de Supabase: menú › Conectar o arreglar proyectos › Supabase.</p></section>`;
+  if (m.error) return `<section class="dsec"><h4>${px('mail')} Correo del proyecto</h4><p class="dmuted">${px('warn')} ${esc(m.error)}.</p></section>`;
+  const rows = (m.findings || []).map(f => `<div class="afind ${f.level === 'bad' ? 'bad' : f.level === 'warn' ? 'warn' : 'info'}"><h5>${px(f.level === 'bad' ? 'bad' : f.level === 'warn' ? 'warn' : 'info')} ${esc(f.text)}</h5><p class="fix">${esc(f.fix)}</p></div>`).join('');
+  return `<section class="dsec"><h4>${px('mail')} Correo del proyecto</h4>${rows}
+    <div class="dstats">${stat('Envía por', esc(m.provider), m.sandbox ? 'bad' : m.custom ? '' : 'warn')}${stat('Tope por hora', m.perHour == null ? '–' : fmtNum(m.perHour))}${stat('Confirma el correo', m.confirm ? 'sí' : 'no', m.confirm ? '' : 'warn')}</div>
+    ${m.host !== undefined ? `<dl class="dkv">${m.host ? `<dt>Servidor</dt><dd class="mono">${esc(m.host)}${m.port ? ':' + esc(m.port) : ''}</dd>` : ''}${m.sender ? `<dt>Remitente</dt><dd>${m.senderName ? esc(m.senderName) + ' · ' : ''}<span class="mono">${esc(m.sender)}</span></dd>` : ''}${m.everySecs != null ? `<dt>Entre correos a la misma persona</dt><dd>${esc(m.everySecs)} s</dd>` : ''}</dl>` : ''}
+    <p class="hint">Son los correos que envía Supabase Auth: confirmar la cuenta, recuperar la clave, enlaces de acceso. Sale de la configuración del proyecto; Atalaya no lee el usuario ni la contraseña del servidor de correo.</p></section>`;
 }

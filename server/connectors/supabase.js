@@ -34,6 +34,25 @@ function parseProm(text) {
   }
   return out;
 }
+// por donde envia correo un proyecto, segun su configuracion de Auth (solo con el token de gestion de la cuenta).
+// De la respuesta se toma una lista cerrada: nunca el usuario ni la contrasena del SMTP
+const PROVIDERS = [[/mailtrap/, 'Mailtrap'], [/resend/, 'Resend'], [/sendgrid/, 'SendGrid'], [/amazonaws|\bses\b/, 'Amazon SES'], [/postmark/, 'Postmark'], [/brevo|sendinblue/, 'Brevo'], [/mailgun/, 'Mailgun'],
+  [/mailersend/, 'MailerSend'], [/zoho/, 'Zoho'], [/gmail|google/, 'Gmail'], [/office365|outlook/, 'Outlook'], [/sparkpost/, 'SparkPost'], [/mailjet/, 'Mailjet']];
+function mailOf(c) {
+  if (!c || typeof c !== 'object') return null;
+  const host = String(c.smtp_host || '').trim().toLowerCase().slice(0, 120), custom = !!host;
+  const provider = custom ? (PROVIDERS.find(([re]) => re.test(host)) || [null, 'Servidor propio'])[1] : 'Correo de prueba de Supabase';
+  // el buzon de pruebas de Mailtrap atrapa los correos: no le llegan a nadie
+  const sandbox = /sandbox\.smtp\.mailtrap|smtp\.mailtrap\.io$/.test(host) && !/live\.smtp\.mailtrap/.test(host);
+  const findings = [];
+  if (!custom) findings.push({ level: 'warn', text: 'Envía con el correo de prueba de Supabase', fix: 'Ese correo es solo para probar: permite muy pocos envíos por hora y solo a los miembros de su equipo. En Supabase › Authentication › Emails › SMTP Settings conecte un servicio propio (Resend, Mailtrap, SES...).' });
+  if (sandbox) findings.push({ level: 'bad', text: 'El correo va al buzón de pruebas de Mailtrap: no le llega a nadie', fix: 'El buzón de pruebas atrapa los correos para revisarlos. Para que lleguen a sus usuarios, en Supabase › Authentication › Emails › SMTP Settings use el servidor de envío de Mailtrap (live.smtp.mailtrap.io) con su dominio verificado.' });
+  if (c.mailer_autoconfirm === true) findings.push({ level: 'info', text: 'Las cuentas nuevas no confirman su correo', fix: 'Cualquiera puede registrarse con un correo que no es suyo. Si no lo necesita así, en Supabase › Authentication › Sign In / Providers › Email active «Confirm email».' });
+  const num = v => (Number.isFinite(Number(v)) && v != null && v !== '' ? Number(v) : null);
+  return { custom, provider, sandbox, host: custom ? host : '', port: custom ? num(c.smtp_port) : null, sender: String(c.smtp_admin_email || '').trim().slice(0, 120), senderName: String(c.smtp_sender_name || '').trim().slice(0, 80),
+    perHour: num(c.rate_limit_email_sent), everySecs: num(c.smtp_max_frequency), confirm: c.mailer_autoconfirm === false, enabled: c.external_email_enabled !== false, findings };
+}
+
 const sum = (rows, name, f = () => true) => rows.filter(r => r.name === name && f(r.labels)).reduce((n, r) => n + r.value, 0);
 const has = (rows, name) => rows.some(r => r.name === name);
 
@@ -47,6 +66,7 @@ class SupabaseConnector {
     this.prev = new Map(); // ref -> { cpuTotal, cpuIdle, restarts, t }
     this.meta = new Map(); // ref -> { status, region, name }
     this.data = new Map();
+    this.mail = new Map(); // ref -> por donde envia correo (solo con el token de la cuenta)
     this.error = null; this.lastOk = 0; this.timers = [];
   }
 
@@ -63,6 +83,14 @@ class SupabaseConnector {
         const list = JSON.parse(await request(`${MGMT}/v1/projects`, { Authorization: 'Bearer ' + this.conn.mgmtToken }));
         for (const p of list) this.meta.set(p.id || p.ref, { status: p.status, region: p.region, name: p.name });
       } catch (e) { this.error = e.message; }
+      // el correo de cada proyecto: cambia poco, se relee cada 30 minutos
+      if (!this.mailAt || Date.now() - this.mailAt > 30 * 60000) {
+        this.mailAt = Date.now();
+        for (const p of this.conn.projects || []) {
+          try { this.mail.set(p.ref, { ...mailOf(JSON.parse(await request(`${MGMT}/v1/projects/${p.ref}/config/auth`, { Authorization: 'Bearer ' + this.conn.mgmtToken }))), at: Date.now() }); }
+          catch (e) { if (!this.mail.has(p.ref)) this.mail.set(p.ref, { error: / 40[13]$/.test(e.message) ? 'El token de la cuenta no puede leer la configuración de este proyecto' : e.message, at: Date.now() }); }
+        }
+      }
     }
     let okAny = false;
     for (const p of this.conn.projects || []) {
@@ -105,12 +133,17 @@ class SupabaseConnector {
         dbConns: has(rows, 'pg_stat_database_numbackends') ? sum(rows, 'pg_stat_database_numbackends') : null,
         dbSize: has(rows, 'pg_database_size_bytes') ? sum(rows, 'pg_database_size_bytes') : null,
         authReq: has(rows, 'http_server_duration_milliseconds_count') ? sum(rows, 'http_server_duration_milliseconds_count', l => l.service_type === 'gotrue') : null,
-        metrics: rows.length, lastScrape: d.t || 0,
+        metrics: rows.length, lastScrape: d.t || 0, mail: this.mail.get(p.ref) || null,
       };
     });
   }
 
-  info() { const n = (this.conn.projects || []).length; return { id: this.conn.id, type: 'supabase', label: this.label, account: this.account, error: n ? this.error : 'No tiene ningún proyecto: conéctelo de nuevo desde el asistente', lastOk: this.lastOk, projects: n }; }
+  info() {
+    const n = (this.conn.projects || []).length;
+    // lo grave del correo de cada proyecto sube como aviso del conector
+    const warn = (this.conn.projects || []).flatMap(p => ((this.mail.get(p.ref) || {}).findings || []).filter(f => f.level === 'bad').map(f => `${p.name || p.ref}: ${f.text}`));
+    return { id: this.conn.id, type: 'supabase', label: this.label, account: this.account, error: n ? this.error : 'No tiene ningún proyecto: conéctelo de nuevo desde el asistente', lastOk: this.lastOk, projects: n, warn, byAccount: !!this.conn.mgmtToken };
+  }
 }
 
 // el codigo del proyecto, venga como venga: «abcd...», «https://abcd....supabase.co» o la direccion del panel
@@ -132,6 +165,32 @@ function keyKind(k) {
   if (p.length === 3 && t.startsWith('eyJ')) { try { const j = JSON.parse(Buffer.from(p[1], 'base64url').toString('utf8')); return j.role === 'service_role' ? 'secret' : j.role === 'anon' ? 'public' : 'unknown'; } catch { return 'unknown'; } }
   return t ? 'unknown' : 'none';
 }
+// con el token de la cuenta: todos sus proyectos, y de cada uno su llave secreta, sin pedirlas una por una.
+// Devuelve [{ ref, name, status, serviceKey?, error? }]; las llaves no salen del servidor
+async function discover(mgmtToken) {
+  const tok = String(mgmtToken || '').trim();
+  if (!/^sbp_[A-Za-z0-9_]{20,}$/.test(tok) && !/^[A-Za-z0-9._-]{30,}$/.test(tok)) throw new Error('Ese no parece un token de cuenta de Supabase. Se crea en supabase.com › su cuenta › Access Tokens y empieza con sbp_');
+  if (keyKind(tok) !== 'unknown') throw new Error('Esa es la llave de un proyecto, no el token de su cuenta. El token se crea en supabase.com › su cuenta › Access Tokens y empieza con sbp_');
+  let list;
+  try { list = JSON.parse(await request(`${MGMT}/v1/projects`, { Authorization: 'Bearer ' + tok })); }
+  catch (e) { throw new Error(/ 40[13]$/.test(e.message) ? 'Supabase rechazó el token de la cuenta. Revise que esté completo y que no haya vencido.' : 'No se pudo leer su cuenta de Supabase: ' + e.message); }
+  if (!Array.isArray(list)) throw new Error('Supabase respondió algo inesperado');
+  const out = [];
+  for (const p of list.slice(0, 40)) {
+    const ref = refOf(p.id || p.ref), row = { ref, name: String(p.name || ref).slice(0, 60), status: String(p.status || '') };
+    if (!ref) continue;
+    if (/INACTIVE|PAUSED|REMOVED/i.test(row.status)) { out.push({ ...row, error: 'Está pausado: reactívelo en Supabase y vuelva a buscar' }); continue; }
+    try {
+      const keys = JSON.parse(await request(`${MGMT}/v1/projects/${ref}/api-keys?reveal=true`, { Authorization: 'Bearer ' + tok }));
+      const k = (Array.isArray(keys) ? keys : []).filter(x => x && typeof x.api_key === 'string' && keyKind(x.api_key) === 'secret').sort((a, b) => (/^sb_secret_/.test(b.api_key) ? 1 : 0) - (/^sb_secret_/.test(a.api_key) ? 1 : 0))[0];
+      if (!k) throw new Error('Supabase no entregó la llave secreta de este proyecto. Conéctelo con su llave, proyecto por proyecto');
+      const v = await verify({ ref, serviceKey: k.api_key, name: row.name });
+      out.push({ ...row, serviceKey: v.serviceKey });
+    } catch (e) { out.push({ ...row, error: / 40[13]$/.test(e.message) ? 'El token no puede leer las llaves de este proyecto' : e.message }); }
+  }
+  return out;
+}
+
 // antes de guardar: el codigo debe ser valido y la llave debe poder leer la salud del proyecto
 async function verify(input) {
   const ref = refOf(input.ref), typed = String(input.ref || '').trim();
@@ -153,4 +212,4 @@ async function verify(input) {
   return { ref, serviceKey: key, name: String(input.name || '').replace(/\s+/g, ' ').trim().slice(0, 60) || ref };
 }
 
-module.exports = { SupabaseConnector, parseProm, refOf, keyKind, verify };
+module.exports = { SupabaseConnector, parseProm, refOf, keyKind, verify, discover, mailOf };

@@ -943,6 +943,16 @@ async function handleSetup(req, res, p, url, session, ip) {
       else if (body.type === 'supabase') {
         // cada proyecto se prueba antes de guardarlo; con el mismo nombre de conector se van sumando proyectos
         const SB = require('./connectors/supabase'), list = [];
+        // con el token de la cuenta se conectan todos los proyectos de una vez (y su correo), sin pedir sus llaves
+        if (body.auto) {
+          let found; try { found = await SB.discover(body.mgmtToken); } catch (e) { return json(res, 400, { error: e.message }); }
+          const good = found.filter(x => x.serviceKey), results = found.map(x => ({ ok: !!x.serviceKey, name: x.name, error: x.error || undefined }));
+          res.atalayaNote = `supabase ${id} por cuenta: ${good.length} de ${found.length}`;
+          if (!found.length) return json(res, 400, { error: 'Esa cuenta de Supabase no tiene proyectos' });
+          if (!good.length) return json(res, 400, { error: 'Ningún proyecto se pudo conectar. Revise el motivo de cada uno.', results });
+          secrets.addConnector(idFor('supabase'), { type: 'supabase', name: shown, mgmtToken: String(body.mgmtToken).trim(), projects: good.map(x => ({ ref: x.ref, name: x.name, serviceKey: x.serviceKey })) });
+          return json(res, 200, { ok: true, projects: good.map(x => x.name), results });
+        }
         const want = (body.projects || []).filter(x => x && (x.ref || x.serviceKey)).slice(0, 10);
         if (!want.length) return json(res, 400, { error: 'Escriba el proyecto de Supabase y su llave secreta' });
         // cada proyecto tiene su resultado: los que pasan se guardan aunque otro falle, y de cada fallo se dice el motivo

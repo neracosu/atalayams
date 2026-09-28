@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.82.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.83.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -201,7 +201,7 @@ pasan a una barra vertical.
   <tr>
     <td valign="top"><img src="docs/icons/house.svg" width="40"><br><b>Hostings compartidos</b><br><sub>Un agente por cron para cPanel, Hostinger, GoDaddy o Namecheap. No toca <code>public_html</code> ni abre puertos.</sub></td>
     <td valign="top"><img src="docs/icons/wp.svg" width="40"><br><b>Sitios WordPress</b><br><sub>Un plugin que se conecta solo: versión, plugins por actualizar, PHP sin soporte y errores visibles.</sub></td>
-    <td valign="top"><img src="docs/icons/cloud.svg" width="40"><br><b>Nube</b><br><sub>Cloudflare (Pages, Workers, relojes y visitas), Vercel (proyectos, despliegues y visitas), Supabase (salud de cada base), GitHub (revisión de repos) y <b>cualquier sitio por su dominio</b>, visitado cada 5 minutos desde afuera.</sub></td>
+    <td valign="top"><img src="docs/icons/cloud.svg" width="40"><br><b>Nube</b><br><sub>Cloudflare (Pages, Workers, relojes y visitas), Vercel (proyectos, despliegues y visitas), Supabase (salud de cada base y por dónde envía correo), GitHub (revisión de repos) y <b>cualquier sitio por su dominio</b>, visitado cada 5 minutos desde afuera.</sub></td>
   </tr>
   <tr>
     <td valign="top"><img src="docs/icons/lock.svg" width="40"><br><b>Público o privado</b><br><sub>En la TV, sin nombres, IPs ni rutas. Con el PIN, todo el detalle por un rato.</sub></td>
@@ -528,6 +528,33 @@ El plugin **no registra rutas públicas**: solo envía. WordPress 5.6+ y PHP 7.4
 
 La tolerancia es el 20 % del plazo (mínimo 5 minutos). De la dirección se guarda solo su huella; si la pierde,
 genere una nueva. En modo público no se muestran los nombres de los latidos.
+
+</details>
+
+<details>
+<summary><b>Conectar Supabase</b> (bases y correo)</summary>
+
+<br>
+
+En su Atalaya: menú › **Conectar o arreglar proyectos** › **Supabase**. Hay dos caminos:
+
+| Camino | Qué pide | Qué ve |
+|---|---|---|
+| Toda la cuenta | El token de su cuenta (Supabase › su cuenta › Access Tokens, empieza con `sbp_`) | Todos sus proyectos de una vez, su salud y por dónde envía correo cada uno |
+| Proyecto por proyecto | El ID del proyecto (20 letras) y su llave secreta | La salud de esa base |
+
+**Alcance del token de cuenta.** Supabase no ofrece un token de solo lectura: el de cuenta puede lo mismo que usted.
+Atalaya lo usa solo para leer la lista de proyectos, su estado, su llave de métricas y su configuración de correo.
+No crea, cambia ni borra nada, no lee los datos de sus tablas, y no lee el usuario ni la contraseña del servidor
+de correo. Se revoca en Supabase cuando quiera. Si prefiere no entregarlo, use el otro camino.
+
+**Correo del proyecto.** Son los correos de Supabase Auth: confirmar la cuenta, recuperar la clave, enlaces de acceso.
+
+| Aviso | Nivel |
+|---|---|
+| Envía al buzón de pruebas de Mailtrap: los correos no le llegan a nadie | Grave |
+| Envía con el correo de prueba de Supabase: muy pocos envíos por hora | Aviso |
+| Las cuentas nuevas no confirman su correo | Sugerencia |
 
 </details>
 

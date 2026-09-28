@@ -62,6 +62,8 @@ const bus = () => { const ev = []; return { ev, emit: (_, e) => ev.push(e), on()
   let cpu = { idle: 1000, user: 100 }, restarts = 0, status = 'ACTIVE_HEALTHY';
   const sapi = await listen((req, res) => {
     if (req.url === '/v1/projects') { assert.strictEqual(req.headers.authorization, 'Bearer mgmt'); return res.end(JSON.stringify([{ id: 'abcref', name: 'tienda-db', region: 'us-east-1', status }])); }
+    // con el token de gestion tambien se lee por donde envia correo el proyecto
+    if (/^\/v1\/projects\/[a-z0-9]+\/config\/auth$/.test(req.url)) { assert.strictEqual(req.headers.authorization, 'Bearer mgmt'); return res.end(JSON.stringify({ smtp_host: 'smtp.resend.com', smtp_pass: 'NO', smtp_admin_email: 'a@tienda.com', rate_limit_email_sent: 50 })); }
     assert.strictEqual(req.headers.authorization, 'Basic ' + Buffer.from('service_role:sb_secret_x').toString('base64'));
     res.end(`# HELP node_cpu_seconds_total x
 node_cpu_seconds_total{cpu="0",mode="idle",service_type="db"} ${cpu.idle}

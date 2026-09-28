@@ -108,13 +108,14 @@
 
     <section class="guide" id="supabase">
       <h2><span data-px="bolt"></span> Conectar Supabase</h2>
-      <p class="meta">3 minutos por proyecto · Salud de cada base</p>
+      <p class="meta">2 minutos · Sus bases y su correo · Un solo dato</p>
       <ol class="steps">
-        <li><b>Copie el «Project ref»</b><p>de su proyecto: Settings › General. Son unas 20 letras y números.</p></li>
-        <li><b>Cree una Secret key</b><p>en Settings › API Keys (empieza con <code>sb_secret_</code>). Atalaya la usa solo para leer las métricas del proyecto.</p></li>
-        <li><b>Opcional: un token de gestión</b><p>en <a href="https://supabase.com/dashboard/account/tokens" rel="noopener">supabase.com/dashboard/account/tokens</a>, para saber si el proyecto quedó en pausa.</p></li>
-        <li><b>En Atalaya:</b><p>menú › Asistente de configuración › Extras › <b>Supabase</b>. Ponga un nombre corto, el ref, un nombre para mostrar y la llave. Guarde. Las métricas aparecen en un minuto.</p></li>
+        <li><b>En Supabase:</b><p>su cuenta › <b>Access Tokens</b> › Generate new token. Empieza con <code>sbp_</code>.</p></li>
+        <li><b>En Atalaya:</b><p>menú › Conectar o arreglar proyectos › Supabase › <b>Conectar toda su cuenta de una vez</b>. Pegue el token y pulse <b>Buscar y conectar mis proyectos</b>.</p></li>
+        <li><b>Listo.</b><p>Atalaya encuentra todos sus proyectos y le dice el resultado de cada uno. En la ficha de cada base verá su salud y <b>por dónde envía correo</b>.</p></li>
       </ol>
+      <div class="tip"><span data-px="shield"></span><span><b>Alcance del token.</b> Supabase no ofrece uno de solo lectura. Atalaya lo usa únicamente para leer; no cambia nada ni lee los datos de sus tablas. Si prefiere no entregarlo, conecte <b>proyecto por proyecto</b> con el ID del proyecto y su llave secreta.</span></div>
+      <div class="tip"><span data-px="mail"></span><span>Si un proyecto envía al <b>buzón de pruebas</b> de su servicio de correo, Atalaya se lo avisa: esos correos no le llegan a nadie.</span></div>
     </section>
 
     <section class="guide" id="github">

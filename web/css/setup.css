@@ -73,3 +73,7 @@ pre.cmd { margin: 0; white-space: pre-wrap; word-break: break-all; font-family: 
 .privbox { border: 1px solid rgba(52, 211, 153, .35); background: rgba(52, 211, 153, .05); border-radius: 12px; padding: .7rem .9rem; display: grid; gap: .35rem; }
 .privbox p { margin: 0; }
 .privbox .chk { display: flex; gap: .5rem; align-items: flex-start; font-size: .88rem; margin-top: .3rem; }
+.sblist { list-style: none; margin: .4rem 0 0; padding: 0; display: grid; gap: .3rem; font-size: .88rem; }
+.sblist li { padding: .35rem .6rem; border-radius: 8px; border: 1px solid var(--line); overflow-wrap: anywhere; }
+.sblist li.ok { border-color: rgba(52, 211, 153, .5); } .sblist li.ok b { color: #34d399; }
+.sblist li.bad { border-color: rgba(248, 113, 113, .6); } .sblist li.bad b { color: #f87171; }

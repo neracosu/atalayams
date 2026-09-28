@@ -276,7 +276,15 @@ async function renderExtras() {
         <div class="row"><button class="btn" id="cfgo">Guardar conector</button></div><div id="cfout"></div></details></div>
     <div class="extra"><h3>${px('bolt')} Supabase<span class="st ${st.connectors.some(c => c.type === 'supabase') ? 'ok' : 'off'}">${st.connectors.filter(c => c.type === 'supabase').length || 'sin'} conector(es)</span></h3>
       ${have('supabase')}
-      <details><summary>Conectar proyectos de Supabase</summary>
+      <details><summary>Conectar toda su cuenta de Supabase de una vez</summary>
+        <p class="hint">Con <b>un solo dato</b>, el token de su cuenta, Atalaya encuentra todos sus proyectos, conecta cada base y le muestra por dónde envía correo cada uno. No hace falta pegar las llaves una por una.</p>
+        <div class="privbox"><p><b>Qué puede hacer ese token</b></p>
+          <p class="hint">El token de cuenta de Supabase tiene <b>el mismo alcance que usted</b>: Supabase no ofrece uno de solo lectura. Atalaya lo usa únicamente para <b>leer</b>: la lista de proyectos, su estado, su llave de métricas y su configuración de correo. Nunca crea, cambia ni borra nada, y no lee los datos de sus tablas.</p>
+          <p class="hint">Queda guardado en el servidor de esta Atalaya, en un archivo que solo ella lee. Puede revocarlo cuando quiera en Supabase › su cuenta › Access Tokens. Si prefiere no entregarlo, conecte proyecto por proyecto, abajo.</p></div>
+        <div class="grid2"><div class="field"><label>Nombre del grupo</label><input type="text" id="said" placeholder="Mis bases" maxlength="40" value="Supabase"></div>
+        <div class="field"><label>Token de su cuenta (empieza con sbp_)</label><input type="password" id="satok" autocomplete="off" placeholder="sbp_…"></div></div>
+        <div class="row"><button class="btn" id="sago">Buscar y conectar mis proyectos</button></div><div id="saout"></div></details>
+      <details><summary>Conectar proyecto por proyecto, con su llave</summary>
         <p class="hint">De cada proyecto hacen falta <b>dos datos</b>, los dos en Supabase › Project Settings: su <b>ID</b> (en General, «Project ID»: 20 letras) y su <b>llave secreta</b> (en API Keys: la «secret key» o la «service_role», no la pública). Si tiene a mano la dirección del proyecto, también sirve. Atalaya prueba cada uno antes de guardarlo.</p>
         <div class="grid2"><div class="field"><label>Nombre del grupo</label><input type="text" id="sid" placeholder="Mis bases" maxlength="40" value="Supabase"></div>
         <div class="field"><label>¿Cuántos proyectos va a conectar?</label><select id="sn">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}">${n}</option>`).join('')}</select></div></div>
@@ -311,7 +319,7 @@ async function renderExtras() {
     catch (ex) { btn.disabled = false; btn.textContent = ex.message; }
   }));
   // tras guardar, el contador y la lista de lo conectado de ese bloque se actualizan sin salir del paso
-  const refresh = async btnId => { try { st = await api('api/setup/state'); } catch { return; } const box = $(btnId).closest('.extra'), type = { vgo: 'vercel', ggo: 'github', cfgo: 'cloudflare', sgo: 'supabase' }[btnId]; if (!box || !type) return;
+  const refresh = async btnId => { try { st = await api('api/setup/state'); } catch { return; } const box = $(btnId).closest('.extra'), type = { vgo: 'vercel', ggo: 'github', cfgo: 'cloudflare', sgo: 'supabase', sago: 'supabase' }[btnId]; if (!box || !type) return;
     const n = st.connectors.filter(c => c.type === type).length, tag = box.querySelector('h3 .st'); if (tag) { tag.className = 'st ' + (n ? 'ok' : 'off'); tag.textContent = `${n || 'sin'} conector(es)`; }
     const old = box.querySelector('.havelist'); if (old) old.remove(); const d = box.querySelector('details'); if (d) d.insertAdjacentHTML('beforebegin', have(type)); };
   act('vgo', async () => {
@@ -338,6 +346,16 @@ async function renderExtras() {
       <div class="field"><label>Llave secreta</label><input type="password" class="sb-key" placeholder="sb_secret_… o la service_role" autocomplete="off"></div><p class="sb-out" role="status"></p></fieldset>`;
   const srows = () => { const box = $('srows'), n = Number($('sn').value) || 1, cur = [...box.children]; for (let i = cur.length; i < n; i++) box.insertAdjacentHTML('beforeend', srow(i)); for (const el of cur.slice(n)) if (!el.classList.contains('done')) el.remove(); };
   if ($('sn')) { $('sn').addEventListener('change', srows); srows(); }
+  act('sago', async () => {
+    $('saout').innerHTML = '<p class="msg info">Buscando sus proyectos y probando cada uno…</p>';
+    let r;
+    try { r = await api('api/setup/connector', { type: 'supabase', id: $('said').value.trim() || 'Supabase', auto: true, mgmtToken: $('satok').value.trim() }); }
+    catch (ex) { r = { error: ex.message, results: ex.results || [] }; }
+    const rows = (r.results || []).map(x => `<li class="${x.ok ? 'ok' : 'bad'}"><b>${esc(x.name)}</b> ${x.ok ? 'conectado' : esc(x.error || 'no se pudo')}</li>`).join('');
+    const ok = (r.results || []).filter(x => x.ok).length;
+    $('saout').innerHTML = `<p class="msg ${r.error ? 'bad' : 'ok'}">${r.error ? esc(r.error) : `${ok} proyecto(s) conectado(s): aparecen en el mapa en un minuto, y su correo en la ficha de cada uno.`}</p>${rows ? `<ul class="sblist">${rows}</ul>` : ''}`;
+    if (ok) { $('satok').value = ''; refresh('sago'); }
+  });
   act('sgo', async () => {
     const rows = [...$('srows').children].filter(el => !el.classList.contains('done'));
     const val = (el, c) => el.querySelector(c).value.trim();

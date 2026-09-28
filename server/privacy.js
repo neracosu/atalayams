@@ -401,6 +401,9 @@ function makePrivacy(cfg) {
         ...(priv ? { domains: a.domains, repoHost: a.repoHost } : {}) });
       // latido: cada cuanto debe llegar, cuando llego el ultimo y como le fue; el nombre y la nota solo en privado
       if (a.source === 'beat' && ctx.beats) out.beat = ctx.beats.info(a.name, true) && (({ id, name, lastNote, ...pub }) => priv ? { id, name, lastNote, ...pub } : pub)(ctx.beats.info(a.name, true));
+      // el correo del proyecto: en publico solo el proveedor y los avisos; el servidor y el remitente, en privado
+      if (a.source === 'supabase' && a.mail) out.mail = a.mail.error ? { error: a.mail.error } : { custom: a.mail.custom, provider: a.mail.provider, sandbox: a.mail.sandbox, perHour: a.mail.perHour, everySecs: a.mail.everySecs, confirm: a.mail.confirm, findings: a.mail.findings, at: a.mail.at,
+        ...(priv ? { host: a.mail.host, port: a.mail.port, sender: a.mail.sender, senderName: a.mail.senderName } : {}) };
       if (a.source === 'supabase') Object.assign(out, { memTotal: a.memTotal, disk: a.disk, pooler: a.pooler, dbConns: a.dbConns, dbSize: a.dbSize,
         authReq: a.authReq, metrics: a.metrics, lastScrape: a.lastScrape, ...(priv ? { ref: a.ref, region: a.region } : {}) });
       if (!priv && a.source === 'docker') out.image = String(a.image || '').split('/').pop().split(':')[0]; // solo el nombre de la imagen
