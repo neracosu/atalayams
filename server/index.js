@@ -324,7 +324,7 @@ function listThemes() {
     const m = readJSON(path.join(dir, id, 'theme.json'), null);
     if (!m || m.id !== id || !m.name || !m.world) continue;
     out.push({ id, name: String(m.name), description: String(m.description || ''), author: String(m.author || ''), version: String(m.version || ''),
-      license: String(m.license || ''), palette: m.palette || {}, preview: m.preview ? `/themes/${id}/${m.preview}` : null });
+      license: String(m.license || ''), palette: m.palette || {}, preview: m.preview ? `themes/${id}/${m.preview}` : null }); // relativa: en la nube la pantalla vive bajo /<pantalla>/
   }
   return out.sort((a, b) => (a.id === 'ciudad' ? -1 : b.id === 'ciudad' ? 1 : a.name.localeCompare(b.name)));
 }

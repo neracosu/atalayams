@@ -14,6 +14,11 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.81.3] - 2026-09-28
+
+### Corregido
+- **Atalaya Cloud**: al elegir un tema no se veían sus vistas previas.
+
 ## [0.81.2] - 2026-09-28
 
 ### Seguridad
@@ -1500,7 +1505,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.2...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.3...HEAD
+[0.81.3]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.2...v0.81.3
 [0.81.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.1...v0.81.2
 [0.81.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.0...v0.81.1
 [0.81.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.2...v0.81.0
