@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.78.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.79.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -62,6 +62,9 @@ revisar y cómo arreglarlo**.
 <p align="center"><sub>Un escaneo con dos <b>patrullas voladoras</b> junto al edificio, un <b>pico de visitas</b> con reflectores y el <b>director</b> contando qué pasa. Datos del simulador, en modo público.</sub></p>
 
 <table>
+  <tr>
+    <td colspan="3" valign="top"><img src="docs/icons/cloud.svg" width="40"><br><b>Cloudflare: Pages, Workers y visitas</b><br><sub>Con un token de <b>solo lectura</b>, sus proyectos de Pages y sus Workers son edificios. Ve cada <b>despliegue</b> (construyendo, listo, falló), las <b>corridas</b> de cada Worker y las <b>visitas de cada dominio</b> sin pegar nada en el sitio. Y algo que Cloudflare no avisa: si un <b>reloj (cron) deja de correr</b> no hay error, solo silencio; Atalaya lo nota, pone el edificio en rojo y avisa.</sub></td>
+  </tr>
   <tr>
     <td colspan="3" valign="top"><img src="docs/icons/antenna.svg" width="40"><br><b>Sitios vigilados por su dominio</b><br><sub>Para proyectos que viven en <b>Cloudflare Pages, Netlify o Vercel</b>, o cualquier sitio que quiera mirar desde afuera: escribe el dominio y Atalaya lo visita cada 5 minutos, sin instalar nada. Usted decide qué respuesta es la correcta (una puerta que exige llave responde 401 y está sana) y una <b>frase que debe aparecer</b>, que detecta el sitio publicado en blanco. Avisa <b>una vez al caer y una vez al volver</b>; antes lo prueba dos veces, y si es Atalaya la que se quedó sin Internet lo dice y no acusa al sitio. Las visitas llegan con una línea de script sin cookies.</sub></td>
   </tr>
@@ -194,7 +197,7 @@ pasan a una barra vertical.
   <tr>
     <td valign="top"><img src="docs/icons/house.svg" width="40"><br><b>Hostings compartidos</b><br><sub>Un agente por cron para cPanel, Hostinger, GoDaddy o Namecheap. No toca <code>public_html</code> ni abre puertos.</sub></td>
     <td valign="top"><img src="docs/icons/wp.svg" width="40"><br><b>Sitios WordPress</b><br><sub>Un plugin que se conecta solo: versión, plugins por actualizar, PHP sin soporte y errores visibles.</sub></td>
-    <td valign="top"><img src="docs/icons/cloud.svg" width="40"><br><b>Nube</b><br><sub>Vercel (proyectos, despliegues y visitas), Supabase (salud de cada base), GitHub (revisión de repos) y <b>cualquier sitio por su dominio</b>, visitado cada 5 minutos desde afuera.</sub></td>
+    <td valign="top"><img src="docs/icons/cloud.svg" width="40"><br><b>Nube</b><br><sub>Cloudflare (Pages, Workers, relojes y visitas), Vercel (proyectos, despliegues y visitas), Supabase (salud de cada base), GitHub (revisión de repos) y <b>cualquier sitio por su dominio</b>, visitado cada 5 minutos desde afuera.</sub></td>
   </tr>
   <tr>
     <td valign="top"><img src="docs/icons/lock.svg" width="40"><br><b>Público o privado</b><br><sub>En la TV, sin nombres, IPs ni rutas. Con el PIN, todo el detalle por un rato.</sub></td>
@@ -471,6 +474,38 @@ El plugin **no registra rutas públicas**: solo envía. WordPress 5.6+ y PHP 7.4
 </details>
 
 <details>
+<summary><b>Conectar Cloudflare</b> (Pages, Workers y visitas)</summary>
+
+<br>
+
+1. En dash.cloudflare.com: su perfil › **API Tokens** › Create Token › **Create Custom Token**.
+2. Dele estos permisos, todos de **solo lectura**:
+
+| Permiso | Para qué |
+|---|---|
+| Account › Cloudflare Pages: Read | Proyectos y despliegues |
+| Account › Workers Scripts: Read | Workers y sus relojes |
+| Account › Account Analytics: Read | Cuántas veces corrió cada Worker |
+| Zone › Zone: Read | La lista de sus dominios |
+| Zone › Analytics: Read | Las visitas de cada dominio |
+
+3. En su Atalaya: menú › **Asistente de configuración** › Extras › **Cloudflare**. Pegue el token y guarde.
+
+Si omite un permiso, esa parte queda apagada y el resto funciona; la Torre de control dice cuál falta.
+Con este token Atalaya **no puede cambiar nada** en su cuenta.
+
+**Relojes que callan.** Un Worker con reloj que deja de dispararse no genera ningún error. Atalaya compara
+cada cuánto debería correr con la última vez que corrió: si pasaron más de tres vueltas (y al menos tres
+horas, porque Cloudflare entrega esas cifras por hora y con atraso), el edificio queda en rojo y llega el aviso.
+
+**Visitas.** Son los totales de Cloudflare para todo el dominio: incluyen robots y llegan con hasta una hora
+de atraso. Para páginas, origen y conversiones use además el script de un sitio vigilado.
+
+Este conector es distinto del token de **Defensa web › Cloudflare**, que sí escribe (bloquea IPs) y es opcional.
+
+</details>
+
+<details>
 <summary><b>Vigilar un sitio por su dominio</b> (sin instalar nada)</summary>
 
 <br>
@@ -565,6 +600,7 @@ se toman en caliente.
 | Distrito | Una cuenta de cPanel, un usuario, un hosting, un WordPress o una cuenta de nube |
 | Edificio | Un proceso de PM2, un servicio de systemd, un contenedor o un proyecto de Vercel. Altura = memoria, techo naranja = CPU, ventanas = visitas |
 | Edificio bajo | Un sitio servido directo (WordPress, PHP, estático, en construcción) |
+| Edificio de Cloudflare | Un proyecto de Pages o un Worker. Rojo si falló su último despliegue a producción o si su reloj dejó de correr |
 | Distrito «Sitios vigilados» | Los sitios que Atalaya visita desde afuera por su dominio; el que no responde se ve caído |
 | Luz del techo | Verde en línea, ámbar parcial o desplegando, roja caído |
 | Robot | Una sesión de Claude Code; camina a la estación de lo que hace |

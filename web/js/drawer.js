@@ -237,7 +237,7 @@ export class Drawer {
       this.body.innerHTML = '<p class="dmuted">Este elemento ya no existe (la sesión terminó o el servicio se retiró).</p>';
       return;
     }
-    try { this.render(d); } catch (e) { console.error('[detalle]', kind, e); this.body.innerHTML = '<p class="dmuted">No se pudo mostrar este detalle.</p>'; }
+    try { this.render(d); } catch (e) { console.error('[detalle]', kind, e); if (window.atalayaReport) window.atalayaReport(e.message, 'ficha ' + kind); this.body.innerHTML = '<p class="dmuted">No se pudo mostrar este detalle.</p>'; }
   }
 
   // cabecera con icono pixel; el canvas solo se regenera si cambia
@@ -541,11 +541,12 @@ export class Drawer {
   }
 
   renderApp(d) {
-    const SRC = { pm2: 'Proceso PM2', systemd: 'Servicio systemd', docker: 'Contenedor Docker', vercel: 'Proyecto Vercel', supabase: 'Proyecto Supabase' };
+    const SRC = { pm2: 'Proceso PM2', systemd: 'Servicio systemd', docker: 'Contenedor Docker', vercel: 'Proyecto Vercel', supabase: 'Proyecto Supabase', cloudflare: d.cfKind === 'worker' ? 'Worker de Cloudflare' : 'Proyecto de Cloudflare Pages' };
     this.setHead('app:' + d.id + d.icon, signCanvas(d.icon, 4), d.name || d.category,
       `${esc(d.name !== d.category ? d.category : '')}${d.name !== d.category && d.category ? ' · ' : ''}${SRC[d.source] || ''} · <a data-go="district:${esc(d.account)}">${esc(d.accountLabel)}</a>`,
       `<span class="pill ${statusCls(d.status)}">${STATUS_LABEL[d.status] || d.status}</span>`);
-    this.frame([
+    // en Cloudflare no hay CPU ni memoria que medir: la ficha va sin graficas
+    this.frame(d.source === 'cloudflare' ? [] : [
       { title: 'CPU · 10 min', series: [{ stroke: '#22d3ee', width: 2, fill: 'rgba(34,211,238,.1)', points: { show: false } }], min: 5, fmt: v => v + '%' },
       { title: 'Memoria · 10 min', series: [{ stroke: '#a78bfa', width: 2, fill: 'rgba(167,139,250,.1)', points: { show: false } }], min: 1, fmt: v => fmtBytes(v * 1048576) },
       { title: 'Visitas cada 10 s', series: [{ stroke: '#67e8f9', width: 2, points: { show: false } }, { stroke: '#ef4444', width: 2, points: { show: false } }], min: 2 },
@@ -554,7 +555,7 @@ export class Drawer {
     this.setChart(1, d.hist, [r => Math.round(r.mem / 1048576)]);
     this.setChart(2, d.req, [r => r.req, r => r.err]);
     const priv = d.port !== undefined || d.domains;
-    const top = `<div class="dstats">
+    const top = d.source === 'cloudflare' ? '' : `<div class="dstats">
         ${stat('CPU', d.cpu.toFixed(1) + '%')}${stat('Memoria', fmtBytes(d.mem))}${stat('Visitas / min', fmtNum(d.reqMin))}
         ${stat('Instancias', `${d.online}/${d.instances}`, d.online < d.instances ? 'bad' : '')}${stat('En línea hace', d.uptime ? dur(d.uptime) : '–')}
         ${stat('Reinicios vistos', d.restarts, d.restarts ? 'warn' : '')}
@@ -574,7 +575,7 @@ export class Drawer {
       </dl></section>` : `${d.image ? `<p class="dmuted">Imagen: <span class="mono">${esc(d.image)}</span></p>` : ''}<p class="dmuted">Active el modo privado para ver el proyecto, sus dominios, carpeta, puerto y las IPs y páginas de cada visita.</p>`}`;
     // Vercel: despliegues recientes; Supabase: salud de la base de datos
     const DEP = { READY: ['ok', 'listo'], ERROR: ['bad', 'falló'], CANCELED: ['off', 'cancelado'], BUILDING: ['waiting', 'construyendo'], QUEUED: ['waiting', 'en cola'], INITIALIZING: ['waiting', 'iniciando'] };
-    const cloud = d.source === 'vercel' ? `<section class="dsec"><h4>Despliegues recientes</h4><ul class="dlist">${(d.deployments || []).map(x => `<li>
+    const cloud = d.source === 'cloudflare' ? cfHtml(d, DEP) : d.source === 'vercel' ? `<section class="dsec"><h4>Despliegues recientes</h4><ul class="dlist">${(d.deployments || []).map(x => `<li>
         <time>${hhmm(x.created)}</time><span class="pill ${(DEP[x.state] || ['off'])[0]}">${(DEP[x.state] || ['', x.state])[1]}</span><span class="chip">${x.target === 'production' ? 'producción' : 'preview'}</span>
         <span class="grow">${x.commit ? esc(x.commit) : ''}${x.branch ? ` <span class="dmuted mono">${esc(x.branch)}</span>` : ''}${x.creator ? ` <span class="dmuted">· ${esc(x.creator)}</span>` : ''}</span></li>`).join('') || '<li class="dmuted">Sin despliegues todavía.</li>'}</ul></section>
       ${d.framework ? `<p class="dmuted">Framework: ${esc(d.framework)}${d.domains && d.domains.length ? ' · ' + d.domains.map(x => `<span class="chip">${esc(x)}</span>`).join(' ') : ''}</p>` : ''}`
@@ -585,6 +586,7 @@ export class Drawer {
     const tr = this.trafficHtml(d);
     const events = d.events.length ? d.events.slice().reverse().map(e => `<li><time>${hhmm(e.t)}</time><span>${e.action === 'down' ? px('fire') + ' Se cayó' : px('refresh') + ' Se reinició'}</span></li>`).join('')
       : '<li class="dmuted">Sin reinicios ni caídas desde que Atalaya lo vigila.</li>';
+    if (d.source === 'cloudflare') return this.content(top + cloud);
     this.content(top + cloud + tr.hour, `${tr.rank}${tr.recent}
       <section class="dsec"><h4>Reinicios y caídas</h4><ul class="dlist">${events}</ul></section>`);
   }
@@ -593,13 +595,13 @@ export class Drawer {
     const priv = !!d.domains;
     this.setHead('site:' + d.id + d.icon, signCanvas(d.icon, 4), d.name || d.category,
       `${esc(d.category)} · <a data-go="district:${esc(d.account)}">${esc(d.accountLabel)}</a>`,
-      d.uptime ? `<span class="pill ${d.uptime.ok === false ? 'bad' : d.uptime.ok ? 'ok' : 'waiting'}">${d.uptime.ok === false ? 'no responde' : d.uptime.ok ? 'responde' : 'midiendo'}</span>` : `<span class="pill ok">${esc(TYPE_LABEL[d.type] || d.type)}</span>`);
+      d.avail ? `<span class="pill ${d.avail.ok === false ? 'bad' : d.avail.ok ? 'ok' : 'waiting'}">${d.avail.ok === false ? 'no responde' : d.avail.ok ? 'responde' : 'midiendo'}</span>` : `<span class="pill ok">${esc(TYPE_LABEL[d.type] || d.type)}</span>`);
     this.frame([{ title: 'Visitas cada 10 s', series: [{ stroke: '#67e8f9', width: 2, points: { show: false } }, { stroke: '#ef4444', width: 2, points: { show: false } }], min: 2 }]);
     this.setChart(0, d.req, [r => r.req, r => r.err]);
     const tr = this.trafficHtml(d);
     const ficha = priv ? `<section class="dsec"><h4>Ficha técnica</h4><dl class="dkv">
         <dt>Tipo</dt><dd>${esc(TYPE_LABEL[d.type] || d.type)}${d.wpVersion ? ` · WordPress ${esc(d.wpVersion)}` : ''}${d.proxyPort ? ` · puerto ${esc(d.proxyPort)}` : ''}</dd>
-        ${d.docroot ? `<dt>Carpeta</dt><dd class="mono">${esc(d.docroot)}</dd>` : ''}${d.uptime ? `<dt>Se visita</dt><dd class="mono">${esc(d.uptime.url)}</dd>` : ''}
+        ${d.docroot ? `<dt>Carpeta</dt><dd class="mono">${esc(d.docroot)}</dd>` : ''}${d.avail ? `<dt>Se visita</dt><dd class="mono">${esc(d.avail.url)}</dd>` : ''}
         <dt>Dominios</dt><dd>${d.domains.map(x => `<span class="chip">${esc(x)}</span>`).join(' ')}</dd>
         <dt>Última visita</dt><dd>${d.lastSeen ? new Date(d.lastSeen).toLocaleString('es-VE', { hour12: false }) : '–'}</dd>
       </dl></section>` : `<p class="dmuted">Active el modo privado para ver sus dominios, carpeta y las IPs y páginas de cada visita.</p>`;
@@ -660,7 +662,7 @@ export class Drawer {
     if (h) return this.renderHosting(d, h);
     const apps = d.apps.map(a => `<li class="link" data-go="app:${esc(a.id)}"><span class="sico" data-icon="${esc(a.icon)}"></span>
         <span class="grow"><b>${esc(a.name)}</b>${a.name !== a.category && a.category ? ` <span class="dmuted">· ${esc(a.category)}</span>` : ''}${a.domains?.length ? `<br><span class="dmuted mono">${a.domains.map(esc).join(' · ')}</span>` : ''}</span>
-        <span class="pill ${statusCls(a.status)}">${STATUS_LABEL[a.status]}</span><span class="mono dmuted">${a.cpu.toFixed(1)}% · ${fmtBytes(a.mem)}</span></li>`).join('');
+        <span class="pill ${statusCls(a.status)}">${STATUS_LABEL[a.status]}</span>${a.source === 'cloudflare' ? '' : `<span class="mono dmuted">${a.cpu.toFixed(1)}% · ${fmtBytes(a.mem)}</span>`}</li>`).join('');
     const ses = d.sessions.length ? d.sessions.map(x => `<li class="link" data-go="session:${esc(x.id)}"><span class="pill ${x.state}">${STATE_LABEL[x.state]}</span>
         <span class="grow">${esc(x.title || 'Agente de Claude')}</span><span class="dmuted">${esc(x.activity)}</span></li>`).join('') : '<li class="dmuted">Sin agentes en este distrito.</li>';
     const sites = d.sites.length ? d.sites.map(x => `<li class="link" data-go="site:${esc(x.id)}"><span class="sico" data-icon="${esc(x.icon)}"></span>
@@ -671,11 +673,12 @@ export class Drawer {
     // cuota de la cuenta: disco, inodos y ancho de banda del mes (con barra si tiene limite)
     const Q = d.quotas, qrow = (label, x, fmt) => x ? `<li class="${x.limit ? 'bar' : ''}"><span class="grow">${label}</span>${x.limit ? `<span class="bw"><i style="width:${Math.min(100, x.pct * 100).toFixed(1)}%;${x.pct >= 0.85 ? 'background:#f87171' : ''}"></i></span>` : ''}<span class="mono">${fmt(x.used)}${x.limit ? ` / ${fmt(x.limit)}` : ' <span class="dmuted">sin límite</span>'}</span></li>` : '';
     const quotaSec = Q ? `<section class="dsec"><h4>${px('folder')} Cuota de la cuenta</h4><ul class="dlist">${qrow('Disco', Q.disk, fmtBytes)}${qrow('Archivos (inodos)', Q.inodes, n => fmtNum(n))}${qrow('Ancho de banda este mes', Q.bw, fmtBytes)}</ul></section>` : '';
-    this.content(`<div class="dstats">${stat('Servicios PM2', d.apps.length)}${stat('Sitios', d.sites.length)}${stat('Visitas / min', fmtNum(d.reqMin))}</div>${quotaSec}
+    this.content(`<div class="dstats">${stat(d.cloudflare ? 'Proyectos' : 'Servicios PM2', d.apps.length)}${stat('Sitios', d.sites.length)}${stat('Visitas / min', fmtNum(d.reqMin))}</div>${quotaSec}
       ${changes}
-      <section class="dsec"><h4>Servicios (PM2)</h4><ul class="dlist">${apps}</ul></section>
+      <section class="dsec"><h4>${d.cloudflare ? 'Proyectos y Workers' : 'Servicios (PM2)'}</h4><ul class="dlist">${apps}</ul></section>
       <section class="dsec"><h4>Sitios web</h4><ul class="dlist">${sites}</ul></section>
       <section class="dsec"><h4>Agentes de Claude</h4><ul class="dlist">${ses}</ul></section>
+      ${d.cloudflare ? cfDistrict(d.cloudflare) : ''}
       ${d.dbs && d.dbs.length ? `<section class="dsec"><h4>Bases de datos</h4><ul class="dlist">${d.dbs.map(dbRow).join('')}</ul>
         ${d.dbCount > d.dbs.length ? `<p class="dlinks"><a data-go="databases:${esc(d.id)}">Ver las ${d.dbCount} bases</a></p>` : ''}</section>` : ''}`);
     this.body.querySelectorAll('.sico').forEach(el => el.appendChild(signCanvas(el.dataset.icon, 2)));
@@ -737,7 +740,7 @@ export class Drawer {
         ${stat('Servicios', `${d.apps}${d.appsDown ? ` (${d.appsDown} con problemas)` : ''}`, d.appsDown ? 'bad' : '')}${stat('Agentes Claude', d.sessions)}
       </div>
       ${d.connectors && d.connectors.length ? `<section class="dsec"><h4>Conectores de nube</h4><ul class="dlist">${d.connectors.map(c => `<li>
-        <span class="pill ${c.ok ? 'ok' : 'bad'}">${c.ok ? 'conectado' : 'error'}</span><span class="grow"><b>${esc(c.label)}</b> · ${c.projects} proyecto${c.projects === 1 ? '' : 's'}${c.error ? `<br><span class="dmuted">${esc(c.error)}</span>` : ''}</span>
+        <span class="pill ${c.ok ? 'ok' : 'bad'}">${c.ok ? 'conectado' : 'error'}</span><span class="grow"><b>${esc(c.label)}</b> · ${c.projects} proyecto${c.projects === 1 ? '' : 's'}${c.error ? `<br><span class="dmuted">${esc(c.error)}</span>` : ''}${(c.warn || []).map(w => `<br><span class="dmuted">${px('warn')} ${esc(w)}</span>`).join('')}</span>
         <span class="dmuted">${c.lastOk ? 'leído hace ' + ago(Date.now() - c.lastOk) : 'sin lectura'}${c.type === 'vercel' ? (c.drainAt ? ` · visitas hace ${ago(Date.now() - c.drainAt)}` : ' · sin Drain') : ''}</span></li>`).join('')}</ul></section>` : ''}
       ${d.keys && d.keys.length ? `<section class="dsec"><h4>Servicios clave</h4><div class="keys">${d.keys.map(k => `<span class="keysvc ${k.state === 'active' ? 'ok' : k.state === 'failed' ? 'bad' : 'off'}" title="${esc(k.unit)} · ${esc(k.substate || k.state)}">${esc(k.label)}<b>${k.state === 'active' ? 'activo' : k.state === 'failed' ? 'FALLÓ' : k.state === 'inactive' ? 'detenido' : esc(k.state)}</b></span>`).join('')}</div></section>` : ''}`, `<section class="dsec"><h4>Visitantes por país · última hora</h4><ul class="dlist">${bars(d.countries, k => `${flag(k)} ${esc(countryName(k))}`, d.countries.reduce((n, x) => n + x.n, 0))}</ul></section>
       <section class="dsec"><h4>Procesos que más consumen</h4><ul class="dlist">${top}</ul></section>
@@ -786,8 +789,8 @@ export class Drawer {
       } else body.insertAdjacentHTML('beforeend', `<section class="dsec"><h4>Certificado SSL</h4><p class="dmuted">${esc(c.issuer)} · vence el ${when} (en ${c.days} días)${c.n > 1 ? ` · el más próximo de sus ${c.n} dominios` : ''}. Se renueva solo.</p></section>`);
     }
     // sitio vigilado por su dominio: como responde ahora, como le fue en 24 horas y la linea para contar sus visitas
-    if (d.uptime) {
-      const u = d.uptime, EXP = { 0: 'que abra bien (2xx)', 200: '200 (página normal)', 204: '204 (sin contenido)', 401: '401 (puerta que exige llave)', 403: '403 (prohibido)', 404: '404 (no existe)' };
+    if (d.avail) {
+      const u = d.avail, EXP = { 0: 'que abra bien (2xx)', 200: '200 (página normal)', 204: '204 (sin contenido)', 401: '401 (puerta que exige llave)', 403: '403 (prohibido)', 404: '404 (no existe)' };
       const maxMs = Math.max(1, ...u.series.map(x => x.ms));
       const bars = u.series.length ? `<div class="anahours upbars">${u.series.map(x => `<i class="${x.ok ? '' : 'bad'}" style="height:${x.ok ? Math.max(6, Math.round(x.ms / maxMs * 100)) : 100}%" title="${new Date(x.t).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', hour12: false })} · ${x.ok ? x.ms + ' ms' : 'falló'}"></i>`).join('')}</div>` : '';
       const head = u.ok === false ? `<div class="afind bad"><h5>${px('siren')} No responde bien: ${esc(u.why || 'sin respuesta')}</h5><p class="dmuted">Desde hace ${ago(Date.now() - u.since)}. Atalaya lo probó dos veces antes de avisar.</p>
@@ -1077,7 +1080,7 @@ export class Drawer {
   }
 }
 
-const KIND_ICON = { vercel: px('triangle'), supabase: px('bolt'), app: px('gear'), site: px('web'), hosting: px('house'), repo: px('box') };
+const KIND_ICON = { cloudflare: px('cloud'), vercel: px('triangle'), supabase: px('bolt'), app: px('gear'), site: px('web'), hosting: px('house'), repo: px('box') };
 const LEVEL_ICON = { ok: px('ok'), info: px('info'), warn: px('warn'), bad: px('bad'), unknown: px('unknown') };
 const scoreCls = s => s >= 85 ? 'ok' : s >= 60 ? 'warn' : 'bad';
 function projJob(j) { return j ? `<p class="dmuted">⏳ En curso: ${esc(j.label)} (hace ${ago(Date.now() - j.startedAt)}).</p>` : ''; }
@@ -1188,3 +1191,42 @@ function dbRow(x, max) {
     ${max ? `<span class="bw"><i style="width:${(x.size / max * 100).toFixed(1)}%"></i></span>` : ''}<span class="mono">${fmtBytes(x.size)}</span></li>`;
 }
 function jobLine(j) { return j ? `<p class="dmuted">⏳ En curso: ${esc(j.label)} (hace ${ago(Date.now() - j.startedAt)}). Los análisis corren de a uno para no cargar el servidor.</p>` : ''; }
+
+// Cloudflare: visitas de la zona (totales de Cloudflare), despliegues de Pages y corridas de un Worker
+function cfTraffic(t, title) {
+  if (!t || !t.day) return '';
+  const days = t.days || [], maxD = Math.max(1, ...days.map(x => x.visitors));
+  const week = days.length ? `<div class="anahours">${days.map(x => `<i style="height:${Math.max(3, Math.round(x.visitors / maxD * 100))}%" title="${esc(x.date)} · ${fmtNum(x.visitors)} visitantes"></i>`).join('')}</div><p class="hint">Visitantes por día, última semana.</p>` : '';
+  const total = (t.countries || []).reduce((n, x) => n + x.n, 0);
+  return `<section class="dsec"><h4>${px('chart')} ${title}</h4>
+    <div class="anakpi"><div><span>Visitantes · 24 h</span><b>${fmtNum(t.day.visitors)}</b></div><div><span>Páginas vistas</span><b>${fmtNum(t.day.pages)}</b></div>
+      <div><span>Peticiones</span><b>${fmtNum(t.day.requests)}</b></div><div><span>Errores 5xx hoy</span><b class="${t.day.err5xx ? 'bad' : ''}">${fmtNum(t.day.err5xx)}</b></div></div>
+    ${week}
+    ${t.countries && t.countries.length ? `<h5 class="anasub">Países de hoy</h5><ul class="dlist">${bars(t.countries, k => `${flag(k)} ${esc(countryName(k))}`, total)}</ul>` : ''}
+    <p class="hint">Son las cifras de Cloudflare para todo el dominio${t.zone ? ` <span class="mono">${esc(t.zone)}</span>` : ''}: incluyen robots y llegan con hasta una hora de atraso. Para páginas, origen y conversiones pegue el script de un <a data-go="district:_sitios">sitio vigilado</a>.</p></section>`;
+}
+function cfHtml(d, DEP) {
+  const priv = !!d.domains;
+  if (d.cfKind === 'worker') {
+    const every = d.every ? (d.every < 3600000 ? `cada ${Math.round(d.every / 60000)} min` : d.every < 86400000 ? `cada ${Math.round(d.every / 3600000)} h` : 'una vez al día o menos') : '';
+    const rate = d.runs ? Math.round(d.runErrors / d.runs * 100) : 0;
+    return `${d.silent ? `<section class="dsec"><div class="afind bad"><h5>${px('siren')} Su reloj dejó de correr</h5>
+        <p class="dmuted">Debería correr ${every} y ${d.lastRun ? 'la última vez fue hace ' + ago(Date.now() - d.lastRun) : 'no ha corrido en las últimas 48 horas'}.</p>
+        <p class="fix">Cloudflare no avisa cuando un reloj deja de dispararse: no hay error, solo silencio. En el panel de Cloudflare abra Workers y Pages › este Worker › Settings › Triggers y revise que el reloj siga ahí; volver a desplegarlo suele reactivarlo. Recuerde que el plan gratis permite 5 relojes por cuenta.</p></div></section>` : ''}
+      <div class="dstats">${stat('Corridas · 24 h', fmtNum(d.runs || 0))}${stat('Con error', fmtNum(d.runErrors || 0) + (d.runs ? ` (${rate}%)` : ''), rate > 50 ? 'bad' : rate > 5 ? 'warn' : '')}
+        ${stat('Última corrida', d.lastRun ? 'hace ' + ago(Date.now() - d.lastRun) : '–')}${d.hasCron ? stat('Reloj', every || 'sí') : ''}</div>
+      ${priv && d.crons && d.crons.length ? `<p class="dmuted">Relojes: ${d.crons.map(c => `<span class="chip mono">${esc(c)}</span>`).join(' ')}</p>` : ''}
+      <p class="hint">Las corridas se leen de Cloudflare cada 5 minutos y se conocen por hora.</p>`;
+  }
+  return `<section class="dsec"><h4>Despliegues recientes</h4><ul class="dlist">${(d.deployments || []).map(x => `<li>
+      <time>${hhmm(x.created)}</time><span class="pill ${(DEP[x.state] || ['off'])[0]}">${(DEP[x.state] || ['', x.state])[1]}</span><span class="chip">${x.target === 'production' ? 'producción' : 'preview'}</span>
+      <span class="grow">${x.commit ? esc(x.commit) : ''}${x.branch ? ` <span class="dmuted mono">${esc(x.branch)}</span>` : ''}${x.creator ? ` <span class="dmuted">· ${esc(x.creator)}</span>` : ''}</span></li>`).join('') || '<li class="dmuted">Sin despliegues todavía.</li>'}</ul></section>
+    ${priv && d.domains.length ? `<p class="dmuted">${d.domains.map(x => `<span class="chip">${esc(x)}</span>`).join(' ')}${d.repoHost ? ` · código en ${esc(d.repoHost === 'gitlab' ? 'GitLab' : d.repoHost === 'github' ? 'GitHub' : d.repoHost)}` : ''}</p>` : ''}
+    ${cfTraffic(d.traffic, 'Visitas según Cloudflare')}`;
+}
+function cfDistrict(c) {
+  return `<section class="dsec"><h4>${px('cloud')} Cuenta de Cloudflare</h4>
+    <div class="dstats">${stat('Proyectos de Pages', c.pages)}${stat('Workers', c.workers)}${stat('Dominios', c.zones)}</div>
+    ${(c.warn || []).map(w => `<p class="dmuted">${px('warn')} ${esc(w)}</p>`).join('')}</section>
+    ${(c.traffic || []).map(t => cfTraffic(t, t.zone ? `Visitas de ${esc(t.zone)}` : 'Visitas de un dominio')).join('')}`;
+}

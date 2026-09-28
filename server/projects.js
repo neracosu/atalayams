@@ -70,6 +70,8 @@ class Projects {
     for (const a of host.apps) {
       if (a.source === 'vercel') out.push({ key: `vercel:${a.account}/${a.name}`, kind: 'vercel', name: a.name, repo: a.repo ? a.repo.toLowerCase() : null, app: a,
         domains: a.domains || [], status: a.status, activity: Math.max(0, ...(a.deployments || []).map(d => d.created || 0)) });
+      else if (a.source === 'cloudflare') out.push({ key: `cf:${a.account}/${a.name}`, kind: 'cloudflare', name: a.name, repo: a.repo ? a.repo.toLowerCase() : null, app: a,
+        domains: a.domains || [], status: a.status, activity: Math.max(0, ...(a.deployments || []).map(d => d.created || 0), a.lastRun || 0) });
       else if (a.source === 'supabase') out.push({ key: `supa:${a.ref}`, kind: 'supabase', name: a.name, app: a, status: a.status, db: true, domains: [] });
       else {
         const doms = [...logs.groups.values()].filter(g => g.account === a.account && g.app === a.name).flatMap(g => g.domainList);
@@ -121,7 +123,7 @@ class Projects {
       const key = repo ? 'repo:' + repo : parts.map(p => p.key).sort()[0];
       if (hidden.has(key)) continue;
       const named = (conf.names || {})[key];
-      const main = parts.find(p => p.kind === 'vercel') || parts.find(p => p.kind === 'app') || parts.find(p => p.kind === 'site' || p.kind === 'hosting') || parts[0];
+      const main = parts.find(p => p.kind === 'vercel' || p.kind === 'cloudflare') || parts.find(p => p.kind === 'app') || parts.find(p => p.kind === 'site' || p.kind === 'hosting') || parts[0];
       const name = named || (ri ? ri.fullName.split('/')[1] : main.name);
       const domains = [...new Set(parts.flatMap(p => p.domains || []))].filter(d => !d.startsWith('*.'));
       const activity = Math.max(0, ri ? ri.pushedAt : 0, ...parts.map(p => p.activity || 0));
@@ -172,8 +174,8 @@ class Projects {
     }
     // despliegue
     const down = deployed.filter(p => p.status === 'down');
-    if (down.length) add('deploy', 'bad', down.map(p => p.kind === 'vercel' ? 'Falló el último despliegue en Vercel' : p.kind === 'supabase' ? 'La base de Supabase no responde o está pausada' : 'El servicio está caído').join(' · '), 'Ábralo en Atalaya para ver el detalle y el último cambio.');
-    else if (deployed.some(p => p.kind === 'vercel' || p.kind === 'app')) add('deploy', 'ok', 'Desplegado y en línea');
+    if (down.length) add('deploy', 'bad', down.map(p => p.kind === 'vercel' ? 'Falló el último despliegue en Vercel' : p.kind === 'cloudflare' ? (p.app && p.app.silent ? 'Su reloj en Cloudflare dejó de correr' : 'Falló el último despliegue en Cloudflare') : p.kind === 'supabase' ? 'La base de Supabase no responde o está pausada' : 'El servicio está caído').join(' · '), 'Ábralo en Atalaya para ver el detalle y el último cambio.');
+    else if (deployed.some(p => p.kind === 'vercel' || p.kind === 'cloudflare' || p.kind === 'app')) add('deploy', 'ok', 'Desplegado y en línea');
     // certificados: los que conoce un agente de hosting sirven sin revision
     const certs = { ...(a.certs || {}) };
     if (this.ctx.agents) for (const p of pr.parts.filter(x => x.kind === 'hosting')) {

@@ -257,6 +257,16 @@ async function renderExtras() {
         <div class="field"><label>Token (vercel.com/account/tokens)</label><input type="password" id="vtok" autocomplete="off"></div>
         <div class="field"><label>Secreto del Drain (opcional, plan Pro)</label><input type="password" id="vsec" autocomplete="off"></div>
         <div class="row"><button class="btn" id="vgo">Guardar conector</button></div><div id="vout"></div></details></div>
+    <div class="extra"><h3>${px('cloud')} Cloudflare<span class="st ${st.connectors.some(c => c.type === 'cloudflare') ? 'ok' : 'off'}">${st.connectors.filter(c => c.type === 'cloudflare').length || 'sin'} conector(es)</span></h3>
+      <p class="hint">Sus proyectos de Pages y sus Workers como edificios, los despliegues, las visitas de cada dominio y un aviso si un reloj (cron) deja de correr.</p>
+      <details><summary>Conectar una cuenta de Cloudflare</summary>
+        <p class="hint">En dash.cloudflare.com › su perfil › <b>API Tokens</b> › Create Token › <b>Create Custom Token</b>, con estos permisos, todos <b>de solo lectura</b>:</p>
+        <ul class="hint"><li>Account › <b>Cloudflare Pages</b>: Read</li><li>Account › <b>Workers Scripts</b>: Read</li><li>Account › <b>Account Analytics</b>: Read</li><li>Zone › <b>Zone</b>: Read</li><li>Zone › <b>Analytics</b>: Read</li></ul>
+        <p class="hint">Si omite alguno, esa parte queda apagada y el resto funciona. Atalaya no puede cambiar nada en su cuenta con este token.</p>
+        <div class="grid2"><div class="field"><label>Nombre corto</label><input type="text" id="cfid" placeholder="empresa"></div>
+        <div class="field"><label>ID de la cuenta (opcional)</label><input type="text" id="cfacc" placeholder="32 caracteres, en Workers y Pages › Account ID"></div></div>
+        <div class="field"><label>Token</label><input type="password" id="cftok" autocomplete="off"></div>
+        <div class="row"><button class="btn" id="cfgo">Guardar conector</button></div><div id="cfout"></div></details></div>
     <div class="extra"><h3>${px('bolt')} Supabase<span class="st ${st.connectors.some(c => c.type === 'supabase') ? 'ok' : 'off'}">${st.connectors.filter(c => c.type === 'supabase').length || 'sin'} conector(es)</span></h3>
       <details><summary>Conectar un proyecto de Supabase</summary>
         <div class="grid2"><div class="field"><label>Nombre corto</label><input type="text" id="sid" placeholder="produccion"></div>
@@ -286,6 +296,10 @@ async function renderExtras() {
   act('lkgo', async () => {
     await api('api/setup/connector', { type: 'leakix', id: 'leakix', apiKey: $('lkkey').value.trim() });
     $('lkout').innerHTML = '<p class="msg ok">Guardado. La primera consulta tarda unos minutos; el resultado aparece en «Salud del servidor».</p>';
+  });
+  act('cfgo', async () => {
+    const r = await api('api/setup/connector', { type: 'cloudflare', id: $('cfid').value.trim(), token: $('cftok').value.trim(), accountId: $('cfacc').value.trim() });
+    $('cfout').innerHTML = `<p class="msg ok">Conector guardado${r.account ? ': cuenta «' + esc(r.account) + '»' : ''}. Sus proyectos aparecen en un minuto; las visitas y las corridas, en unos cinco.${r.accounts > 1 ? ' El token ve varias cuentas: se usa la primera. Para otra, agregue un conector con su ID de cuenta.' : ''}</p>`;
   });
   act('ggo', async () => {
     await api('api/setup/connector', { type: 'github', id: $('gid').value.trim(), token: $('gtok').value.trim() });

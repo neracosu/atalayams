@@ -210,7 +210,7 @@ function makePrivacy(cfg) {
         kind: appInfo(a.account, a.name, a.image, a.source === 'vercel' ? a.framework || '' : undefined).label || '', icon: appInfo(a.account, a.name, a.image, a.source === 'vercel' ? a.framework || '' : undefined).icon || pickIcon(alias(a.account + '/' + a.name)),
         favicon: priv && ctx.favicons ? ctx.favicons.ready(appDomain(ctx, a)) || undefined : undefined,
         status: a.status, instances: a.instances, online: a.online, cpu: Math.round(a.cpu * 10) / 10, mem: a.mem,
-        reqMin: logs.lastMinute.perApp[a.account + '/' + a.name] || 0,
+        reqMin: logs.lastMinute.perApp[a.account + '/' + a.name] || a.cfReqMin || 0,
         port: priv ? a.port : undefined,
         watch: watchOf(ctx, 'app:' + a.account + '/' + a.name, priv),
         sb: a.source === 'supabase' ? { size: a.dbSize || 0, conns: a.dbConns != null ? a.dbConns : a.pooler, disk: a.disk ? Math.round(a.disk.pct) : null } : undefined,
@@ -318,6 +318,10 @@ function makePrivacy(cfg) {
       case 'keysvc':
         Object.assign(out, { action: e.action, label: e.label });
         break;
+      case 'cron':
+        // un Worker con reloj dejo de correr (o volvio)
+        Object.assign(out, { action: e.action, account: acct, app: alias(account + '/' + e.app), appName: appName(account, e.app, priv), label: accLabel(account, priv), since: e.since || 0 });
+        break;
       case 'uptime':
         // un sitio vigilado deja de responder o vuelve: en publico el alias y el motivo; el dominio solo en privado
         Object.assign(out, { action: e.action, account: acct, label: accLabel(account, priv), site: alias('site:' + e.site), why: e.why || null, downFor: e.downFor || 0, name: priv ? e.domain : null });
@@ -351,7 +355,7 @@ function makePrivacy(cfg) {
     const fw = a => a.source === 'vercel' ? a.framework || '' : undefined;
     const appSummary = a => ({ id: alias(a.account + '/' + a.name), name: appName(a.account, a.name, priv, a.image, fw(a)), category: appInfo(a.account, a.name, a.image, fw(a)).label || '',
       icon: appInfo(a.account, a.name, a.image, fw(a)).icon || pickIcon(alias(a.account + '/' + a.name)), favicon: priv && ctx.favicons ? ctx.favicons.ready(appDomain(ctx, a)) || undefined : undefined, source: a.source, status: a.status, cpu: Math.round(a.cpu * 10) / 10, mem: a.mem,
-      reqMin: logs.lastMinute.perApp[a.account + '/' + a.name] || 0 });
+      reqMin: logs.lastMinute.perApp[a.account + '/' + a.name] || a.cfReqMin || 0 });
     const sessSummary = x => ({ id: priv ? x.id : alias(x.id), title: priv ? scrub(x.title) : '', state: x.state,
       activity: STATION_LABEL[x.station] || '', waitKind: x.waitKind || null });
     const dbId = (d, p) => p ? d.name : 'b' + alias('db:' + d.name).slice(0, 8);
@@ -378,6 +382,13 @@ function makePrivacy(cfg) {
         deployments: (a.deployments || []).map(d => ({ state: d.state, target: d.target, created: d.created, ready: d.ready,
           ...(priv ? { url: d.url, branch: d.branch, commit: scrub(String(d.commit || '').split('\n')[0].slice(0, 120)), creator: d.creator } : {}) })),
         ...(priv ? { domains: a.domains } : {}) });
+      // Cloudflare: despliegues de Pages, corridas de cada Worker y las visitas de la zona (totales, sin IPs ni paginas)
+      if (a.source === 'cloudflare') Object.assign(out, { cfKind: a.cfKind,
+        deployments: (a.deployments || []).map(d => ({ state: d.state, target: d.target, created: d.created, ready: d.ready,
+          ...(priv ? { url: d.url, branch: d.branch, commit: scrub(String(d.commit || '').split('\n')[0].slice(0, 120)), creator: d.creator } : {}) })),
+        traffic: a.traffic ? { day: a.traffic.day, hours: a.traffic.hours, days: a.traffic.days, countries: a.traffic.countries, at: a.traffic.at, ...(priv ? { zone: a.zone } : {}) } : null,
+        ...(a.cfKind === 'worker' ? { runs: a.runs, runErrors: a.runErrors, lastRun: a.lastRun, silent: a.silent, every: a.every, hasCron: !!(a.crons && a.crons.length), ...(priv ? { crons: a.crons } : {}) } : {}),
+        ...(priv ? { domains: a.domains, repoHost: a.repoHost } : {}) });
       if (a.source === 'supabase') Object.assign(out, { memTotal: a.memTotal, disk: a.disk, pooler: a.pooler, dbConns: a.dbConns, dbSize: a.dbSize,
         authReq: a.authReq, metrics: a.metrics, lastScrape: a.lastScrape, ...(priv ? { ref: a.ref, region: a.region } : {}) });
       if (!priv && a.source === 'docker') out.image = String(a.image || '').split('/').pop().split(':')[0]; // solo el nombre de la imagen
@@ -386,7 +397,7 @@ function makePrivacy(cfg) {
         // dominios de los grupos (carpetas) que sirve esta app
         const doms = [];
         for (const g of logs.groups.values()) if (g.account === a.account && g.app === a.name) doms.push(...g.domainList);
-        out.domains = [...new Set(doms)].slice(0, 12);
+        out.domains = [...new Set([...doms, ...(a.source === 'cloudflare' ? a.domains || [] : [])])].slice(0, 12);
       }
       out.probes = probesOf(ctx, 'app:' + a.account + '/' + a.name);
       out.watch = watchOf(ctx, 'app:' + a.account + '/' + a.name, priv);
@@ -411,7 +422,8 @@ function makePrivacy(cfg) {
       out.probes = probesOf(ctx, 'site:' + g.id);
       // sitio vigilado por su dominio: como responde ahora y en 24 horas, y la linea del script para contar sus visitas
       const up = ctx.websites && ctx.websites.info(g.id, priv);
-      if (up) { out.uptime = up; if (priv && ctx.analytics) out.siteToken = ctx.analytics.siteToken('site:' + g.id); }
+      if (up) { out.avail = up; // «uptime» ya es el tiempo en linea de las apps
+        if (priv && ctx.analytics) out.siteToken = ctx.analytics.siteToken('site:' + g.id); }
       if (ctx.analytics) { out.analytics = ctx.analytics.summary('site:' + g.id); out.cfOnly = ctx.analytics.cfOnly('site:' + g.id); }
       out.watch = watchOf(ctx, 'site:' + g.id, priv);
       // certificado SSL: el mas proximo a vencer de sus dominios (el nombre del dominio solo en privado)
@@ -456,6 +468,8 @@ function makePrivacy(cfg) {
           ...(priv ? { domains: [...logs.groups.values()].filter(g => g.account === a && g.app === x.name).flatMap(g => g.domainList).slice(0, 4) } : {}) })),
         sites: logs.sites.filter(g => g.account === a).map(g => ({ ...siteSummary(ctx, g, priv), category: logs.siteLabel(g), ...(priv ? { domains: g.domainList.slice(0, 4) } : {}) })),
         ...(priv && a !== 'root' && !a.startsWith('_') ? { cpanel: a, main: logs.mainDomain.get(a) || '' } : {}),
+        ...(ctx.connectors && a.startsWith('_cf-') && ctx.connectors.byAccount(a) ? { cloudflare: (c => ({ pages: c.info().pages, workers: c.info().workers, zones: c.info().zones, warn: c.info().warn, lastOk: c.lastOk,
+          traffic: c.trafficOf().map(t => ({ zone: priv ? t.zone : null, day: t.day, days: t.days, countries: t.countries })) }))(ctx.connectors.byAccount(a)) } : {}),
         ...(ctx.agents && a.startsWith('_host-') ? { hosting: ctx.agents.info(a, priv), ...(priv ? { main: logs.mainDomain.get(a) || '' } : {}) } : {}),
         changes: logs.changes.toArray().filter(c => c.account === a).slice(-15).reverse()
           .map(c => ({ t: c.t, action: c.action, ...(priv ? { domain: c.domain, what: c.what } : {}) })),
@@ -471,8 +485,8 @@ function makePrivacy(cfg) {
         apps: host.apps.length, appsDown: host.apps.filter(a => a.status !== 'online').length,
         sessions: claude.list().length, host: priv ? cfg.subtitle : '',
         keys: ctx.services ? ctx.services.keys : [],
-        connectors: (ctx.connectors ? ctx.connectors.infos() : []).map(c => ({ type: c.type, ok: !c.error, lastOk: c.lastOk, drainAt: c.drainAt || 0, projects: c.projects,
-          ...(priv ? { label: c.label, error: c.error } : { label: c.type === 'vercel' ? 'Vercel' : 'Supabase' }) })),
+        connectors: (ctx.connectors ? ctx.connectors.infos() : []).map(c => ({ type: c.type, ok: !c.error, lastOk: c.lastOk, drainAt: c.drainAt || 0, projects: c.projects, warn: c.warn || [],
+          ...(priv ? { label: c.label, error: c.error } : { label: { vercel: 'Vercel', supabase: 'Supabase', github: 'GitHub', cloudflare: 'Cloudflare' }[c.type] || 'Nube' }) })),
         countries: history.global.top('cc', 12).map(([key, n]) => ({ key, n })), kinds: history.global.top('kind', 8).map(([key, n]) => ({ key, n })),
       };
     }
@@ -652,11 +666,11 @@ function makePrivacy(cfg) {
       const busy = ctx.jobs && ctx.jobs.busy();
       const job = busy ? { label: priv ? busy.label : 'un análisis', startedAt: busy.startedAt, name: busy.name } : null;
       const pname = pr => priv ? pr.name : 'Proyecto ' + pr.id.slice(0, 4).toUpperCase();
-      const WHERE = { vercel: 'Vercel', supabase: 'Supabase', app: 'Servidor', site: 'Servidor', hosting: 'Hosting', repo: 'GitHub' };
+      const WHERE = { vercel: 'Vercel', cloudflare: 'Cloudflare', supabase: 'Supabase', app: 'Servidor', site: 'Servidor', hosting: 'Hosting', repo: 'GitHub' };
       const partOut = x => {
         const o = { kind: x.kind, where: WHERE[x.kind], status: x.status || null, type: x.type || null, suggested: false };
         if (x.app && x.kind !== 'supabase' && x.kind !== 'vercel') o.go = 'app:' + alias(x.app.account + '/' + x.app.name);
-        if (x.app && (x.kind === 'vercel' || x.kind === 'supabase')) o.go = 'app:' + alias(x.app.account + '/' + x.app.name);
+        if (x.app && (x.kind === 'vercel' || x.kind === 'supabase' || x.kind === 'cloudflare')) o.go = 'app:' + alias(x.app.account + '/' + x.app.name);
         if (x.site) o.go = 'site:' + siteId(x.site);
         if (priv) Object.assign(o, { name: x.name, account: x.where ? accLabel(x.where, true) : (x.app ? accLabel(x.app.account, true) : null), remote: x.remote || null });
         return o;

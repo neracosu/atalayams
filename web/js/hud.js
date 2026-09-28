@@ -264,6 +264,9 @@ export function tickerEvent(e, accounts, priv) {
     case 'keysvc':
       addTicker(e.action === 'down' ? 'siren' : 'ok', forEdition('Torre de control'), e.action === 'down' ? `${e.label} FALLÓ` : `${e.label} volvió a funcionar`, e.action === 'down' ? '#ef4444' : '#4ade80', 'system:root');
       return;
+    case 'cron':
+      addTicker(e.action === 'silent' ? 'siren' : 'ok', e.label || '', e.action === 'silent' ? `El reloj de ${e.appName} DEJÓ DE CORRER en Cloudflare` : `El reloj de ${e.appName} volvió a correr`, e.action === 'silent' ? '#ef4444' : '#4ade80', 'app:' + e.app);
+      return;
     case 'uptime': {
       const st = window.atalaya && window.atalaya.state;
       const nm = e.name || (st && (st.sites.find(x => x.id === e.site) || {}).name) || 'Un sitio';

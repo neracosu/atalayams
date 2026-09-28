@@ -3,6 +3,7 @@
 const { VercelConnector } = require('./vercel');
 const { SupabaseConnector } = require('./supabase');
 const { GithubConnector } = require('./github');
+const { CloudflareConnector } = require('./cloudflare');
 
 class Connectors {
   constructor(cfg, bus, secrets, geo) {
@@ -12,7 +13,9 @@ class Connectors {
   }
   start() {
     this.reconcile();
-    setInterval(() => { if (this.secrets.sync()) this.reconcile(); }, 5000);
+    // se compara siempre contra lo guardado: otros modulos tambien releen el archivo y se llevaban el aviso de cambio,
+    // asi que un conector recien agregado no arrancaba hasta reiniciar
+    setInterval(() => { this.secrets.sync(); this.reconcile(); }, 5000);
     setInterval(() => { this.apps = [...this.list.values()].flatMap(x => x.inst.apps); }, 2000);
   }
   reconcile() {
@@ -23,7 +26,7 @@ class Connectors {
     }
     for (const [id, c] of want) {
       if (this.list.has(id)) continue;
-      const inst = c.type === 'vercel' ? new VercelConnector(c, this.bus, this.geo) : c.type === 'supabase' ? new SupabaseConnector(c, this.bus) : c.type === 'github' ? new GithubConnector(c) : null;
+      const inst = c.type === 'vercel' ? new VercelConnector(c, this.bus, this.geo) : c.type === 'supabase' ? new SupabaseConnector(c, this.bus) : c.type === 'github' ? new GithubConnector(c) : c.type === 'cloudflare' ? new CloudflareConnector(c, this.bus) : null;
       if (!inst) continue;
       inst.start();
       this.list.set(id, { sig: JSON.stringify(c), inst });

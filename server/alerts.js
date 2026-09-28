@@ -22,6 +22,7 @@ const CATS = {
   traffic: { label: 'Tráfico: scraping, escaneos y picos de visitas', on: false },
   requests: { label: 'Solicitudes de acceso a Atalaya que llegan a su nube', on: true, cloudOnly: true },
   aportes: { label: 'Aportes de la comunidad (.zip) que llegan a su nube', on: true, cloudOnly: true },
+  tracking: { label: 'Seguimiento de las pantallas de su nube: primeros pasos y tropiezos', on: true, cloudOnly: true },
   summary: { label: 'Resumen de cada mañana', on: true },
 };
 const DEFAULTS = { cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.on])), quiet: { from: 23, to: 7 }, summaryHour: 8, maxPerHour: 12 };
@@ -184,6 +185,8 @@ class Alerts {
     if (e.kind === 'pm2' && e.action === 'down') return { cat: 'down', key: 'down:' + e.app, text: `[CAÍDA] <b>Se detuvo ${esc(e.appName || e.app)}</b>`, go };
     if (e.kind === 'keysvc' && e.action === 'down') return { cat: 'down', key: 'key:' + e.label, text: `[CAÍDA] <b>Falló ${esc(e.label)}</b> en el servidor`, go: 'system:root' };
     if (e.kind === 'keysvc' && e.action === 'up') return { cat: 'down', key: 'keyup:' + e.label, text: `[BIEN] ${esc(e.label)} volvió a funcionar`, go: 'system:root' };
+    if (e.kind === 'cron') return e.action === 'silent' ? { cat: 'down', key: 'cron:' + e.app, text: `[CAÍDA] <b>El reloj de ${esc(e.appName || e.app)} dejó de correr</b> en Cloudflare${e.since ? ` (la última vez fue hace ${Math.max(1, Math.round((this.now() - e.since) / 3600000))} h)` : ''}. No da error: simplemente no corre.`, go }
+      : { cat: 'down', key: 'cronok:' + e.app, text: `[BIEN] El reloj de ${esc(e.appName || e.app)} volvió a correr`, go };
     if (e.kind === 'uptime') {
       const mins = Math.max(1, Math.round((e.downFor || 0) / 60000));
       return e.action === 'down' ? { cat: 'down', key: 'uptime:' + e.domain, text: `[CAÍDA] <b>${esc(e.domain)}</b> no responde bien: ${esc(e.why || 'sin respuesta')}`, go: 'site-by-domain' }
@@ -207,7 +210,7 @@ class Alerts {
 
   onEvent(e) {
     // todo suma al resumen de la manana
-    if (['watch', 'defense', 'phpfile', 'pm2', 'deploy', 'saturation', 'keysvc', 'mail', 'db', 'uptime'].includes(e.kind) && !e.late) {
+    if (['watch', 'defense', 'phpfile', 'pm2', 'deploy', 'saturation', 'keysvc', 'mail', 'db', 'uptime', 'cron'].includes(e.kind) && !e.late) {
       this.log.push({ t: this.now(), kind: e.kind, action: e.action, reason: e.reason, by: e.by, dir: e.dir, domain: e.domain });
       if (this.log.length > 5000) this.log.shift();
     }
@@ -242,6 +245,43 @@ class Alerts {
     return check;
   }
 
+  // seguimiento de las pantallas de la nube (<nube>/tenants/<pantalla>/seguimiento.jsonl): los tropiezos (errores de
+  // una accion, fallas de la pantalla, conectores que no leen) y los primeros pasos de cada pantalla llegan como
+  // aviso. Lo que ya estaba escrito al arrancar no avisa; el mismo tropiezo no se repite en 30 minutos
+  watchTracking(dir) {
+    this.requestsFile = this.requestsFile || dir;
+    const pos = new Map(), first = new Map(); // pantalla -> bytes leidos / pasos ya contados
+    const files = () => { let ids = []; try { ids = fs.readdirSync(dir).filter(x => /^[a-z0-9][a-z0-9-]{1,30}$/.test(x)); } catch { } return ids; };
+    const size = f => { try { return fs.statSync(f).size; } catch { return 0; } };
+    for (const id of files()) pos.set(id, size(path.join(dir, id, 'seguimiento.jsonl')));
+    const STEP = { 'setup/connector': 'conectó', 'websites/add': 'empezó a vigilar', 'agents/create': 'conectó un hosting', 'setup/remote': 'conectó una laptop', 'setup/finish': 'terminó el asistente' };
+    const check = () => {
+      for (const id of files()) {
+        const f = path.join(dir, id, 'seguimiento.jsonl'), n = size(f), from = pos.has(id) ? pos.get(id) : 0;
+        if (n === from) continue;
+        pos.set(id, n);
+        let text = '';
+        try { const fd = fs.openSync(f, 'r'), start = n < from ? 0 : from, buf = Buffer.alloc(Math.min(n - start, 256 * 1024)); fs.readSync(fd, buf, 0, buf.length, start); fs.closeSync(fd); text = buf.toString('utf8'); } catch { continue; }
+        for (const l of text.split('\n')) {
+          let r = null; try { r = JSON.parse(l); } catch { continue; }
+          if (!this.anyChannel() || !this.conf().cats.tracking) continue;
+          let msg = null, key = null;
+          if (r.kind === 'error' && r.what !== 'login' && r.what !== 'private') { msg = `[NUBE] <b>${esc(id)}</b> tropezó al ${esc(r.what)}: ${esc(r.error || 'error ' + r.status)}`; key = `tk:${id}:${r.what}:${r.error}`; }
+          else if (r.kind === 'pantalla') { msg = `[NUBE] <b>${esc(id)}</b>: falló la pantalla${r.what ? ' (' + esc(r.what) + ')' : ''}: ${esc(r.error || '')}`; key = `tk:${id}:p:${r.error}`; }
+          else if (r.kind === 'conector' && r.error) { msg = `[NUBE] <b>${esc(id)}</b>: el conector ${esc(r.what)} no lee bien: ${esc(r.error)}`; key = `tk:${id}:c:${r.what}:${r.error}`; }
+          else if (r.kind === 'accion' && STEP[r.what]) { const k = id + ':' + r.what, c = (first.get(k) || 0) + 1; first.set(k, c); if (c <= 3) { msg = `[NUBE] <b>${esc(id)}</b> ${STEP[r.what]}${r.detail ? ' ' + esc(r.detail) : ''}`; key = `tk:${id}:s:${r.what}:${r.detail}`; } }
+          if (!msg) continue;
+          const now = this.now();
+          if (now - (this.sent.get(key) || 0) < 30 * 60000) continue;
+          this.sent.set(key, now);
+          this.send(msg + '\nVéalo en menú › Panel maestro de la nube › Pantallas › Seguimiento.').catch(() => { });
+        }
+      }
+    };
+    setInterval(check, 60000).unref();
+    return check;
+  }
+
   // aportes de la comunidad por .zip (<nube>/aportes/<id>/meta.json): cada uno nuevo llega como aviso
   watchAportes(dir) {
     this.requestsFile = this.requestsFile || dir;
@@ -267,7 +307,7 @@ class Alerts {
     const L = this.log.filter(x => now - x.t < 86400000), n = f => L.filter(f).length;
     const lines = [];
     const jail = n(x => x.kind === 'defense' && x.action === 'block'), watch = n(x => x.kind === 'watch' && x.action === 'start');
-    const php = n(x => x.kind === 'phpfile' && x.action === 'suspect'), down = n(x => (x.kind === 'pm2' || x.kind === 'keysvc' || x.kind === 'uptime') && x.action === 'down');
+    const php = n(x => x.kind === 'phpfile' && x.action === 'suspect'), down = n(x => (x.kind === 'pm2' || x.kind === 'keysvc' || x.kind === 'uptime') && x.action === 'down') + n(x => x.kind === 'cron' && x.action === 'silent');
     const bounce = n(x => x.kind === 'mail' && x.dir === 'bounce'), sat = n(x => x.kind === 'saturation' && x.action === 'start');
     if (php) lines.push(`- ${php} posible(s) puerta(s) trasera(s)`);
     if (down) lines.push(`- ${down} caída(s) de servicios`);

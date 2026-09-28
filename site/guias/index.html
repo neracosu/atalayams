@@ -35,6 +35,7 @@
     <a href="#pantalla"><span data-px="city"></span> Usar la pantalla</a>
     <h4>Conectar</h4>
     <a href="#vercel"><span data-px="triangle"></span> Vercel</a>
+    <a href="#cloudflare"><span data-px="cloud"></span> Cloudflare</a>
     <a href="#supabase"><span data-px="bolt"></span> Supabase</a>
     <a href="#github"><span data-px="branch"></span> GitHub</a>
     <a href="#sitios"><span data-px="antenna"></span> Un sitio por su dominio</a>
@@ -138,6 +139,19 @@
         <li><b>Espere uno o dos minutos.</b><p>Aparece un distrito nuevo con sus dominios como edificios, visitas en vivo con país, errores de PHP, cuota de disco, bases, certificados, correo y tareas cron (con los secretos tapados).</p></li>
       </ol>
       <div class="tip"><span data-px="trash"></span><span>Para quitarlo del hosting: <code>curl -fsSL https://nube.neracosu.com/su-pantalla/install/agent.sh | sh -s -- --uninstall</code>. En la pantalla, el mismo menú tiene <b>Quitar</b>.</span></div>
+    </section>
+
+    <section class="guide" id="cloudflare">
+      <h2><span data-px="cloud"></span> Conectar Cloudflare</h2>
+      <p class="meta">3 minutos · Pages, Workers y visitas · Token de solo lectura</p>
+      <ol class="steps">
+        <li><b>En Cloudflare:</b><p>su perfil › <b>API Tokens</b> › Create Token › <b>Create Custom Token</b>.</p></li>
+        <li><b>Permisos, todos de lectura:</b><p>Account › <b>Cloudflare Pages</b>, <b>Workers Scripts</b> y <b>Account Analytics</b>; Zone › <b>Zone</b> y <b>Analytics</b>.</p></li>
+        <li><b>En Atalaya:</b><p>menú › Asistente de configuración › Extras › <b>Cloudflare</b>. Pegue el token y pulse <b>Guardar conector</b>.</p></li>
+        <li><b>Listo.</b><p>En un minuto aparecen sus proyectos de Pages y sus Workers. Las visitas y las corridas, en unos cinco.</p></li>
+      </ol>
+      <div class="tip"><span data-px="clock"></span><span><b>Relojes que callan.</b> Si un Worker con reloj (cron) deja de correr, Cloudflare no da ningún error. Atalaya lo nota, pone el edificio en rojo y le avisa.</span></div>
+      <div class="tip"><span data-px="shield"></span><span>Con este token Atalaya no puede cambiar nada en su cuenta. Si omite un permiso, esa parte queda apagada y el resto funciona.</span></div>
     </section>
 
     <section class="guide" id="sitios">

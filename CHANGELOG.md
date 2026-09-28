@@ -14,6 +14,20 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.79.0] - 2026-09-28
+
+### Agregado
+- **Conector de Cloudflare**: sus proyectos de **Pages** y sus **Workers** aparecen como edificios, con un token de solo lectura. Se conecta desde el asistente › Extras › Cloudflare.
+- **Despliegues de Pages**: construyendo, listo o falló, con el mensaje del cambio. Si el último despliegue a producción falla, el edificio se ve caído y llega el aviso.
+- **Relojes que dejan de correr**: si un Worker con reloj (cron) deja de dispararse, Cloudflare no da ningún error. Atalaya compara lo que debería correr con lo que corrió, pone el edificio en rojo y avisa una vez al callar y una al volver.
+- **Corridas de cada Worker** en 24 horas y cuántas terminaron con error.
+- **Visitas según Cloudflare** de cada dominio, sin pegar nada en el sitio: visitantes, páginas vistas, peticiones, errores 5xx, países y la última semana.
+- Si al token le falta un permiso, esa parte se apaga, el resto sigue, y la Torre de control dice cuál falta.
+
+### Corregido
+- **La ficha de un servicio no abría** desde la 0.78.0 («No se pudo mostrar este detalle»).
+- **Un conector recién agregado** (Vercel, Supabase, GitHub) no empezaba a leer hasta reiniciar Atalaya. Ahora arranca en segundos.
+
 ## [0.78.0] - 2026-09-28
 
 ### Agregado
@@ -1421,7 +1435,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.78.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.0...HEAD
+[0.79.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.78.0...v0.79.0
 [0.78.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.1...v0.78.0
 [0.77.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.0...v0.77.1
 [0.77.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.76.0...v0.77.0

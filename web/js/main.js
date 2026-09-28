@@ -222,6 +222,15 @@ function flash(msg) {
 const instDlg = $('instDlg');
 instDlg.querySelector('.iclose').addEventListener('click', () => instDlg.close());
 const ie = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// errores de la pantalla: se reportan al servidor (Atalaya Cloud los guarda para corregirlos; las demas ediciones no)
+let reported = 0;
+window.atalayaReport = (msg, where) => {
+  if (reported++ > 8 || !msg) return;
+  fetch('api/clienterror', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Atalaya': '1' },
+    body: JSON.stringify({ msg: String(msg).slice(0, 300), where: String(where || '').slice(0, 80), theme: document.body.dataset.theme || '', view: document.body.classList.contains('compact') ? 'celular' : 'escritorio' }) }).catch(() => { });
+};
+window.addEventListener('error', e => window.atalayaReport(e.message, (e.filename || '').split('/').pop() + ':' + (e.lineno || 0)));
+window.addEventListener('unhandledrejection', e => window.atalayaReport(e.reason && e.reason.message || String(e.reason), 'promesa'));
 const ipost = (url, body = {}) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Atalaya': '1' }, body: JSON.stringify(body) }).then(x => x.json()).catch(() => ({ error: 'Sin conexión' }));
 const copyBox = (id, text) => `<div class="copy"><pre class="cmd">${ie(text)}</pre><button class="btn small" data-copy="${id}">Copiar</button></div>`;
 let instTab = 'vps';

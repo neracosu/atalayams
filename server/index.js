@@ -96,6 +96,9 @@ const agents = new Agents(cfg, bus, secrets, logs);
 // sitios vigilados por su dominio (sin instalar nada): se visitan cada 5 minutos desde aqui
 const crypto = require('crypto');
 const { parseUA } = require('./ua');
+// seguimiento de uso (solo en Atalaya Cloud): acciones y errores de la pantalla, sin lo que la persona escribe
+const { Track } = require('./track');
+const track = new Track(cfg);
 const { WebSites } = require('./websites');
 const websites = new WebSites(cfg, bus);
 websites.onChange = () => { logs.loadDomains(true); accounts.sync(); };
@@ -195,6 +198,7 @@ ctx.alerts = new Alerts(cfg, bus, secrets, { goOf: e => privacy.goOf(e, ctx),
 if (maestroPass.available(cfg)) {
   ctx.alerts.watchRequests(path.join(cfg.cloudDir || '/var/lib/atalaya-cloud', 'requests.json'));
   ctx.alerts.watchAportes(path.join(cfg.cloudDir || '/var/lib/atalaya-cloud', 'aportes'));
+  ctx.alerts.watchTracking(path.join(cfg.cloudDir || '/var/lib/atalaya-cloud', 'tenants'));
 }
 ctx.defense = new Defense(cfg, bus, { ...ctx, get phpFiles() { return ctx.phpFiles; }, get seclog() { return ctx.seclog; }, get auth() { return auth; }, get setup() { return setup; }, get watch() { return ctx.watch; }, get dbActivity() { return ctx.dbActivity; } });
 // primera vez del registro de seguridad: se vuelca lo que ya se sabia (bloqueos, puertas traseras, cuarentenas)
@@ -275,7 +279,7 @@ function send(res, status, body, headers = {}) {
   res.writeHead(status, { ...SEC_HEADERS, 'Cache-Control': 'no-store', ...headers });
   res.end(body);
 }
-function json(res, status, obj, headers = {}) { send(res, status, JSON.stringify(obj), { 'Content-Type': 'application/json', ...headers }); }
+function json(res, status, obj, headers = {}) { if (status >= 400 && obj && obj.error) res.atalayaError = obj.error; send(res, status, JSON.stringify(obj), { 'Content-Type': 'application/json', ...headers }); }
 
 function readBody(req, max = 4096) {
   return new Promise((resolve, reject) => {
@@ -421,6 +425,7 @@ async function handle(req, res) {
   const ip = clientIp(req);
   const token = getCookie(req, 'atalaya_sid');
   const session = auth.get(token);
+  track.request(req, res, p, url, session);
 
   // Atalaya Cloud: la maquina es del servicio, no del cliente
   if ((cfg.edition === 'cloud' || cfg.edition === 'equipo') && (CLOUD_OFF.has(p) || p.startsWith('/get'))) return json(res, 404, { error: cfg.edition === 'cloud' ? 'No disponible en Atalaya Cloud' : 'No disponible en Atalaya Equipo' });
@@ -540,6 +545,8 @@ async function handle(req, res) {
       return json(res, 200, { ok: true }, { 'Set-Cookie': cookie });
     }
     if (!session) return json(res, 401, { error: 'Sesion expirada' });
+    // errores de la pantalla que reporta el navegador (solo se guardan en Atalaya Cloud)
+    if (p === '/api/clienterror') { track.client(body || {}, session); return json(res, 200, { ok: true }); }
     if (p === '/api/logout') {
       auth.logout(token);
       return json(res, 200, { ok: true }, { 'Set-Cookie': `atalaya_sid=; Path=${cfg.basePath}; Max-Age=0; HttpOnly; SameSite=Strict` });
@@ -734,7 +741,7 @@ async function handle(req, res) {
       try {
         const W = ctx.websites, withToken = x => ({ ...x, siteToken: ctx.analytics.siteToken('site:' + W.groupId(x.id)) });
         if (p === '/api/websites/list') return json(res, 200, { sites: W.list().map(withToken), script: new URL('a.js', (cfg.publicUrl || `https://${req.headers.host}`).replace(/\/?$/, '/')).href, max: cfg.limits && cfg.limits.sites != null ? cfg.limits.sites : null });
-        if (p === '/api/websites/add') { const r = W.add(body || {}); console.log(`[sitios] ${session.user} ${body.edit ? 'cambió' : 'agregó'} ${r.domain}`); return json(res, 200, { ok: true, site: withToken(r) }); }
+        if (p === '/api/websites/add') { const r = W.add(body || {}); res.atalayaNote = `${r.domain}${r.expect ? ' · espera ' + r.expect : ''}${r.phrase ? ' · con frase' : ''}`; console.log(`[sitios] ${session.user} ${body.edit ? 'cambió' : 'agregó'} ${r.domain}`); return json(res, 200, { ok: true, site: withToken(r) }); }
         if (p === '/api/websites/remove') { W.remove(String(body.id || '')); console.log(`[sitios] ${session.user} quitó ${body.id}`); return json(res, 200, { ok: true }); }
         if (p === '/api/websites/check') { const st = await W.check(String(body.id || '')); if (!st) throw new Error('No vigila ese sitio'); return json(res, 200, { ok: true, site: W.list().find(x => x.id === body.id) }); }
       } catch (e) { return json(res, 400, { error: e.message }); }
@@ -848,10 +855,18 @@ async function handleSetup(req, res, p, url, session, ip) {
     if (p === '/api/setup/result') return json(res, 200, setup.result(url.searchParams.get('id')) || { pending: true });
     if (p === '/api/setup/connector' && req.method === 'POST') {
       const id = String(body.id || '').toLowerCase();
+      res.atalayaNote = `${String(body.type || '').slice(0, 20)} ${id.slice(0, 31)}`;
       if (body.type === 'vercel') secrets.addConnector(id, { type: 'vercel', name: id, token: String(body.token || ''), teamId: body.teamId || undefined, drainSecret: body.drainSecret || undefined });
       else if (body.type === 'supabase') secrets.addConnector(id, { type: 'supabase', name: id, mgmtToken: body.mgmtToken || undefined,
         projects: (body.projects || []).filter(x => x && /^[a-z0-9]{8,40}$/.test(String(x.ref || '')) && x.serviceKey).map(x => ({ ref: String(x.ref), name: String(x.name || x.ref), serviceKey: String(x.serviceKey) })) });
       else if (body.type === 'github') secrets.addConnector(id, { type: 'github', name: id, token: String(body.token || '') });
+      else if (body.type === 'cloudflare') {
+        // el token se prueba antes de guardarlo: debe ver la cuenta
+        const accountId = /^[0-9a-f]{32}$/.test(String(body.accountId || '').trim()) ? String(body.accountId).trim() : undefined;
+        let v; try { v = await require('./connectors/cloudflare').verify(body.token, accountId); } catch (e) { return json(res, 400, { error: e.message }); }
+        secrets.addConnector(id, { type: 'cloudflare', name: id, token: String(body.token).trim(), accountId: v.accountId });
+        return json(res, 200, { ok: true, account: v.accountName, accounts: v.accounts });
+      }
       else if (body.type === 'leakix') { secrets.addConnector('leakix', { type: 'leakix', name: 'leakix', apiKey: String(body.apiKey || '').trim() }); ctx.leakix.check().catch(() => { }); }
       else return json(res, 400, { error: 'Tipo de conector desconocido' });
       return json(res, 200, { ok: true, drainUrl: body.type === 'vercel' ? `${cfg.publicUrl || 'https://' + req.headers.host}/api/drains/vercel/${id}` : null });
@@ -975,6 +990,7 @@ watchSig = watchSignature();
 if (!(cfg.services && cfg.services.disabled)) services.start();
 if (!(cfg.docker && cfg.docker.disabled)) docker.start();
 connectors.start();
+if (track.on) setInterval(() => track.connectors(connectors.infos()), 60000).unref();
 host.start();
 claude.start();
 logs.start();

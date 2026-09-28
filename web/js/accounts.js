@@ -9,6 +9,8 @@ export function accountCaption(a, nApps, nSites) {
   if (id === '_docker') return plural(nApps, 'contenedor', 'contenedores');
   if (id === '_web') return plural(nSites, 'sitio del servidor', 'sitios del servidor');
   if (id.startsWith('_vercel-')) return plural(nApps, 'proyecto en Vercel', 'proyectos en Vercel');
+  if (id.startsWith('_cf-')) return plural(nApps, 'proyecto en Cloudflare', 'proyectos en Cloudflare');
+  if (id === '_sitios') return plural(nSites, 'sitio vigilado', 'sitios vigilados');
   if (id.startsWith('_supa-')) return plural(nApps, 'base de datos', 'bases de datos');
   if (id.startsWith('_dev-')) return 'Claude Code remoto';
   if (id.startsWith('_host-')) return `Hosting compartido · ${plural(nSites, 'sitio', 'sitios')}`;
