@@ -7,11 +7,21 @@
 // Quitar:  node atalaya-hook.js --uninstall
 // Solo agrega hooks que envian eventos (herramienta, permisos, inicio y cierre) a su Atalaya. Nunca bloquean ni
 // cambian lo que hace Claude: si Atalaya no responde en 3 segundos, el hook termina en silencio.
+//
+// QUE SALE DE ESTA COMPUTADORA. El filtro corre AQUI, antes de enviar: lo que no esta en esta lista no viaja.
+//   Siempre:      que paso (inicio, cierre, uso de una herramienta, pedido de permiso), el NOMBRE de la herramienta
+//                 (Read, Edit, Bash...), el nombre de la carpeta del proyecto (solo el ultimo tramo) y el id de la sesion.
+//   Nunca:        el contenido de sus archivos, lo que Claude responde, el resultado de los comandos, sus instrucciones
+//                 completas, rutas completas, variables de entorno ni llaves.
+//   Con --detalle (opcional, apagado si no lo pide): ademas, el archivo o el comando de cada paso (recortado) y el
+//                 comienzo de cada instruccion (200 caracteres), para verlos en su pantalla en modo privado.
+// Puede leer el reenviador instalado en ~/.claude/atalaya-remote.js: son unas 40 lineas.
 const fs = require('fs'), path = require('path'), os = require('os');
 
 const DIR = path.join(os.homedir(), '.claude');
 const FWD = path.join(DIR, 'atalaya-remote.js'), CONF = path.join(DIR, 'atalaya-remote.json'), SETTINGS = path.join(DIR, 'settings.json');
-const [a, b] = process.argv.slice(2);
+const args = process.argv.slice(2), detail = args.includes('--detalle');
+const [a, b] = args.filter(x => x !== '--detalle');
 const uninstall = a === '--uninstall';
 const fail = m => { console.error(m); process.exit(1); };
 if (!uninstall) {
@@ -21,18 +31,35 @@ if (!uninstall) {
 
 // el reenviador: lee el evento que Claude Code le pasa y lo envia; nunca falla ni imprime nada
 const FORWARDER = `'use strict';
+// Atalaya: reenvia a su pantalla QUE esta haciendo Claude Code, no el contenido. El filtro es la funcion slim().
 const fs = require('fs'), path = require('path'), https = require('https');
 let c; try { c = JSON.parse(fs.readFileSync(path.join(__dirname, 'atalaya-remote.json'), 'utf8')); } catch { process.exit(0); }
 const done = () => process.exit(0);
 setTimeout(done, 3000).unref();
+// lo que parezca una llave se tapa aunque venga dentro de un comando o de una instruccion
+const cut = (v, n) => String(v == null ? '' : v).replace(/\\s+/g, ' ').replace(/(eyJ[\\w-]{10,}\\.[\\w-]+\\.[\\w-]+|sb_(secret|publishable)_[\\w-]+|gh[pousr]_\\w{20,}|github_pat_\\w+|sk-[\\w-]{20,}|[A-Za-z0-9_\\-]{36,})/g, '***').slice(0, n);
+// lo unico que sale: una lista cerrada de campos. Todo lo demas del evento se descarta aqui
+function slim(e) {
+  const o = {};
+  for (const k of ['hook_event_name', 'session_id', 'permission_mode', 'tool_name', 'tool_use_id', 'source', 'reason', 'notification_type', 'agent_id', 'agent_type']) if (typeof e[k] === 'string') o[k] = String(e[k]).replace(/[^\\w:.-]/g, '').slice(0, 120); // identificadores: sin texto libre
+  if (e.cwd) o.cwd = String(e.cwd).split(/[\\\\/]/).filter(Boolean).pop() || '';
+  if (!c.detail) return o;
+  const i = e.tool_input || {}, t = {};
+  for (const [k, n] of [['file_path', 200], ['notebook_path', 200], ['command', 140], ['description', 140], ['pattern', 80], ['url', 200], ['query', 100], ['skill', 60]]) if (typeof i[k] === 'string') t[k] = cut(i[k], n);
+  if (Object.keys(t).length) o.tool_input = t;
+  if (typeof e.prompt === 'string') o.prompt = cut(e.prompt, 200);
+  if (typeof e.message === 'string') o.message = cut(e.message, 200);
+  return o;
+}
 let body = '';
 process.stdin.setEncoding('utf8');
-process.stdin.on('data', d => { if (body.length < 262144) body += d; });
+process.stdin.on('data', d => { if (body.length < 4194304) body += d; });
 process.stdin.on('end', () => {
   try {
-    const req = https.request(c.url + '/api/hook/remote', { method: 'POST', timeout: 2500, headers: { 'Content-Type': 'application/json', 'X-Atalaya-Hook': c.cred, 'Content-Length': Buffer.byteLength(body) } }, res => { res.resume(); res.on('end', done); });
+    const out = JSON.stringify(slim(JSON.parse(body)));
+    const req = https.request(c.url + '/api/hook/remote', { method: 'POST', timeout: 2500, headers: { 'Content-Type': 'application/json', 'X-Atalaya-Hook': c.cred, 'Content-Length': Buffer.byteLength(out) } }, res => { res.resume(); res.on('end', done); });
     req.on('error', done); req.on('timeout', () => { req.destroy(); done(); });
-    req.end(body);
+    req.end(out);
   } catch { done(); }
 });
 process.stdin.on('error', done);
@@ -52,7 +79,7 @@ for (const ev of Object.keys(s.hooks)) {
 }
 if (!uninstall) {
   fs.mkdirSync(DIR, { recursive: true });
-  fs.writeFileSync(CONF, JSON.stringify({ url: a.replace(/\/+$/, ''), cred: b }) + '\n', { mode: 0o600 });
+  fs.writeFileSync(CONF, JSON.stringify({ url: a.replace(/\/+$/, ''), cred: b, detail }) + '\n', { mode: 0o600 });
   try { fs.chmodSync(CONF, 0o600); } catch { }
   fs.writeFileSync(FWD, FORWARDER, { mode: 0o700 });
   // barras normales y comillas: el mismo comando sirve en cmd, PowerShell y bash
@@ -67,4 +94,4 @@ if (!uninstall) {
 if (!Object.keys(s.hooks).length) delete s.hooks;
 fs.mkdirSync(DIR, { recursive: true });
 fs.writeFileSync(SETTINGS, JSON.stringify(s, null, 2) + '\n');
-console.log(uninstall ? 'Hooks de Atalaya quitados.' : 'Hooks de Atalaya instalados. Abra una sesión nueva de Claude Code y aparecerá en su pantalla.');
+console.log(uninstall ? 'Hooks de Atalaya quitados.' : `Hooks de Atalaya instalados. Abra una sesión nueva de Claude Code y aparecerá en su pantalla.\nSe envía: qué está haciendo Claude (herramienta y proyecto)${detail ? ', el archivo o comando de cada paso y el comienzo de cada instrucción' : ''}. Nunca el contenido de sus archivos ni las respuestas.\nEl filtro está en ${FWD.replace(/\\/g, '/')} por si quiere leerlo.`);

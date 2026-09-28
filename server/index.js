@@ -500,6 +500,17 @@ async function handle(req, res) {
     let raw;
     try { raw = await readRaw(req, 256 << 10); } catch { return json(res, 413, { error: 'demasiado grande' }); }
     let ev; try { ev = JSON.parse(raw.toString('utf8')); } catch { return json(res, 400, { error: 'json invalido' }); }
+    // de un equipo remoto solo se toma una lista cerrada de campos, recortados: aunque un hook viejo mande el evento
+    // entero (contenido de archivos, respuestas), aqui se descarta sin usarlo ni guardarlo
+    if (ev && typeof ev === 'object') {
+      const cut = (v, n) => String(v == null ? '' : v).replace(/\s+/g, ' ').slice(0, n), o = {}, ti = ev.tool_input && typeof ev.tool_input === 'object' ? ev.tool_input : null;
+      for (const k of ['hook_event_name', 'session_id', 'permission_mode', 'tool_name', 'tool_use_id', 'source', 'reason', 'notification_type', 'agent_id', 'agent_type']) if (typeof ev[k] === 'string') o[k] = cut(ev[k], 120);
+      if (ev.cwd) o.cwd = cut(ev.cwd, 200);
+      if (ti) { o.tool_input = {}; for (const [k, n] of [['file_path', 200], ['notebook_path', 200], ['command', 140], ['description', 140], ['pattern', 80], ['url', 200], ['query', 100], ['skill', 60]]) if (typeof ti[k] === 'string') o.tool_input[k] = cut(ti[k], n); }
+      if (typeof ev.prompt === 'string') o.prompt = cut(ev.prompt, 200);
+      if (typeof ev.message === 'string') o.message = cut(ev.message, 200);
+      ev = o;
+    }
     if (ev && HOOK_EVENTS.has(ev.hook_event_name)) { try { claude.onRemoteHook(ev, machine); } catch (e) { console.error('[hook remoto]', e.message); } }
     return send(res, 204, '');
   }
@@ -915,11 +926,15 @@ async function handleSetup(req, res, p, url, session, ip) {
         const SB = require('./connectors/supabase'), list = [];
         const want = (body.projects || []).filter(x => x && (x.ref || x.serviceKey)).slice(0, 10);
         if (!want.length) return json(res, 400, { error: 'Escriba el proyecto de Supabase y su llave secreta' });
-        for (const x of want) { try { list.push(await SB.verify(x)); } catch (e) { return json(res, 400, { error: e.message }); } }
+        // cada proyecto tiene su resultado: los que pasan se guardan aunque otro falle, y de cada fallo se dice el motivo
+        const results = [];
+        for (const x of want) { try { const v = await SB.verify(x); if (list.some(n => n.ref === v.ref)) throw new Error('Ese proyecto está repetido en esta lista'); list.push(v); results.push({ ok: true, name: v.name }); } catch (e) { results.push({ ok: false, error: e.message }); } }
+        res.atalayaNote = `supabase ${id}: ${list.length} de ${want.length}`;
+        if (!list.length) return json(res, 400, { error: want.length === 1 ? results[0].error : 'Ningún proyecto se pudo conectar. Revise el motivo de cada uno.', results });
         const old = secrets.connectors().find(c => c.id === id && c.type === 'supabase');
         const projects = [...((old && old.projects) || []).filter(p => !list.some(n => n.ref === p.ref)), ...list];
         secrets.addConnector(id, { type: 'supabase', name: shown, mgmtToken: String(body.mgmtToken || '').trim() || (old && old.mgmtToken) || undefined, projects });
-        return json(res, 200, { ok: true, projects: projects.map(p => p.name) });
+        return json(res, 200, { ok: true, projects: projects.map(p => p.name), results });
       }
       else if (body.type === 'github') secrets.addConnector(id, { type: 'github', name: shown, token: String(body.token || '') });
       else if (body.type === 'cloudflare') {
@@ -950,9 +965,10 @@ async function handleSetup(req, res, p, url, session, ip) {
       const name = String(body.name || '').toLowerCase();
       const token = secrets.addRemote(name);
       const base = cfg.publicUrl || `https://${req.headers.host}`;
-      res.atalayaNote = name.slice(0, 31);
-      return json(res, 200, { command: `curl -fsSL ${base}/install/remote-hook.sh | sh -s -- ${base} ${name}:${token}`,
-        commandWin: `irm ${base}/install/remote-hook.js -OutFile $env:TEMP\\atalaya-hook.js; node $env:TEMP\\atalaya-hook.js ${base} ${name}:${token}` });
+      const more = body.detail ? ' --detalle' : '';
+      res.atalayaNote = name.slice(0, 31) + (body.detail ? ' con detalle' : ' solo actividad');
+      return json(res, 200, { detail: !!body.detail, command: `curl -fsSL ${base}/install/remote-hook.sh | sh -s -- ${base} ${name}:${token}${more}`,
+        commandWin: `irm ${base}/install/remote-hook.js -OutFile $env:TEMP\\atalaya-hook.js; node $env:TEMP\\atalaya-hook.js ${base} ${name}:${token}${more}` });
     }
     if (p === '/api/setup/install-command' && req.method === 'POST') {
       if (!(session && session.role === 'owner')) return json(res, 403, { error: 'Solo un dueño' });

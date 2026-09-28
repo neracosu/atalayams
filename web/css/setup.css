@@ -61,3 +61,15 @@ pre.cmd { margin: 0; white-space: pre-wrap; word-break: break-all; font-family: 
 .havelist { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; }
 .havelist li { display: flex; align-items: center; gap: .6rem; justify-content: space-between; padding: .35rem .6rem; border: 1px solid var(--line); border-radius: 10px; font-size: .9rem; }
 .havelist li span { min-width: 0; overflow-wrap: anywhere; }
+/* Supabase: una caja por proyecto, con su resultado */
+.sbrow { border: 1px solid var(--line); border-radius: 12px; padding: .7rem .8rem; margin: 0 0 .6rem; display: grid; gap: .5rem; min-width: 0; }
+.sbrow legend { padding: 0 .4rem; font-size: .8rem; color: var(--ink-3, #94a3b8); }
+.sbrow.done { border-color: rgba(52, 211, 153, .5); background: rgba(52, 211, 153, .06); }
+.sbrow.bad { border-color: rgba(248, 113, 113, .6); background: rgba(248, 113, 113, .06); }
+.sbrow .sb-out { margin: 0; font-size: .85rem; min-height: 1em; }
+.sbrow .sb-out.ok { color: #34d399; } .sbrow .sb-out.bad { color: #f87171; }
+.extra select { background: var(--field, #050912); border: 1px solid var(--line); border-radius: 8px; color: inherit; padding: .5rem .6rem; font: inherit; width: 100%; }
+.extra details.inner summary { color: inherit; opacity: .7; font-size: .85rem; }
+.privbox { border: 1px solid rgba(52, 211, 153, .35); background: rgba(52, 211, 153, .05); border-radius: 12px; padding: .7rem .9rem; display: grid; gap: .35rem; }
+.privbox p { margin: 0; }
+.privbox .chk { display: flex; gap: .5rem; align-items: flex-start; font-size: .88rem; margin-top: .3rem; }

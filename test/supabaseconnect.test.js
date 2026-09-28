@@ -13,7 +13,9 @@ const http = require('http');
 
   for (const v of ['abcdefghijklmnopqrst', 'https://abcdefghijklmnopqrst.supabase.co', 'https://abcdefghijklmnopqrst.supabase.co/', ' ABCDEFGHIJKLMNOPQRST.supabase.co/rest/v1/ ', 'https://supabase.com/dashboard/project/abcdefghijklmnopqrst/settings/api'])
     assert.strictEqual(refOf(v), 'abcdefghijklmnopqrst', v);
-  for (const v of ['', 'mi base', 'https://ejemplo.com', 'abc']) assert.strictEqual(refOf(v), null, v);
+  for (const v of ['', 'mi base', 'https://ejemplo.com', 'abc', 'evil.com/#', '127.0.0.1', 'abcdefghij@evil.com', 'evil.com/abcdefghijklmnop.supabase.co']) assert.strictEqual(refOf(v), null, v);
+  // lo unico que sale es el codigo: la conexion va siempre a <codigo>.supabase.co, nunca a lo que venga detras
+  assert.strictEqual(refOf('abcdefghijklmnop.supabase.co.evil.com/x'), 'abcdefghijklmnop');
   assert.strictEqual(keyKind('sb_secret_abc'), 'secret'); assert.strictEqual(keyKind('sb_publishable_abc'), 'public');
   assert.strictEqual(keyKind(jwt('service_role')), 'secret'); assert.strictEqual(keyKind(jwt('anon')), 'public'); assert.strictEqual(keyKind(''), 'none');
 

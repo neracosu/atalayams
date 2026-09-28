@@ -14,6 +14,20 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.81.0] - 2026-09-28
+
+### Cambiado
+- **Claude Code en una laptop envía mucho menos, y el filtro corre en su computadora.** Antes el hook mandaba el evento completo y el servidor usaba solo una parte. Ahora, antes de enviar, se descarta todo menos una lista cerrada: qué está haciendo Claude, el nombre de la herramienta y el nombre de la carpeta del proyecto. **Nunca salen** el contenido de sus archivos, las respuestas de Claude, el resultado de los comandos ni sus instrucciones completas.
+- El **detalle** (el archivo o comando de cada paso y el comienzo de cada instrucción) pasa a ser **opcional y apagado**: se enciende con una casilla al generar el comando.
+- El filtro queda en `~/.claude/atalaya-remote.js`, unas 40 líneas que puede leer. El servidor aplica la misma lista al recibir, así que un hook viejo tampoco deja nada de más.
+
+### Requiere acción
+- Si ya conectó una laptop, **genere el comando de nuevo** y péguelo: reemplaza el hook anterior por el que filtra en su computadora.
+
+### Agregado
+- **Supabase, varios proyectos de una vez**: elija cuántos va a conectar y llene una caja por proyecto. Atalaya prueba cada uno y le dice el resultado en su caja: los que conectan quedan en verde y los que no, en rojo con el motivo. Se corrige y se vuelve a probar sin recargar; lo que ya conectó no se pierde.
+- El formulario explica dónde está cada dato en Supabase: la dirección del proyecto y la llave secreta.
+
 ## [0.80.2] - 2026-09-28
 
 ### Agregado
@@ -1466,7 +1480,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.2...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.0...HEAD
+[0.81.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.2...v0.81.0
 [0.80.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.1...v0.80.2
 [0.80.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.0...v0.80.1
 [0.80.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.1...v0.80.0

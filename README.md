@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.80.2-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.81.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -600,7 +600,15 @@ node hooks/install.js                 # hooks de Claude Code en el servidor
 ```
 
 Para una laptop, lo más simple es el asistente › Extras › **Claude Code en una laptop**: da un comando para
-**PowerShell de Windows** y otro para macOS, Linux o WSL. El de Windows solo necesita Node.js.
+**PowerShell de Windows** y otro para macOS, Linux o WSL. Solo necesita Node.js.
+
+**Qué sale de esa computadora.** El filtro corre allí, antes de enviar, y se puede leer (`~/.claude/atalaya-remote.js`):
+
+| | Qué |
+|---|---|
+| Siempre | Qué está haciendo Claude, el nombre de la herramienta y el nombre de la carpeta del proyecto |
+| Solo si lo enciende | El archivo o comando de cada paso y el comienzo de cada instrucción (200 caracteres), con las llaves tapadas |
+| Nunca | El contenido de sus archivos, las respuestas de Claude, el resultado de los comandos, rutas completas ni variables de entorno |
 
 Más fácil desde la pantalla: menú › **Asistente de configuración** › paso *Extras* (ahí está también LeakIX). Los secretos quedan en un archivo 600 y
 se toman en caliente.
