@@ -109,8 +109,16 @@ async function rcodesign() {
   // 2. el blob SEA, generado con el Node oficial (no con el del sistema, que puede ser una variante)
   const genNode = await nodeFor(process.arch === 'arm64' ? 'linux-arm64' : 'linux-x64', sums);
   const seaCfg = path.join(WORK, 'sea-config.json');
-  fs.writeFileSync(seaCfg, JSON.stringify({ main: path.join(ROOT, 'exe', 'main.js'), output: path.join(WORK, 'app.blob'), disableExperimentalSEAWarning: true,
-    useSnapshot: false, useCodeCache: false, assets: { 'app.tgz': tgz, 'version.txt': path.join(WORK, 'version.txt') } }));
+  // el arranque y el actualizador en un solo archivo (un ejecutable SEA no lee modulos del disco)
+  const mainSrc = fs.readFileSync(path.join(ROOT, 'exe', 'main.js'), 'utf8'), MARK = "/*UPDATER*/ require('./updater.js')";
+  if (!mainSrc.includes(MARK)) throw new Error('exe/main.js: falta la marca del actualizador');
+  const mainOut = path.join(WORK, 'main.js');
+  fs.writeFileSync(mainOut, mainSrc.replace(MARK, () => `(() => { const module = { exports: {} }; (function (module, exports) {\n${fs.readFileSync(path.join(ROOT, 'exe', 'updater.js'), 'utf8')}\n})(module, module.exports); return module.exports; })()`));
+  run(genNode, ['--check', mainOut]);
+  fs.writeFileSync(seaCfg, JSON.stringify({ main: mainOut, output: path.join(WORK, 'app.blob'), disableExperimentalSEAWarning: true,
+    useSnapshot: false, useCodeCache: false, assets: { 'app.tgz': tgz, 'version.txt': path.join(WORK, 'version.txt'), 'update.pub': path.join(ROOT, 'defs', 'definiciones.pub') } }));
+  // la misma aplicacion, suelta: es lo que bajan los ejecutables ya instalados para actualizarse (scripts/publish-update.js)
+  fs.copyFileSync(tgz, path.join(DIST, `app-${VERSION}.tgz`));
   run(genNode, ['--experimental-sea-config', seaCfg]);
 
   // 3. un ejecutable por destino

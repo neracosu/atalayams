@@ -688,3 +688,5 @@ small.down { color: var(--bad); font-weight: 700; margin-left: .3rem; }
 .dlist li.wrap, .dlist li.wrap span { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
 .dlist li.dep { flex-wrap: wrap; row-gap: .2rem; }
 .dlist li.dep .grow { flex: 1 1 12rem; white-space: normal; overflow-wrap: anywhere; }
+/* solo en Atalaya para su computadora */
+body:not(.ed-equipo) .onlyequipo { display: none !important; }

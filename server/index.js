@@ -774,6 +774,18 @@ async function handle(req, res) {
       } catch (e) { return json(res, 400, { error: e.message }); }
       return json(res, 404, { error: 'No encontrado' });
     }
+    // Atalaya Equipo: actualizaciones de la aplicacion (las hace el arranque del ejecutable, exe/updater.js)
+    if (p.startsWith('/api/update')) {
+      const dir = process.env.ATALAYA_UPDATE_DIR;
+      if (cfg.edition !== 'equipo' || !dir) return json(res, 404, { error: 'Solo en Atalaya para su computadora' });
+      if (session.role !== 'owner') return json(res, 403, { error: 'Solo un dueño puede cambiar las actualizaciones' });
+      const rd = (n, d) => { try { return JSON.parse(fs.readFileSync(path.join(dir, n), 'utf8')); } catch { return d; } };
+      if (p === '/api/update/mode') { fs.writeFileSync(path.join(dir, 'mode.json'), JSON.stringify({ mode: body.mode === 'off' ? 'off' : 'auto' })); if (body.mode !== 'off') process.emit('atalaya-update-check'); }
+      else if (p === '/api/update/check') { process.emit('atalaya-update-check'); await new Promise(r => setTimeout(r, 2500)); }
+      else if (p === '/api/update/restart') { json(res, 200, { ok: true }); setTimeout(() => process.emit('atalaya-restart'), 300); return; }
+      const st = rd('status.json', {}), mode = (rd('mode.json', {}) || {}).mode === 'off' ? 'off' : 'auto';
+      return json(res, 200, { mode, running: VERSION, embedded: st.embedded || VERSION, ready: st.ready || null, latest: st.latest || null, needsExe: st.needsExe || null, checked: st.checked || null, error: st.error || null, notes: st.notes || '' });
+    }
     // latidos: alta, cambio, direccion nueva y baja
     if (p.startsWith('/api/beats/')) {
       if (session.role !== 'owner') return json(res, 403, { error: 'Solo un dueño puede administrar los latidos' });

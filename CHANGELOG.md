@@ -14,6 +14,16 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.82.0] - 2026-09-28
+
+### Agregado
+- **Atalaya para su computadora se actualiza sola.** Ya no hay que descargar el .zip en cada versión: Atalaya baja la versión nueva mientras está abierta, la verifica y la usa la próxima vez que la abra. En menú › **Actualizaciones** puede reiniciar para usarla ya, buscar ahora o apagar las actualizaciones automáticas.
+- Cada actualización viene **firmada**: el ejecutable trae la clave que la verifica y no acepta nada que no coincida con su firma y su huella. Nunca retrocede de versión, y si una versión nueva no llega a abrir vuelve sola a la anterior.
+- Opción `--sin-actualizar` para usar siempre la versión que trae el ejecutable.
+
+### Requiere acción
+- **Descargue el ejecutable una vez más** (esta versión): es el que sabe actualizarse. Desde aquí, las siguientes llegan solas.
+
 ## [0.81.4] - 2026-09-28
 
 ### Corregido
@@ -1511,7 +1521,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.4...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.82.0...HEAD
+[0.82.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.4...v0.82.0
 [0.81.4]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.3...v0.81.4
 [0.81.3]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.2...v0.81.3
 [0.81.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.1...v0.81.2

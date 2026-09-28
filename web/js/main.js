@@ -195,6 +195,7 @@ $('menu').addEventListener('click', async e => {
   if (act === 'director') document.dispatchEvent(new KeyboardEvent('keydown', { key: 'd' }));
   if (act === 'lockall') { await post('api/public-all').catch(() => { }); flash('Todas las pantallas pasaron a modo público'); }
   if (act === 'users') openUsers();
+  if (act === 'update') openUpdate();
   if (act === 'alerts') openAlerts();
   if (act === 'maestro') openMaestro();
   if (act === 'logout') { await post('api/logout').catch(() => { }); location.href = 'login'; }
@@ -524,6 +525,24 @@ function needPrivate(what) {
   flash(`Active el modo privado para ${what}`);
   openPrivate();
   return true;
+}
+// Atalaya para su computadora: actualizaciones de la aplicacion
+async function openUpdate(r) {
+  r = r || await ipost('api/update');
+  if (r.error && !r.running) return flash(r.error);
+  const when = t => t ? new Date(t).toLocaleString('es-VE', { hour12: false, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'todavía no';
+  const head = r.ready ? `<b>La versión ${ie(r.ready)} ya está descargada y verificada.</b>${r.notes ? ' ' + ie(r.notes) : ''}<br>Se usa la próxima vez que abra Atalaya. Para usarla ya, reinicie: tarda unos segundos y esta página se recarga sola.`
+    : r.needsExe ? `<b>La versión ${ie(r.needsExe)} necesita el ejecutable nuevo.</b> Esta vez cambió también el programa que abre Atalaya: descargue el archivo nuevo una vez; las siguientes se actualizan solas.`
+    : `Está usando la versión <b>${ie(r.running)}</b>${r.latest && r.latest === r.running ? ', la más nueva' : ''}.`;
+  setTimeout(() => { const c = document.querySelector('.askdlg #updAuto'); if (c) c.addEventListener('change', () => ipost('api/update/mode', { mode: c.checked ? 'auto' : 'off' })); }, 50);
+  const ok = await ask({ title: 'Actualizaciones', icon: 'rocket', ok: r.ready ? 'Reiniciar ahora' : 'Buscar ahora', cancel: 'Cerrar',
+    body: `${head}<br><br>Última búsqueda: ${when(r.checked)}.${r.embedded && r.embedded !== r.running ? ` El ejecutable trae la ${ie(r.embedded)}.` : ''}${r.error ? `<br>${ie(r.error)}` : ''}
+      <br><br><input type="checkbox" id="updAuto" ${r.mode === 'off' ? '' : 'checked'} style="width:auto;margin-right:.4rem"><b>Actualizar Atalaya automáticamente</b>
+      <br>Baja la versión nueva, verifica su firma y la usa en el próximo arranque. Sus datos no se tocan. Si una versión nueva no llega a abrir, vuelve sola a la anterior.` });
+  if (!ok) return;
+  if (r.ready) { await ipost('api/update/restart'); flash('Reiniciando Atalaya con la versión nueva…'); return; }
+  flash('Buscando actualizaciones…');
+  openUpdate(await ipost('api/update/check'));
 }
 async function openUsers() {
   if (needPrivate('gestionar usuarios')) return;

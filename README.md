@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.81.4-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.82.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -381,6 +381,20 @@ código ya puesto, y queda escuchando **solo en 127.0.0.1**. Muestra esa computa
 disco; en Linux también red y procesos), sus sesiones de Claude Code (en Windows, las de VS Code y otros IDE y
 las que corren dentro de **WSL**, cada distribución como su distrito) y los conectores de nube. Los
 hostings y WordPress necesitan una dirección pública: para eso están Cloud y VPS.
+
+**Se actualiza sola.** El ejecutable es Node más la aplicación empaquetada. Para actualizarse no se reemplaza el
+ejecutable: Atalaya baja solo la aplicación nueva, la verifica y la usa en el próximo arranque.
+
+| Resguardo | Cómo |
+|---|---|
+| Firma | El aviso de versión va firmado (ed25519) y la clave pública viaja dentro del ejecutable |
+| Huella | El paquete se acepta solo si su tamaño y su SHA-256 son los del aviso firmado |
+| Cada arranque | La firma y la huella se verifican otra vez antes de usar el paquete guardado |
+| Sin retroceder | Nunca se instala una versión igual o anterior |
+| Marcha atrás | Si la versión nueva no llega a abrir, se descarta y se usa la del ejecutable |
+| Control | Menú › Actualizaciones para apagarlas, o `--sin-actualizar` |
+
+Solo cuando cambie el propio arranque (por ejemplo, una versión nueva de Node) hará falta descargar el ejecutable otra vez; Atalaya lo avisa.
 
 | | Datos | Caché de la aplicación |
 |---|---|---|
