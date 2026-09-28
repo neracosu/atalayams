@@ -14,6 +14,11 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.79.1] - 2026-09-28
+
+### Agregado
+- **Claude Code en Windows**: al conectar una laptop, el asistente da ahora dos comandos, uno para **PowerShell de Windows** y otro para macOS, Linux o WSL. El de Windows solo necesita Node.js, el mismo que usa Claude Code.
+
 ## [0.79.0] - 2026-09-28
 
 ### Agregado
@@ -1435,7 +1440,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.1...HEAD
+[0.79.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.0...v0.79.1
 [0.79.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.78.0...v0.79.0
 [0.78.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.1...v0.78.0
 [0.77.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.0...v0.77.1

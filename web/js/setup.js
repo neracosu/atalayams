@@ -311,7 +311,7 @@ async function renderExtras() {
   });
   act('rgo', async () => {
     const r = await api('api/setup/remote', { name: $('rname').value.trim() });
-    $('rout').innerHTML = `<p class="msg info">En esa computadora (macOS, Linux o WSL) abra una terminal y pegue:</p>${copyBlock(r.command)}<p class="hint">El comando incluye un token que se muestra solo esta vez.</p>`;
+    $('rout').innerHTML = `<p class="msg info"><b>Windows:</b> abra <b>PowerShell</b> y pegue:</p>${copyBlock(r.commandWin)}<p class="msg info"><b>macOS, Linux o WSL:</b> abra una terminal y pegue:</p>${copyBlock(r.command)}<p class="hint">Use el del sistema donde abre Claude Code. Si lo usa dentro de WSL, el de Linux, en la terminal de WSL. Después abra una sesión nueva de Claude Code.</p><p class="hint">El comando incluye un token que se muestra solo esta vez.</p>`;
   });
 }
 

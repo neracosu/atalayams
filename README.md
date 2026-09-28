@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.79.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.79.1-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -548,6 +548,9 @@ node cli.js connector add supabase    # project ref + secret key
 node cli.js remote add laptop-ana     # hooks de Claude Code para una laptop
 node hooks/install.js                 # hooks de Claude Code en el servidor
 ```
+
+Para una laptop, lo más simple es el asistente › Extras › **Claude Code en una laptop**: da un comando para
+**PowerShell de Windows** y otro para macOS, Linux o WSL. El de Windows solo necesita Node.js.
 
 Más fácil desde la pantalla: menú › **Asistente de configuración** › paso *Extras* (ahí está también LeakIX). Los secretos quedan en un archivo 600 y
 se toman en caliente.

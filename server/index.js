@@ -527,6 +527,10 @@ async function handle(req, res) {
     try { return send(res, 200, wpPluginZip({ url: cfg.publicUrl || `https://${req.headers.host}`, code: '' }), { 'Content-Type': 'application/zip', 'Content-Disposition': 'attachment; filename="atalaya-agent.zip"' }); }
     catch (e) { console.error('[wp]', e.message); return send(res, 500, ''); }
   }
+  // el mismo instalador en Node, para Windows (y para quien no tenga curl ni sh)
+  if (p === '/install/remote-hook.js' && req.method === 'GET') {
+    return fs.readFile(ROOT + '/hooks/remote-install.js', (err, data) => err ? send(res, 404, '') : send(res, 200, data, { 'Content-Type': 'text/javascript; charset=utf-8' }));
+  }
   if (p === '/install/remote-hook.sh' && req.method === 'GET') {
     return fs.readFile(ROOT + '/hooks/remote-install.sh', (err, data) => err ? send(res, 404, '') : send(res, 200, data, { 'Content-Type': 'text/x-shellscript; charset=utf-8' }));
   }
@@ -888,7 +892,9 @@ async function handleSetup(req, res, p, url, session, ip) {
       const name = String(body.name || '').toLowerCase();
       const token = secrets.addRemote(name);
       const base = cfg.publicUrl || `https://${req.headers.host}`;
-      return json(res, 200, { command: `curl -fsSL ${base}/install/remote-hook.sh | sh -s -- ${base} ${name}:${token}` });
+      res.atalayaNote = name.slice(0, 31);
+      return json(res, 200, { command: `curl -fsSL ${base}/install/remote-hook.sh | sh -s -- ${base} ${name}:${token}`,
+        commandWin: `irm ${base}/install/remote-hook.js -OutFile $env:TEMP\\atalaya-hook.js; node $env:TEMP\\atalaya-hook.js ${base} ${name}:${token}` });
     }
     if (p === '/api/setup/install-command' && req.method === 'POST') {
       if (!(session && session.role === 'owner')) return json(res, 403, { error: 'Solo un dueño' });
