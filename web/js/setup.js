@@ -298,7 +298,9 @@ async function renderExtras() {
           <p class="hint"><b>Siempre:</b> qué está haciendo Claude (leyendo, editando, en la terminal, esperando su permiso), el nombre de la herramienta y el nombre de la carpeta del proyecto.</p>
           <p class="hint"><b>Nunca:</b> el contenido de sus archivos, lo que Claude le responde, el resultado de los comandos, sus instrucciones completas ni sus llaves.</p>
           <p class="hint">El filtro corre en su computadora, antes de enviar, y puede leerlo: queda en <code>~/.claude/atalaya-remote.js</code>.</p>
-          <label class="chk"><input type="checkbox" id="rdetail"> Enviar también el detalle: el archivo o el comando de cada paso y el comienzo de cada instrucción (200 caracteres). Solo se ve en modo privado.</label></div>
+          <p class="hint"><b>Si usted lo enciende</b> (las dos cosas van aparte y solo se ven en modo privado):</p>
+          <label class="chk"><input type="checkbox" id="rdetail"> El archivo o el comando de cada paso. Del archivo, su ruta dentro del proyecto; las llaves se tapan.</label>
+          <label class="chk"><input type="checkbox" id="rprompts"> El comienzo de lo que usted le escribe a Claude (200 caracteres). Es texto libre y puede llevar datos de su trabajo: enciéndalo solo si quiere verlo en su pantalla.</label></div>
         <div class="row"><div class="field grow"><label>Nombre del equipo</label><input type="text" id="rname" placeholder="laptop-ana"></div><button class="btn" id="rgo" style="align-self:flex-end">Generar comando</button></div>
         <div id="rout"></div></details></div>
     ${nav('Continuar')}`;
@@ -379,8 +381,8 @@ async function renderExtras() {
     $('sout').innerHTML = `<p class="msg ${bad ? (ok ? 'info' : 'bad') : 'ok'}">${ok ? `${ok} proyecto(s) conectado(s): aparecen en el mapa en un minuto.` : 'Ninguno se conectó.'}${bad ? ` ${bad} con problemas: corrija lo marcado en rojo y pulse otra vez. Lo que ya conectó no se pierde.` : ''}${r.projects ? ` Este grupo tiene ahora ${r.projects.length} proyecto(s).` : ''}</p>`;
   });
   act('rgo', async () => {
-    const r = await api('api/setup/remote', { name: $('rname').value.trim(), detail: $('rdetail').checked });
-    $('rout').innerHTML = `<p class="msg info"><b>Windows:</b> abra <b>PowerShell</b> y pegue:</p>${copyBlock(r.commandWin)}<p class="msg info"><b>macOS, Linux o WSL:</b> abra una terminal y pegue:</p>${copyBlock(r.command)}<p class="hint">Use el del sistema donde abre Claude Code. Si lo usa dentro de WSL, el de Linux, en la terminal de WSL. Después abra una sesión nueva de Claude Code. ${r.detail ? 'Eligió enviar también el detalle.' : 'Se enviará solo la actividad, sin detalle.'} Para cambiarlo, genere el comando de nuevo.</p><p class="hint">El comando incluye un token que se muestra solo esta vez.</p>`;
+    const r = await api('api/setup/remote', { name: $('rname').value.trim(), detail: $('rdetail').checked, prompts: $('rprompts').checked });
+    $('rout').innerHTML = `<p class="msg info"><b>Windows:</b> abra <b>PowerShell</b> y pegue:</p>${copyBlock(r.commandWin)}<p class="msg info"><b>macOS, Linux o WSL:</b> abra una terminal y pegue:</p>${copyBlock(r.command)}<p class="hint">Use el del sistema donde abre Claude Code. Si lo usa dentro de WSL, el de Linux, en la terminal de WSL. Después abra una sesión nueva de Claude Code. ${r.detail || r.prompts ? `Eligió enviar también ${[r.detail ? 'el archivo o comando de cada paso' : '', r.prompts ? 'el comienzo de sus instrucciones' : ''].filter(Boolean).join(' y ')}.` : 'Se enviará solo la actividad, sin detalle.'} Para cambiarlo, genere el comando de nuevo.</p><p class="hint">El comando incluye un token que se muestra solo esta vez.</p>`;
   });
 }
 

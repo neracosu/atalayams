@@ -1,6 +1,6 @@
 #!/bin/sh
 # Atalaya · hooks de Claude Code para un equipo remoto (macOS, Linux o WSL; requiere Node.js).
-# Uso:    curl -fsSL https://SU-ATALAYA/install/remote-hook.sh | sh -s -- https://SU-ATALAYA equipo:token [--detalle]
+# Uso:    curl -fsSL https://SU-ATALAYA/install/remote-hook.sh | sh -s -- https://SU-ATALAYA equipo:token [--detalle] [--instrucciones]
 # Quitar: curl -fsSL https://SU-ATALAYA/install/remote-hook.sh | sh -s -- --uninstall https://SU-ATALAYA
 # Descarga el instalador de Node (el mismo de Windows) y lo ejecuta: asi hay un solo filtro de lo que se envia.
 # Que sale de su computadora y que no: lea la cabecera de ese instalador, /install/remote-hook.js

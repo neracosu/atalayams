@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.84.4-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.85.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -684,7 +684,8 @@ Para una laptop, lo más simple es el asistente › Extras › **Claude Code en 
 | | Qué |
 |---|---|
 | Siempre | Qué está haciendo Claude, el nombre de la herramienta y el nombre de la carpeta del proyecto |
-| Solo si lo enciende | El archivo o comando de cada paso y el comienzo de cada instrucción (200 caracteres), con las llaves tapadas |
+| Solo si lo enciende: detalle | El archivo (su ruta dentro del proyecto) o el comando de cada paso, con las llaves tapadas |
+| Solo si lo enciende, aparte: instrucciones | El comienzo de lo que usted le escribe a Claude (200 caracteres). Es texto libre: puede llevar datos de su trabajo |
 | Nunca | El contenido de sus archivos, las respuestas de Claude, el resultado de los comandos, rutas completas ni variables de entorno |
 
 Más fácil desde la pantalla: menú › **Asistente de configuración** › paso *Extras* (ahí está también LeakIX). Los secretos quedan en un archivo 600 y

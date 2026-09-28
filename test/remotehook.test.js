@@ -33,19 +33,32 @@ assert.throws(() => execFileSync(process.execPath, [inst, 'https://nube.ejemplo.
 let out = execFileSync(process.execPath, [inst, 'https://nube.ejemplo.com/ana/', cred], { env, encoding: 'utf8' });
 assert.match(out, /Nunca el contenido de sus archivos/);
 const conf = JSON.parse(fs.readFileSync(path.join(home, '.claude/atalaya-remote.json'), 'utf8'));
-assert.deepStrictEqual(conf, { url: 'https://nube.ejemplo.com/ana', cred, detail: false });
+assert.deepStrictEqual(conf, { url: 'https://nube.ejemplo.com/ana', cred, detail: false, prompts: false });
 if (process.platform !== 'win32') assert.strictEqual(fs.statSync(path.join(home, '.claude/atalaya-remote.json')).mode & 0o777, 0o600);
 let raw = sent(), o = JSON.parse(raw);
 assert.deepStrictEqual(o, { hook_event_name: 'PostToolUse', session_id: event.session_id, permission_mode: 'default', tool_name: 'Write', tool_use_id: 'toolu_1', cwd: 'tienda-secreta' }, 'solo la lista cerrada, y del proyecto solo el nombre de su carpeta');
 assert.ok(!raw.includes('ESTO_NO_DEBE_SALIR') && !raw.includes('.env') && !raw.includes('Users') && !raw.includes('despliega'));
 
-// con detalle: archivo, comando e inicio de la instruccion, con las llaves tapadas; nunca contenido ni respuestas
+// con detalle: archivo y comando, con las llaves tapadas. Lo que la persona escribe NO viaja
 out = execFileSync(process.execPath, [inst, 'https://nube.ejemplo.com/ana', cred, '--detalle'], { env, encoding: 'utf8' });
-assert.match(out, /el archivo o comando de cada paso/);
+assert.match(out, /el archivo o comando de cada paso/); assert.doesNotMatch(out, /instrucción que usted escribe/);
+raw = sent(); o = JSON.parse(raw);
+assert.deepStrictEqual(Object.keys(o).sort(), ['cwd', 'hook_event_name', 'permission_mode', 'session_id', 'tool_input', 'tool_name', 'tool_use_id']);
+assert.deepStrictEqual(Object.keys(o.tool_input).sort(), ['command', 'file_path']);
+assert.strictEqual(o.tool_input.file_path, '.env', 'un archivo de fuera de la carpeta del proyecto: solo su nombre');
+assert.ok(!raw.includes('despliega') && !raw.includes('listo') && !raw.includes('/home/ana'), 'ni las instrucciones ni las rutas de la computadora: ' + raw);
+// un archivo del proyecto: su ruta dentro del proyecto
+event.tool_input.file_path = 'C:\\Users\\ana\\proyectos\\tienda-secreta\\src\\pagos\\cobro.js';
+assert.strictEqual(JSON.parse(sent()).tool_input.file_path, 'tienda-secreta/src/pagos/cobro.js');
+// solo las instrucciones, sin detalle
+execFileSync(process.execPath, [inst, 'https://nube.ejemplo.com/ana', cred, '--instrucciones'], { env, encoding: 'utf8' });
+raw = sent(); o = JSON.parse(raw);
+assert.ok(o.prompt && o.message && !o.tool_input);
+// las dos cosas
+out = execFileSync(process.execPath, [inst, 'https://nube.ejemplo.com/ana', cred, '--detalle', '--instrucciones'], { env, encoding: 'utf8' });
+assert.match(out, /instrucción que usted escribe/);
 raw = sent(); o = JSON.parse(raw);
 assert.deepStrictEqual(Object.keys(o).sort(), ['cwd', 'hook_event_name', 'message', 'permission_mode', 'prompt', 'session_id', 'tool_input', 'tool_name', 'tool_use_id']);
-assert.deepStrictEqual(Object.keys(o.tool_input).sort(), ['command', 'file_path']);
-assert.strictEqual(o.tool_input.file_path, '/home/ana/proyectos/tienda-secreta/.env');
 assert.ok(!raw.includes('ESTO_NO_DEBE_SALIR'), 'las llaves se tapan tambien en el comando y en la instruccion: ' + raw);
 assert.ok(o.prompt.startsWith('crea el .env con la llave ***'));
 assert.ok(!('tool_response' in o) && !('env' in o) && !('transcript_path' in o) && !('content' in o.tool_input));
@@ -59,4 +72,16 @@ execFileSync(process.execPath, [inst, '--uninstall'], { env, encoding: 'utf8' })
 assert.strictEqual(st().hooks, undefined);
 assert.ok(!fs.existsSync(path.join(home, '.claude/atalaya-remote.js')) && !fs.existsSync(path.join(home, '.claude/atalaya-remote.json')));
 fs.rmSync(home, { recursive: true, force: true });
+
+// el servidor guarda lo que cada equipo pidio, y un equipo registrado antes de existir la eleccion no envia instrucciones
+const { Secrets } = require('../server/secrets');
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'atalaya-sec-'));
+fs.writeFileSync(path.join(dir, 'connectors.json'), JSON.stringify({ connectors: {}, remotes: { vieja: { sha: 'x'.repeat(64), added: '2026-09-28T14:49:49Z' } }, agents: {} }));
+const S = new Secrets({ stateDir: dir });
+S.addRemote('solo-actividad'); S.addRemote('con-detalle', { detail: true }); S.addRemote('todo', { detail: true, prompts: true });
+assert.deepStrictEqual(S.remoteAccepts('solo-actividad'), { detail: false, prompts: false });
+assert.deepStrictEqual(S.remoteAccepts('con-detalle'), { detail: true, prompts: false });
+assert.deepStrictEqual(S.remoteAccepts('todo'), { detail: true, prompts: true });
+assert.deepStrictEqual(S.remoteAccepts('vieja'), { detail: true, prompts: false }, 'conserva el detalle que ya enviaba; las instrucciones, nunca sin pedirlas');
+fs.rmSync(dir, { recursive: true, force: true });
 console.log('remotehook.test.js OK');

@@ -501,14 +501,16 @@ async function handle(req, res) {
     try { raw = await readRaw(req, 256 << 10); } catch { return json(res, 413, { error: 'demasiado grande' }); }
     let ev; try { ev = JSON.parse(raw.toString('utf8')); } catch { return json(res, 400, { error: 'json invalido' }); }
     // de un equipo remoto solo se toma una lista cerrada de campos, recortados: aunque un hook viejo mande el evento
-    // entero (contenido de archivos, respuestas), aqui se descarta sin usarlo ni guardarlo
+    // entero (contenido de archivos, respuestas), aqui se descarta sin usarlo ni guardarlo. El detalle y las
+    // instrucciones se aceptan solo si ese equipo se registro pidiendolos
+    const accepts = secrets.remoteAccepts(machine);
     if (ev && typeof ev === 'object') {
       const cut = (v, n) => String(v == null ? '' : v).replace(/\s+/g, ' ').slice(0, n), o = {}, ti = ev.tool_input && typeof ev.tool_input === 'object' ? ev.tool_input : null;
       for (const k of ['hook_event_name', 'session_id', 'permission_mode', 'tool_name', 'tool_use_id', 'source', 'reason', 'notification_type', 'agent_id', 'agent_type']) if (typeof ev[k] === 'string') o[k] = cut(ev[k], 120);
       if (ev.cwd) o.cwd = cut(ev.cwd, 200);
-      if (ti) { o.tool_input = {}; for (const [k, n] of [['file_path', 200], ['notebook_path', 200], ['command', 140], ['description', 140], ['pattern', 80], ['url', 200], ['query', 100], ['skill', 60]]) if (typeof ti[k] === 'string') o.tool_input[k] = cut(ti[k], n); }
-      if (typeof ev.prompt === 'string') o.prompt = cut(ev.prompt, 200);
-      if (typeof ev.message === 'string') o.message = cut(ev.message, 200);
+      if (ti && accepts.detail) { o.tool_input = {}; for (const [k, n] of [['file_path', 200], ['notebook_path', 200], ['command', 140], ['description', 140], ['pattern', 80], ['url', 200], ['query', 100], ['skill', 60]]) if (typeof ti[k] === 'string') o.tool_input[k] = cut(ti[k], n); }
+      if (accepts.prompts && typeof ev.prompt === 'string') o.prompt = cut(ev.prompt, 200);
+      if (accepts.prompts && typeof ev.message === 'string') o.message = cut(ev.message, 200);
       ev = o;
     }
     if (ev && HOOK_EVENTS.has(ev.hook_event_name)) { try { claude.onRemoteHook(ev, machine); } catch (e) { console.error('[hook remoto]', e.message); } }
@@ -994,11 +996,11 @@ async function handleSetup(req, res, p, url, session, ip) {
     }
     if (p === '/api/setup/remote' && req.method === 'POST') {
       const name = String(body.name || '').toLowerCase();
-      const token = secrets.addRemote(name);
+      const token = secrets.addRemote(name, { detail: !!body.detail, prompts: !!body.prompts });
       const base = cfg.publicUrl || `https://${req.headers.host}`;
-      const more = body.detail ? ' --detalle' : '';
-      res.atalayaNote = name.slice(0, 31) + (body.detail ? ' con detalle' : ' solo actividad');
-      return json(res, 200, { detail: !!body.detail, command: `curl -fsSL ${base}/install/remote-hook.sh | sh -s -- ${base} ${name}:${token}${more}`,
+      const more = (body.detail ? ' --detalle' : '') + (body.prompts ? ' --instrucciones' : '');
+      res.atalayaNote = name.slice(0, 31) + (body.detail || body.prompts ? ' con' + (body.detail ? ' detalle' : '') + (body.detail && body.prompts ? ' e' : '') + (body.prompts ? ' instrucciones' : '') : ' solo actividad');
+      return json(res, 200, { detail: !!body.detail, prompts: !!body.prompts, command: `curl -fsSL ${base}/install/remote-hook.sh | sh -s -- ${base} ${name}:${token}${more}`,
         commandWin: `irm ${base}/install/remote-hook.js -OutFile $env:TEMP\\atalaya-hook.js; node $env:TEMP\\atalaya-hook.js ${base} ${name}:${token}${more}` });
     }
     if (p === '/api/setup/install-command' && req.method === 'POST') {

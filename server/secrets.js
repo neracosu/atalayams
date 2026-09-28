@@ -43,16 +43,20 @@ class Secrets {
   delConnector(id) { if (!this.data.connectors[id]) throw new Error('No existe ese conector'); delete this.data.connectors[id]; this.save(); }
 
   // equipos remotos (laptops) que envian hooks de Claude Code por HTTPS: se guarda solo el sha256 del token
-  addRemote(name) {
+  // detail: acepta el archivo o comando de cada paso; prompts: acepta el comienzo de lo que la persona escribe
+  addRemote(name, opts = {}) {
     if (!SLUG.test(name)) throw new Error('Nombre invalido: minusculas, numeros y guiones (hasta 31)');
     this.checkLimit('remotes', name);
     const token = crypto.randomBytes(32).toString('base64url');
-    this.data.remotes[name] = { sha: crypto.createHash('sha256').update(token).digest('hex'), added: new Date().toISOString() };
+    this.data.remotes[name] = { sha: crypto.createHash('sha256').update(token).digest('hex'), added: new Date().toISOString(), detail: !!opts.detail, prompts: !!opts.prompts };
     this.save();
     return token;
   }
   delRemote(name) { if (!this.data.remotes[name]) throw new Error('No existe ese equipo'); delete this.data.remotes[name]; this.save(); }
   remotes() { return Object.keys(this.data.remotes); }
+  // que acepta el servidor de ese equipo. Uno registrado antes de existir la eleccion conserva el detalle que ya
+  // enviaba, pero nunca las instrucciones: esas solo si se pidieron a proposito
+  remoteAccepts(name) { const r = this.data.remotes[name] || {}; return { detail: r.detail !== false, prompts: r.prompts === true }; }
   // "equipo:token" -> nombre del equipo o null (comparacion en tiempo constante)
   checkRemote(header) {
     this.sync();

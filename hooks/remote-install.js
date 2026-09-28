@@ -13,15 +13,17 @@
 //                 (Read, Edit, Bash...), el nombre de la carpeta del proyecto (solo el ultimo tramo) y el id de la sesion.
 //   Nunca:        el contenido de sus archivos, lo que Claude responde, el resultado de los comandos, sus instrucciones
 //                 completas, rutas completas, variables de entorno ni llaves.
-//   Con --detalle (opcional, apagado si no lo pide): ademas, el archivo o el comando de cada paso (recortado) y el
-//                 comienzo de cada instruccion (200 caracteres), para verlos en su pantalla en modo privado.
+//   Con --detalle (opcional, apagado si no lo pide): ademas, el archivo (su ruta dentro del proyecto) o el comando
+//                 de cada paso, recortados y con las llaves tapadas. NO incluye lo que usted escribe.
+//   Con --instrucciones (opcional, aparte y apagado): el comienzo de cada instruccion que le escribe a Claude
+//                 (200 caracteres). Es texto libre: puede llevar datos de su trabajo. Enciendalo solo si lo quiere ver.
 // Puede leer el reenviador instalado en ~/.claude/atalaya-remote.js: son unas 40 lineas.
 const fs = require('fs'), path = require('path'), os = require('os');
 
 const DIR = path.join(os.homedir(), '.claude');
 const FWD = path.join(DIR, 'atalaya-remote.js'), CONF = path.join(DIR, 'atalaya-remote.json'), SETTINGS = path.join(DIR, 'settings.json');
-const args = process.argv.slice(2), detail = args.includes('--detalle');
-const [a, b] = args.filter(x => x !== '--detalle');
+const args = process.argv.slice(2), detail = args.includes('--detalle'), prompts = args.includes('--instrucciones');
+const [a, b] = args.filter(x => x !== '--detalle' && x !== '--instrucciones');
 const uninstall = a === '--uninstall';
 const fail = m => { console.error(m); process.exit(1); };
 if (!uninstall) {
@@ -43,13 +45,23 @@ function slim(e) {
   const o = {};
   for (const k of ['hook_event_name', 'session_id', 'permission_mode', 'tool_name', 'tool_use_id', 'source', 'reason', 'notification_type', 'agent_id', 'agent_type']) if (typeof e[k] === 'string') o[k] = String(e[k]).replace(/[^\\w:.-]/g, '').slice(0, 120); // identificadores: sin texto libre
   if (e.cwd) o.cwd = String(e.cwd).split(/[\\\\/]/).filter(Boolean).pop() || '';
-  if (!c.detail) return o;
-  const i = e.tool_input || {}, t = {};
-  for (const [k, n] of [['file_path', 200], ['notebook_path', 200], ['command', 140], ['description', 140], ['pattern', 80], ['url', 200], ['query', 100], ['skill', 60]]) if (typeof i[k] === 'string') t[k] = cut(i[k], n);
-  if (Object.keys(t).length) o.tool_input = t;
-  if (typeof e.prompt === 'string') o.prompt = cut(e.prompt, 200);
-  if (typeof e.message === 'string') o.message = cut(e.message, 200);
+  if (c.detail) {
+    const i = e.tool_input || {}, t = {};
+    for (const [k, n] of [['file_path', 200], ['notebook_path', 200], ['command', 140], ['description', 140], ['pattern', 80], ['url', 200], ['query', 100], ['skill', 60]]) if (typeof i[k] === 'string') t[k] = cut(k.endsWith('_path') ? inside(i[k], e.cwd) : i[k], n);
+    if (Object.keys(t).length) o.tool_input = t;
+  }
+  // lo que usted escribe es texto libre: viaja solo si lo pidio aparte
+  if (c.prompts) {
+    if (typeof e.prompt === 'string') o.prompt = cut(e.prompt, 200);
+    if (typeof e.message === 'string') o.message = cut(e.message, 200);
+  }
   return o;
+}
+// de un archivo, su ruta dentro del proyecto; si esta fuera, solo su nombre. Nunca la ruta de su computadora
+function inside(file, cwd) {
+  const f = String(file).replace(/\\\\/g, '/'), d = String(cwd || '').replace(/\\\\/g, '/').replace(/\\/+$/, '');
+  if (d && f.toLowerCase().startsWith(d.toLowerCase() + '/')) return d.split('/').pop() + f.slice(d.length);
+  return f.split('/').pop();
 }
 let body = '';
 process.stdin.setEncoding('utf8');
@@ -79,7 +91,7 @@ for (const ev of Object.keys(s.hooks)) {
 }
 if (!uninstall) {
   fs.mkdirSync(DIR, { recursive: true });
-  fs.writeFileSync(CONF, JSON.stringify({ url: a.replace(/\/+$/, ''), cred: b, detail }) + '\n', { mode: 0o600 });
+  fs.writeFileSync(CONF, JSON.stringify({ url: a.replace(/\/+$/, ''), cred: b, detail, prompts }) + '\n', { mode: 0o600 });
   try { fs.chmodSync(CONF, 0o600); } catch { }
   fs.writeFileSync(FWD, FORWARDER, { mode: 0o700 });
   // barras normales y comillas: el mismo comando sirve en cmd, PowerShell y bash
@@ -94,4 +106,4 @@ if (!uninstall) {
 if (!Object.keys(s.hooks).length) delete s.hooks;
 fs.mkdirSync(DIR, { recursive: true });
 fs.writeFileSync(SETTINGS, JSON.stringify(s, null, 2) + '\n');
-console.log(uninstall ? 'Hooks de Atalaya quitados.' : `Hooks de Atalaya instalados. Abra una sesión nueva de Claude Code y aparecerá en su pantalla.\nSe envía: qué está haciendo Claude (herramienta y proyecto)${detail ? ', el archivo o comando de cada paso y el comienzo de cada instrucción' : ''}. Nunca el contenido de sus archivos ni las respuestas.\nEl filtro está en ${FWD.replace(/\\/g, '/')} por si quiere leerlo.`);
+console.log(uninstall ? 'Hooks de Atalaya quitados.' : `Hooks de Atalaya instalados. Abra una sesión nueva de Claude Code y aparecerá en su pantalla.\nSe envía: qué está haciendo Claude (herramienta y proyecto)${detail ? ', el archivo o comando de cada paso' : ''}${prompts ? ', el comienzo de cada instrucción que usted escribe' : ''}. Nunca el contenido de sus archivos ni las respuestas.\nEl filtro está en ${FWD.replace(/\\/g, '/')} por si quiere leerlo.`);

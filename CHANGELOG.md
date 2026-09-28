@@ -14,6 +14,16 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.85.0] - 2026-09-28
+
+### Cambiado
+- **Claude Code desde su computadora: usted elige por separado qué se envía.** Antes «el detalle» traía juntos el archivo o comando de cada paso y el comienzo de lo que usted escribe. Ahora son dos casillas, las dos apagadas: puede ver archivos y comandos sin enviar sus instrucciones.
+- De cada archivo se envía su ruta dentro del proyecto, no la ruta de su computadora.
+- El servidor descarta las instrucciones de cualquier equipo que no las haya pedido a propósito, aunque el equipo las envíe.
+
+### Requiere acción
+- Si conectó su computadora con «el detalle» encendido: sus instrucciones ya no se muestran. Para que además dejen de salir de su computadora, genere el comando de nuevo en menú › Conectar o arreglar proyectos y péguelo.
+
 ## [0.84.4] - 2026-09-28
 
 ### Corregido
@@ -1568,7 +1578,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.4...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.0...HEAD
+[0.85.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.4...v0.85.0
 [0.84.4]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.3...v0.84.4
 [0.84.3]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.2...v0.84.3
 [0.84.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.1...v0.84.2
