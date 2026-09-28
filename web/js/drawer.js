@@ -541,12 +541,12 @@ export class Drawer {
   }
 
   renderApp(d) {
-    const SRC = { pm2: 'Proceso PM2', systemd: 'Servicio systemd', docker: 'Contenedor Docker', vercel: 'Proyecto Vercel', supabase: 'Proyecto Supabase', cloudflare: d.cfKind === 'worker' ? 'Worker de Cloudflare' : 'Proyecto de Cloudflare Pages' };
+    const SRC = { pm2: 'Proceso PM2', systemd: 'Servicio systemd', docker: 'Contenedor Docker', vercel: 'Proyecto Vercel', supabase: 'Proyecto Supabase', cloudflare: d.cfKind === 'worker' ? 'Worker de Cloudflare' : 'Proyecto de Cloudflare Pages', beat: 'Latido' };
     this.setHead('app:' + d.id + d.icon, signCanvas(d.icon, 4), d.name || d.category,
       `${esc(d.name !== d.category ? d.category : '')}${d.name !== d.category && d.category ? ' · ' : ''}${SRC[d.source] || ''} · <a data-go="district:${esc(d.account)}">${esc(d.accountLabel)}</a>`,
       `<span class="pill ${statusCls(d.status)}">${STATUS_LABEL[d.status] || d.status}</span>`);
     // en Cloudflare no hay CPU ni memoria que medir: la ficha va sin graficas
-    this.frame(d.source === 'cloudflare' ? [] : [
+    this.frame(d.source === 'cloudflare' || d.source === 'beat' ? [] : [
       { title: 'CPU · 10 min', series: [{ stroke: '#22d3ee', width: 2, fill: 'rgba(34,211,238,.1)', points: { show: false } }], min: 5, fmt: v => v + '%' },
       { title: 'Memoria · 10 min', series: [{ stroke: '#a78bfa', width: 2, fill: 'rgba(167,139,250,.1)', points: { show: false } }], min: 1, fmt: v => fmtBytes(v * 1048576) },
       { title: 'Visitas cada 10 s', series: [{ stroke: '#67e8f9', width: 2, points: { show: false } }, { stroke: '#ef4444', width: 2, points: { show: false } }], min: 2 },
@@ -555,7 +555,7 @@ export class Drawer {
     this.setChart(1, d.hist, [r => Math.round(r.mem / 1048576)]);
     this.setChart(2, d.req, [r => r.req, r => r.err]);
     const priv = d.port !== undefined || d.domains;
-    const top = d.source === 'cloudflare' ? '' : `<div class="dstats">
+    const top = d.source === 'cloudflare' || d.source === 'beat' ? '' : `<div class="dstats">
         ${stat('CPU', d.cpu.toFixed(1) + '%')}${stat('Memoria', fmtBytes(d.mem))}${stat('Visitas / min', fmtNum(d.reqMin))}
         ${stat('Instancias', `${d.online}/${d.instances}`, d.online < d.instances ? 'bad' : '')}${stat('En línea hace', d.uptime ? dur(d.uptime) : '–')}
         ${stat('Reinicios vistos', d.restarts, d.restarts ? 'warn' : '')}
@@ -586,6 +586,7 @@ export class Drawer {
     const tr = this.trafficHtml(d);
     const events = d.events.length ? d.events.slice().reverse().map(e => `<li><time>${hhmm(e.t)}</time><span>${e.action === 'down' ? px('fire') + ' Se cayó' : px('refresh') + ' Se reinició'}</span></li>`).join('')
       : '<li class="dmuted">Sin reinicios ni caídas desde que Atalaya lo vigila.</li>';
+    if (d.source === 'beat') return this.content(beatHtml(d));
     if (d.source === 'cloudflare') return this.content(top + cloud);
     this.content(top + cloud + tr.hour, `${tr.rank}${tr.recent}
       <section class="dsec"><h4>Reinicios y caídas</h4><ul class="dlist">${events}</ul></section>`);
@@ -662,7 +663,7 @@ export class Drawer {
     if (h) return this.renderHosting(d, h);
     const apps = d.apps.map(a => `<li class="link" data-go="app:${esc(a.id)}"><span class="sico" data-icon="${esc(a.icon)}"></span>
         <span class="grow"><b>${esc(a.name)}</b>${a.name !== a.category && a.category ? ` <span class="dmuted">· ${esc(a.category)}</span>` : ''}${a.domains?.length ? `<br><span class="dmuted mono">${a.domains.map(esc).join(' · ')}</span>` : ''}</span>
-        <span class="pill ${statusCls(a.status)}">${STATUS_LABEL[a.status]}</span>${a.source === 'cloudflare' ? '' : `<span class="mono dmuted">${a.cpu.toFixed(1)}% · ${fmtBytes(a.mem)}</span>`}</li>`).join('');
+        <span class="pill ${statusCls(a.status)}">${STATUS_LABEL[a.status]}</span>${a.source === 'cloudflare' || a.source === 'beat' ? '' : `<span class="mono dmuted">${a.cpu.toFixed(1)}% · ${fmtBytes(a.mem)}</span>`}</li>`).join('');
     const ses = d.sessions.length ? d.sessions.map(x => `<li class="link" data-go="session:${esc(x.id)}"><span class="pill ${x.state}">${STATE_LABEL[x.state]}</span>
         <span class="grow">${esc(x.title || 'Agente de Claude')}</span><span class="dmuted">${esc(x.activity)}</span></li>`).join('') : '<li class="dmuted">Sin agentes en este distrito.</li>';
     const sites = d.sites.length ? d.sites.map(x => `<li class="link" data-go="site:${esc(x.id)}"><span class="sico" data-icon="${esc(x.icon)}"></span>
@@ -787,6 +788,19 @@ export class Drawer {
           : 'La renovación automática suele hacerse unos 30 días antes: está fallando. En WHM › SSL/TLS › Manage AutoSSL › Logs vea el motivo (lo usual: el dominio ya no apunta aquí o Cloudflare bloquea la validación) y pulse «Run AutoSSL» para la cuenta.';
         body.insertAdjacentHTML('afterbegin', `<section class="dsec"><div class="afind ${c.level}"><h5>${px(c.level)} ${title}</h5><p class="dmuted">Emitido por ${esc(c.issuer)} · vence el ${when}</p><p class="fix">${fix}</p></div></section>`);
       } else body.insertAdjacentHTML('beforeend', `<section class="dsec"><h4>Certificado SSL</h4><p class="dmuted">${esc(c.issuer)} · vence el ${when} (en ${c.days} días)${c.n > 1 ? ` · el más próximo de sus ${c.n} dominios` : ''}. Se renueva solo.</p></section>`);
+    }
+    // revision web diaria del sitio vigilado: lo grave arriba, con como empezar a arreglarlo
+    if (d.avail) {
+      const R = d.webrules, LV = { bad: 'bad', warn: 'warn', info: 'info' };
+      const rows = R ? R.findings.map(f => `<div class="afind ${LV[f.level] || 'info'}"><h5>${px(f.level === 'bad' ? 'bad' : f.level === 'warn' ? 'warn' : 'info')} ${esc(f.text)}</h5>${f.fix ? `<p class="fix">${esc(f.fix)}</p>` : ''}</div>`).join('') : '';
+      body.insertAdjacentHTML(R && R.findings.some(f => f.level === 'bad') ? 'afterbegin' : 'beforeend', `<section class="dsec"><h4>${px('search')} Revisión web diaria</h4>
+        ${!R ? '<p class="dmuted">Todavía no se hizo la primera revisión: sale a los pocos minutos de agregar el sitio.</p>'
+          : `<p class="dmuted">${R.kind === 'private' ? 'Se revisa como <b>sitio privado</b>: no debe aparecer en buscadores.' : 'Se revisa como <b>sitio público</b>: debe poder leerlo un buscador o una IA.'} Última revisión ${ago(Date.now() - R.at)} atrás.</p>
+            ${rows || `<p>${px('ok')} Sin faltas.</p>`}
+            ${R.unmeasured && R.unmeasured.length ? `<p class="dmuted">${px('warn')} No se pudo medir: ${R.unmeasured.map(esc).join(', ')}. Eso no dice nada del sitio.</p>` : ''}`}
+        ${d.avail.url ? `<p class="row"><button class="btn small ghost" data-web-review="${esc(d.avail.id)}">Revisar ahora</button></p>` : ''}</section>`);
+      const rb = body.querySelector('[data-web-review]');
+      if (rb) rb.addEventListener('click', async () => { rb.disabled = true; rb.textContent = 'Revisando…'; await fetch('api/websites/review', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Atalaya': '1' }, body: JSON.stringify({ id: rb.dataset.webReview }) }).catch(() => { }); this.load && this.load(this.kind, this.id); });
     }
     // sitio vigilado por su dominio: como responde ahora, como le fue en 24 horas y la linea para contar sus visitas
     if (d.avail) {
@@ -1229,4 +1243,23 @@ function cfDistrict(c) {
     <div class="dstats">${stat('Proyectos de Pages', c.pages)}${stat('Workers', c.workers)}${stat('Dominios', c.zones)}</div>
     ${(c.warn || []).map(w => `<p class="dmuted">${px('warn')} ${esc(w)}</p>`).join('')}</section>
     ${(c.traffic || []).map(t => cfTraffic(t, t.zone ? `Visitas de ${esc(t.zone)}` : 'Visitas de un dominio')).join('')}`;
+}
+
+// latido: un cron, un respaldo o un programa que avisa al terminar
+function beatHtml(d) {
+  const b = d.beat; if (!b) return '<p class="dmuted">Sin datos de este latido.</p>';
+  const mins = n => n < 60 ? `${n} min` : n < 1440 ? `${Math.round(n / 60 * 10) / 10} h`.replace('.', ',') : n === 1440 ? '1 día' : `${Math.round(n / 1440 * 10) / 10} días`.replace('.', ',');
+  const head = b.paused ? `<p class="dmuted">${px('clock')} En pausa: no se revisa ni avisa.</p>`
+    : b.state === 'late' ? `<div class="afind bad"><h5>${px('siren')} No dio señal a tiempo</h5><p class="dmuted">Debía avisar cada ${mins(b.every)} (con ${mins(b.grace)} de tolerancia) y ${b.last ? 'la última señal fue hace ' + ago(Date.now() - b.last) : 'no llegó ninguna'}.</p>
+        <p class="fix">Revise que la tarea siga programada y que haya terminado bien: la señal solo se envía cuando el comando termina sin error. Si cambió la dirección o el servidor, vuelva a pegarla.</p></div>`
+    : b.state === 'failed' ? `<div class="afind bad"><h5>${px('siren')} Avisó que falló</h5><p class="dmuted">Hace ${ago(Date.now() - b.last)}${b.lastNote ? ` · «${esc(b.lastNote)}»` : ''}.</p><p class="fix">La tarea corrió pero reportó un error. Revise su registro en el equipo donde corre.</p></div>`
+    : b.state === 'new' ? `<p class="dmuted">${px('clock')} Esperando la primera señal.${b.note ? ' ' + esc(b.note) + '.' : ''}</p>`
+    : `<p>${px('ok')} <b>Al día</b> · última señal hace ${ago(Date.now() - b.last)}</p>`;
+  const S = b.series || [], maxMs = Math.max(1, ...S.map(x => x.ms || 0));
+  const bars = S.length ? `<div class="anahours upbars">${S.slice(-96).map(x => `<i class="${x.ok && x.onTime ? '' : 'bad'}" style="height:${x.ok ? Math.max(12, Math.round((x.ms || 0) / maxMs * 100)) : 100}%" title="${new Date(x.t).toLocaleString('es-VE', { hour12: false, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${x.ok ? (x.onTime ? 'a tiempo' : 'tarde') : 'falló'}"></i>`).join('')}</div>` : '';
+  return `<section class="dsec"><h4>${px('clock')} Latido</h4>${head}
+    <div class="dstats">${stat('Debe avisar', b.every === 1440 ? 'cada día' : 'cada ' + mins(b.every))}${stat('Tolerancia', mins(b.grace))}${stat('Próxima señal', b.next ? (b.next > Date.now() ? 'en ' + ago(b.next - Date.now()) : 'ya debía llegar') : '–', b.next && b.next < Date.now() ? 'warn' : '')}
+      ${stat('A tiempo', b.pct == null ? '–' : String(b.pct).replace('.', ',') + '%')}${stat('Señales', fmtNum(b.beats || 0))}${stat('Con fallo', fmtNum(b.fails || 0), b.fails ? 'warn' : '')}</div>
+    ${bars}
+    <p class="hint">Un latido es una dirección secreta que su tarea toca al terminar bien. Si deja de tocarla, Atalaya avisa. Para cambiarlo o ver la dirección: menú › Conectar un hosting compartido › Latidos.</p></section>`;
 }

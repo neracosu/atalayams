@@ -19,6 +19,7 @@ const CATS = {
   jail: { label: 'Cárcel: IPs que bloqueó la defensa automática', on: true },
   down: { label: 'Caídas: servicios caídos y despliegues fallidos', on: true, critical: true },
   saturation: { label: 'Saturación: servidor al límite', on: true, critical: true },
+  web: { label: 'Revisión web diaria: indexación, robots.txt y bloqueo a las IA', on: true },
   traffic: { label: 'Tráfico: scraping, escaneos y picos de visitas', on: false },
   requests: { label: 'Solicitudes de acceso a Atalaya que llegan a su nube', on: true, cloudOnly: true },
   aportes: { label: 'Aportes de la comunidad (.zip) que llegan a su nube', on: true, cloudOnly: true },
@@ -187,6 +188,15 @@ class Alerts {
     if (e.kind === 'keysvc' && e.action === 'up') return { cat: 'down', key: 'keyup:' + e.label, text: `[BIEN] ${esc(e.label)} volvió a funcionar`, go: 'system:root' };
     if (e.kind === 'cron') return e.action === 'silent' ? { cat: 'down', key: 'cron:' + e.app, text: `[CAÍDA] <b>El reloj de ${esc(e.appName || e.app)} dejó de correr</b> en Cloudflare${e.since ? ` (la última vez fue hace ${Math.max(1, Math.round((this.now() - e.since) / 3600000))} h)` : ''}. No da error: simplemente no corre.`, go }
       : { cat: 'down', key: 'cronok:' + e.app, text: `[BIEN] El reloj de ${esc(e.appName || e.app)} volvió a correr`, go };
+    if (e.kind === 'beat') {
+      const nm = esc(e.name || e.app), mins = Math.max(1, Math.round((e.downFor || 0) / 60000)), span = mins >= 120 ? Math.round(mins / 60) + ' h' : mins + ' min';
+      if (e.action === 'late') return { cat: 'down', key: 'beat:' + e.app, text: `[CAÍDA] <b>${nm}</b> no dio señal: debía avisar cada ${e.every} min y no llegó`, go };
+      if (e.action === 'failed') return { cat: 'down', key: 'beatfail:' + e.app, text: `[CAÍDA] <b>${nm}</b> avisó que falló${e.note ? ': ' + esc(e.note) : ''}`, go };
+      if (e.action === 'back') return { cat: 'down', key: 'beatok:' + e.app, text: `[BIEN] <b>${nm}</b> volvió a dar señal${e.downFor ? ` (estuvo ${span} sin avisar bien)` : ''}`, go };
+      return null;
+    }
+    if (e.kind === 'webrule') return e.action === 'found' ? { cat: 'web', key: `web:${e.domain}:${e.rule}`, text: `[WEB] <b>${esc(e.domain)}</b>: ${esc(e.text)}`, go: 'site-by-domain' }
+      : { cat: 'web', key: `webok:${e.domain}:${e.rule}`, text: `[BIEN] <b>${esc(e.domain)}</b>: ya no aparece la falta «${esc(e.text)}»`, go: 'site-by-domain' };
     if (e.kind === 'uptime') {
       const mins = Math.max(1, Math.round((e.downFor || 0) / 60000));
       return e.action === 'down' ? { cat: 'down', key: 'uptime:' + e.domain, text: `[CAÍDA] <b>${esc(e.domain)}</b> no responde bien: ${esc(e.why || 'sin respuesta')}`, go: 'site-by-domain' }
@@ -210,7 +220,7 @@ class Alerts {
 
   onEvent(e) {
     // todo suma al resumen de la manana
-    if (['watch', 'defense', 'phpfile', 'pm2', 'deploy', 'saturation', 'keysvc', 'mail', 'db', 'uptime', 'cron'].includes(e.kind) && !e.late) {
+    if (['watch', 'defense', 'phpfile', 'pm2', 'deploy', 'saturation', 'keysvc', 'mail', 'db', 'uptime', 'cron', 'beat'].includes(e.kind) && !e.late) {
       this.log.push({ t: this.now(), kind: e.kind, action: e.action, reason: e.reason, by: e.by, dir: e.dir, domain: e.domain });
       if (this.log.length > 5000) this.log.shift();
     }
@@ -307,7 +317,7 @@ class Alerts {
     const L = this.log.filter(x => now - x.t < 86400000), n = f => L.filter(f).length;
     const lines = [];
     const jail = n(x => x.kind === 'defense' && x.action === 'block'), watch = n(x => x.kind === 'watch' && x.action === 'start');
-    const php = n(x => x.kind === 'phpfile' && x.action === 'suspect'), down = n(x => (x.kind === 'pm2' || x.kind === 'keysvc' || x.kind === 'uptime') && x.action === 'down') + n(x => x.kind === 'cron' && x.action === 'silent');
+    const php = n(x => x.kind === 'phpfile' && x.action === 'suspect'), down = n(x => (x.kind === 'pm2' || x.kind === 'keysvc' || x.kind === 'uptime') && x.action === 'down') + n(x => x.kind === 'cron' && x.action === 'silent') + n(x => x.kind === 'beat' && (x.action === 'late' || x.action === 'failed'));
     const bounce = n(x => x.kind === 'mail' && x.dir === 'bounce'), sat = n(x => x.kind === 'saturation' && x.action === 'start');
     if (php) lines.push(`- ${php} posible(s) puerta(s) trasera(s)`);
     if (down) lines.push(`- ${down} caída(s) de servicios`);

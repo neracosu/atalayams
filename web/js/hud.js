@@ -267,6 +267,19 @@ export function tickerEvent(e, accounts, priv) {
     case 'cron':
       addTicker(e.action === 'silent' ? 'siren' : 'ok', e.label || '', e.action === 'silent' ? `El reloj de ${e.appName} DEJÓ DE CORRER en Cloudflare` : `El reloj de ${e.appName} volvió a correr`, e.action === 'silent' ? '#ef4444' : '#4ade80', 'app:' + e.app);
       return;
+    case 'beat': {
+      if (e.action === 'first') { addTicker('ok', e.label || '', `${e.appName} dio su primera señal`, '#4ade80', 'app:' + e.app); return; }
+      const mins = Math.max(1, Math.round((e.downFor || 0) / 60000));
+      const T = { late: ['siren', `${e.appName} NO DIO SEÑAL a tiempo`, '#ef4444'], failed: ['siren', `${e.appName} avisó que FALLÓ${e.note ? ': ' + e.note : ''}`, '#ef4444'], back: ['ok', `${e.appName} volvió a dar señal${e.downFor ? ` · ${mins >= 120 ? Math.round(mins / 60) + ' h' : mins + ' min'}` : ''}`, '#4ade80'] }[e.action];
+      if (T) addTicker(T[0], e.label || '', T[1], T[2], 'app:' + e.app);
+      return;
+    }
+    case 'webrule': {
+      const st = window.atalaya && window.atalaya.state;
+      const nm = e.name || (st && (st.sites.find(x => x.id === e.site) || {}).name) || 'Un sitio';
+      addTicker(e.action === 'found' ? 'warn' : 'ok', e.label || '', e.action === 'found' ? `${nm}: ${e.text}` : `${nm}: se corrigió «${e.text}»`, e.action === 'found' ? '#fbbf24' : '#4ade80', 'site:' + e.site);
+      return;
+    }
     case 'uptime': {
       const st = window.atalaya && window.atalaya.state;
       const nm = e.name || (st && (st.sites.find(x => x.id === e.site) || {}).name) || 'Un sitio';

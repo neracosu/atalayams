@@ -49,6 +49,7 @@ const virtualAccounts = () => [
   ...(typeof secrets !== 'undefined' ? secrets.remotes().map(m => ({ id: '_dev-' + m, label: 'Equipo ' + m, publicLabel: 'Equipo remoto' })) : []),
   ...(typeof agents !== 'undefined' ? agents.virtual() : []),
   ...(typeof websites !== 'undefined' ? websites.virtual() : []),
+  ...(typeof beats !== 'undefined' ? beats.virtual() : []),
 ];
 accounts.virtual = virtualAccounts;
 let virtualKey = '';
@@ -103,8 +104,14 @@ const { WebSites } = require('./websites');
 const websites = new WebSites(cfg, bus);
 websites.onChange = () => { logs.loadDomains(true); accounts.sync(); };
 logs.extra = { vhosts: () => [...agents.vhosts(), ...websites.vhosts()], mains: () => [...agents.mains(), ...websites.mains()] };
+// latidos: un cron, un respaldo o un programa toca su direccion al terminar; si calla, se avisa
+const { Heartbeats, snippets: beatSnippets } = require('./heartbeats');
+const beats = new Heartbeats(cfg, bus);
+beats.onChange = () => accounts.sync();
+host.extra.push({ get apps() { return beats.apps(true); } });
+beats.start();
 host.extra.push(connectors);
-const ctx = { host, claude, logs, history, services, docker, connectors, metrics, diskmap, dbAudit, jobs, agents, websites };
+const ctx = { beats,  host, claude, logs, history, services, docker, connectors, metrics, diskmap, dbAudit, jobs, agents, websites };
 websites.start();
 // revisiones del servidor: respaldos, actualizaciones, cola de correo, cron y puertos (solo lectura)
 const { HostAudit } = require('./audits/host');
@@ -138,6 +145,12 @@ const { ServiceAudit } = require('./audits/services');
 ctx.svcAudit = new ServiceAudit(cfg, bus);
 ctx.hostAudit.extra.push(() => ctx.svcAudit.section());
 ctx.svcAudit.onUpdate = () => ctx.hostAudit.refresh();
+// revision web diaria de los sitios vigilados: indexacion, robots.txt, bloqueo a las IA, pagina vacia
+const { WebRules } = require('./audits/webrules');
+ctx.webrules = new WebRules(cfg, websites, bus);
+ctx.hostAudit.extra.push(() => ctx.webrules.section());
+ctx.webrules.onUpdate = () => ctx.hostAudit.refresh();
+ctx.webrules.start();
 // accesos a cPanel, WHM y webmail: contrasenas equivocadas y entradas desde IPs nuevas
 const { LoginAudit } = require('./audits/logins');
 ctx.logins = new LoginAudit(cfg, bus);
@@ -184,7 +197,7 @@ ctx.analytics = new Analytics(cfg, bus, { domainsOf: key => {
 } });
 ctx.analytics.start();
 // al detenerse, se guarda lo ultimo de la analitica (si no, se recupera releyendo los logs al arrancar)
-process.once('SIGTERM', () => { try { ctx.analytics.flush(); } catch { } process.exit(0); });
+process.once('SIGTERM', () => { try { ctx.analytics.flush(); } catch { } try { beats.stop(); } catch { } process.exit(0); });
 // informe mensual de la analitica por correo, para el cliente final de cada sitio (sale del correo de las alertas)
 const { Reports } = require('./reports');
 ctx.reports = new Reports(cfg, ctx);
@@ -511,6 +524,15 @@ async function handle(req, res) {
   if (p === '/a.js' && req.method === 'GET') {
     return fs.readFile(ROOT + '/web/a.js', (err, data) => err ? send(res, 404, '') : send(res, 200, data, { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'public, max-age=86400', 'Access-Control-Allow-Origin': '*', 'Cross-Origin-Resource-Policy': 'cross-origin' }));
   }
+  // latidos: la direccion secreta que toca un cron o un programa (GET o POST); con tope por IP
+  if (p.startsWith('/latido/')) {
+    const n = (beaconHits.get('l:' + ip) || 0) + 1; beaconHits.set('l:' + ip, n);
+    if (n > 90) return send(res, 429, 'demasiados pedidos\n', { 'Content-Type': 'text/plain; charset=utf-8' });
+    const st = String(url.searchParams.get('estado') || url.searchParams.get('status') || '').toLowerCase();
+    const r = beats.beat(decodeURIComponent(p.slice(8)), { status: /^(fallo|fail|error)/.test(st) ? 'fail' : 'ok', ms: url.searchParams.get('ms'), note: url.searchParams.get('nota') || '' });
+    req.resume();
+    return send(res, r ? 200 : 404, r ? 'ok\n' : 'latido desconocido\n', { 'Content-Type': 'text/plain; charset=utf-8' });
+  }
   if (p === '/api/beacon') {
     const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Content-Type' };
     if (req.method === 'OPTIONS') return send(res, 204, '', cors);
@@ -739,14 +761,28 @@ async function handle(req, res) {
       } catch (e) { return json(res, 400, { error: e.message }); }
       return json(res, 404, { error: 'No encontrado' });
     }
+    // latidos: alta, cambio, direccion nueva y baja
+    if (p.startsWith('/api/beats/')) {
+      if (session.role !== 'owner') return json(res, 403, { error: 'Solo un dueño puede administrar los latidos' });
+      try {
+        const base = (cfg.publicUrl || `https://${req.headers.host}`).replace(/\/+$/, ''), withUrl = r => { const u = `${base}/latido/${r.token}`; return { id: r.id, url: u, snippets: beatSnippets(u) }; };
+        if (p === '/api/beats/list') return json(res, 200, { beats: beats.list(true), max: cfg.limits && cfg.limits.beats != null ? cfg.limits.beats : null });
+        if (p === '/api/beats/create') { const r = beats.create({ name: body.name, every: Number(body.every), grace: body.grace ? Number(body.grace) : undefined }); res.atalayaNote = `cada ${r.every} min`; console.log(`[latidos] ${session.user} creó ${r.id}`); return json(res, 200, { ok: true, ...withUrl(r), name: r.name, every: r.every, grace: r.grace }); }
+        if (p === '/api/beats/retoken') return json(res, 200, { ok: true, ...withUrl(beats.retoken(String(body.id || ''))) });
+        if (p === '/api/beats/update') return json(res, 200, { ok: true, beat: beats.update(String(body.id || ''), { name: body.name, every: body.every != null ? Number(body.every) : undefined, grace: body.grace != null ? Number(body.grace) : undefined, paused: body.paused }) });
+        if (p === '/api/beats/remove') { beats.remove(String(body.id || '')); console.log(`[latidos] ${session.user} quitó ${body.id}`); return json(res, 200, { ok: true }); }
+      } catch (e) { return json(res, 400, { error: e.message }); }
+      return json(res, 404, { error: 'No encontrado' });
+    }
     // sitios vigilados por su dominio: alta, cambio, baja y medir ahora
     if (p.startsWith('/api/websites/')) {
       if (session.role !== 'owner') return json(res, 403, { error: 'Solo un dueño puede administrar los sitios vigilados' });
       try {
         const W = ctx.websites, withToken = x => ({ ...x, siteToken: ctx.analytics.siteToken('site:' + W.groupId(x.id)) });
         if (p === '/api/websites/list') return json(res, 200, { sites: W.list().map(withToken), script: new URL('a.js', (cfg.publicUrl || `https://${req.headers.host}`).replace(/\/?$/, '/')).href, max: cfg.limits && cfg.limits.sites != null ? cfg.limits.sites : null });
-        if (p === '/api/websites/add') { const r = W.add(body || {}); res.atalayaNote = `${r.domain}${r.expect ? ' · espera ' + r.expect : ''}${r.phrase ? ' · con frase' : ''}`; console.log(`[sitios] ${session.user} ${body.edit ? 'cambió' : 'agregó'} ${r.domain}`); return json(res, 200, { ok: true, site: withToken(r) }); }
+        if (p === '/api/websites/add') { const r = W.add(body || {}); setTimeout(() => ctx.webrules.check(r.id).catch(() => { }), 45000); res.atalayaNote = `${r.domain}${r.expect ? ' · espera ' + r.expect : ''}${r.phrase ? ' · con frase' : ''}`; console.log(`[sitios] ${session.user} ${body.edit ? 'cambió' : 'agregó'} ${r.domain}`); return json(res, 200, { ok: true, site: withToken(r) }); }
         if (p === '/api/websites/remove') { W.remove(String(body.id || '')); console.log(`[sitios] ${session.user} quitó ${body.id}`); return json(res, 200, { ok: true }); }
+        if (p === '/api/websites/review') { const r = await ctx.webrules.check(String(body.id || '')); if (!r) throw new Error('No vigila ese sitio'); return json(res, 200, { ok: true, review: r }); }
         if (p === '/api/websites/check') { const st = await W.check(String(body.id || '')); if (!st) throw new Error('No vigila ese sitio'); return json(res, 200, { ok: true, site: W.list().find(x => x.id === body.id) }); }
       } catch (e) { return json(res, 400, { error: e.message }); }
       return json(res, 404, { error: 'No encontrado' });

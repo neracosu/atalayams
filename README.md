@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.79.1-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.80.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -62,6 +62,10 @@ revisar y cómo arreglarlo**.
 <p align="center"><sub>Un escaneo con dos <b>patrullas voladoras</b> junto al edificio, un <b>pico de visitas</b> con reflectores y el <b>director</b> contando qué pasa. Datos del simulador, en modo público.</sub></p>
 
 <table>
+  <tr>
+    <td width="50%" colspan="2" valign="top"><img src="docs/icons/ok.svg" width="40"><br><b>Latidos: lo que debía correr, ¿corrió?</b><br><sub>Un respaldo, una tarea cron o un programa instalado en el local de un cliente no dan error cuando fallan: simplemente no corren. Con un <b>latido</b>, la tarea toca una dirección secreta al terminar; si deja de tocarla, Atalaya avisa. También puede avisar que falló. Ejemplos listos para cron, Node, Workers de Cloudflare y PowerShell.</sub></td>
+    <td valign="top"><img src="docs/icons/search.svg" width="40"><br><b>Revisión web diaria</b><br><sub>Cada sitio vigilado se revisa como lo ve un buscador: privados o espejos que <b>se pueden indexar</b>, públicos que <b>dejaron de indexarse</b>, páginas que llegan <b>vacías</b> y <code>robots.txt</code> que <b>bloquea a las IA</b>. Cada falta trae cómo empezar a arreglarla.</sub></td>
+  </tr>
   <tr>
     <td colspan="3" valign="top"><img src="docs/icons/cloud.svg" width="40"><br><b>Cloudflare: Pages, Workers y visitas</b><br><sub>Con un token de <b>solo lectura</b>, sus proyectos de Pages y sus Workers son edificios. Ve cada <b>despliegue</b> (construyendo, listo, falló), las <b>corridas</b> de cada Worker y las <b>visitas de cada dominio</b> sin pegar nada en el sitio. Y algo que Cloudflare no avisa: si un <b>reloj (cron) deja de correr</b> no hay error, solo silencio; Atalaya lo nota, pone el edificio en rojo y avisa.</sub></td>
   </tr>
@@ -474,6 +478,36 @@ El plugin **no registra rutas públicas**: solo envía. WordPress 5.6+ y PHP 7.4
 </details>
 
 <details>
+<summary><b>Latidos</b> (respaldos, tareas cron y programas)</summary>
+
+<br>
+
+1. En su Atalaya: menú › **Conectar un hosting compartido** › **Latidos**. Escriba un nombre y cada cuánto debe avisar.
+2. Atalaya le da una **dirección secreta**. Se muestra una sola vez.
+3. Haga que su tarea la toque al terminar bien:
+
+```sh
+# al final de una tarea cron: solo avisa si el comando terminó sin error
+0 3 * * * /home/ana/respaldo.sh && curl -fsS -m 10 https://SU-ATALAYA/latido/SU-TOKEN
+
+# avisar que falló
+/home/ana/respaldo.sh || curl -fsS -m 10 "https://SU-ATALAYA/latido/SU-TOKEN?estado=fallo"
+```
+
+| Estado | Qué significa |
+|---|---|
+| Al día | La última señal llegó a tiempo |
+| Atrasado | Pasó el plazo más la tolerancia y no llegó: avisa |
+| Avisó que falló | La tarea corrió pero reportó un error: avisa |
+| Esperando la primera señal | Recién creado: no avisa hasta que llegue la primera |
+| En pausa | No se revisa ni avisa |
+
+La tolerancia es el 20 % del plazo (mínimo 5 minutos). De la dirección se guarda solo su huella; si la pierde,
+genere una nueva. En modo público no se muestran los nombres de los latidos.
+
+</details>
+
+<details>
 <summary><b>Conectar Cloudflare</b> (Pages, Workers y visitas)</summary>
 
 <br>
@@ -527,6 +561,22 @@ Atalaya lo visita cada 5 minutos desde donde corre, así que ve lo mismo que un 
 prueba otra vez a los 30 segundos antes de darlo por caído. Si tampoco responde una dirección de control,
 el problema es de la conexión de Atalaya: la ficha dice «sin medir» y no se envía ningún aviso.
 Guarda las medidas de las últimas 24 horas (disponibilidad y tiempo de respuesta).
+
+**Revisión web diaria.** Una vez al día, y al agregar el sitio, Atalaya lo visita como un buscador. Un sitio
+es **privado** si espera 401 o 403, o si su dominio es un espejo técnico (`.pages.dev`, `.vercel.app`,
+`.netlify.app`, `.workers.dev`); si no, es **público**.
+
+| Falta | Nivel | En qué sitios |
+|---|---|---|
+| Se puede indexar | Grave | Privados |
+| Dejó de indexarse (`noindex`) | Grave | Públicos |
+| Llega vacío a buscadores e IA | Grave | Públicos |
+| Sin `robots.txt` de verdad | Grave | Públicos |
+| `robots.txt` bloquea a las IA, o a todos | Grave | Públicos |
+| Sin sitemap, sin título, sin H1, 200 a una dirección inventada | Aviso | Públicos |
+| Sin descripción, sin datos estructurados, sin `llms.txt` | Sugerencia | Públicos |
+
+Solo las graves avisan por Telegram o correo, una vez al aparecer y una al corregirse.
 
 **Visitas**: de estos sitios no hay registros del servidor. La ficha del sitio le da una línea para pegar
 antes de `</head>`; con ella ve visitantes, países, páginas, de dónde llegan, tiempo en la página y
@@ -603,6 +653,7 @@ se toman en caliente.
 | Distrito | Una cuenta de cPanel, un usuario, un hosting, un WordPress o una cuenta de nube |
 | Edificio | Un proceso de PM2, un servicio de systemd, un contenedor o un proyecto de Vercel. Altura = memoria, techo naranja = CPU, ventanas = visitas |
 | Edificio bajo | Un sitio servido directo (WordPress, PHP, estático, en construcción) |
+| Edificio de un latido | Una tarea que debe avisar. Rojo si se atrasó o avisó que falló; ámbar mientras espera la primera señal |
 | Edificio de Cloudflare | Un proyecto de Pages o un Worker. Rojo si falló su último despliegue a producción o si su reloj dejó de correr |
 | Distrito «Sitios vigilados» | Los sitios que Atalaya visita desde afuera por su dominio; el que no responde se ve caído |
 | Luz del techo | Verde en línea, ámbar parcial o desplegando, roja caído |

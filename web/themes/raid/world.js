@@ -44,7 +44,7 @@ const CLASSES = {
 };
 function classOf(it) {
   if (it._k === 'site') return it.type === 'wordpress' ? 'arquero' : it.type === 'php' ? 'picaro' : 'arquero';
-  return { pm2: 'guerrero', systemd: 'paladin', docker: 'ingeniero', vercel: 'mago', cloudflare: 'mago', supabase: 'sacerdote' }[it.source] || 'guerrero';
+  return { pm2: 'guerrero', systemd: 'paladin', docker: 'ingeniero', vercel: 'mago', cloudflare: 'mago', beat: 'sacerdote', supabase: 'sacerdote' }[it.source] || 'guerrero';
 }
 function heroRows(cls) {
   const base = [

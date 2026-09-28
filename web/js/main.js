@@ -317,8 +317,52 @@ function bindSites(W, again) {
     if (r.error) flash(r.error); else again();
   }));
 }
-async function renderHosting(created, madeSite) {
+// latidos: una direccion secreta que un cron, un respaldo o un programa toca al terminar
+function beatsSection(B, made) {
+  const ST = { ok: ['ok', 'al día'], late: ['bad', 'atrasado'], failed: ['bad', 'falló'], new: ['waiting', 'sin señal aún'] };
+  const every = n => n < 60 ? `${n} min` : n < 1440 ? `${Math.round(n / 6) / 10} h`.replace('.', ',') : n === 1440 ? 'día' : n === 10080 ? 'semana' : `${Math.round(n / 144) / 10} días`.replace('.', ',');
+  const rows = (B.beats || []).map(x => `<li><span class="pill ${x.paused ? 'waiting' : (ST[x.state] || ST.new)[0]}">${x.paused ? 'en pausa' : (ST[x.state] || ST.new)[1]}</span>
+      <span class="grow"><b>${ie(x.name)}</b><br><span class="dmuted">cada ${every(x.every)}${x.last ? ' · última señal hace ' + Math.max(1, Math.round((Date.now() - x.last) / 60000)) + ' min' : ''}</span></span>
+      <button class="btn small ghost" data-beat-url="${ie(x.id)}">Dirección nueva</button><button class="btn small ghost" data-beat-pause="${ie(x.id)}" data-on="${x.paused ? '' : '1'}">${x.paused ? 'Reanudar' : 'Pausar'}</button><button class="btn small ghost" data-beat-remove="${ie(x.id)}" data-beat-name="${ie(x.name)}">Quitar</button></li>`).join('');
+  const how = m => `<div class="newagent"><h4>${px('ok')} ${m.name ? 'Listo: «' + ie(m.name) + '»' : 'Dirección nueva'}</h4>
+      <p class="lhelp">Esta es la dirección secreta del latido. <b>Se muestra solo esta vez</b>: quien la tenga puede dar la señal.</p>${copyBox('beaturl', m.url)}
+      <p class="lhelp">Haga que su tarea la toque <b>al terminar bien</b>. Ejemplos:</p>
+      ${(m.snippets || []).map(s => `<details${s.id === 'cron' ? ' open' : ''}><summary class="dmuted">${ie(s.title)}</summary>${copyBox('bs-' + s.id, s.code)}</details>`).join('')}</div>`;
+  return `<section class="sitebox"><h4>${px('clock')} Latidos: respaldos, tareas cron y programas</h4>
+      <p class="lhelp">Para saber que algo <b>sí corrió</b>. Su respaldo, su cron o su programa toca una dirección al terminar; si deja de tocarla, Atalaya le avisa. Sirve para lo que nunca da error cuando falla: simplemente no corre.</p>
+      ${made ? how(made) : ''}
+      <form id="beatForm" class="agform"><input name="name" placeholder="Nombre (ej. Respaldo de la tienda)" maxlength="60" required>
+        <select name="every" aria-label="Cada cuánto debe avisar"><option value="5">Cada 5 minutos</option><option value="15">Cada 15 minutos</option><option value="60">Cada hora</option><option value="360">Cada 6 horas</option><option value="1440" selected>Una vez al día</option><option value="10080">Una vez a la semana</option></select>
+        <button class="btn small">Crear latido</button></form>
+      <p class="dmuted" id="beatErr"></p>
+      ${rows ? `<ul class="dlist">${rows}</ul>` : ''}${B.max != null ? `<p class="lhelp">Su plan permite ${B.max} latidos.</p>` : ''}</section>`;
+}
+function bindBeats(again) {
+  $('beatForm').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const f = new FormData(ev.target);
+    const r = await ipost('api/beats/create', { name: f.get('name'), every: Number(f.get('every')) });
+    if (r.error) { $('beatErr').textContent = r.error; return; }
+    again(r);
+  });
+  $('instBody').querySelectorAll('[data-beat-url]').forEach(b => b.addEventListener('click', async () => {
+    if (!(await ask({ title: 'Generar una dirección nueva', danger: true, icon: 'clock', ok: 'Generar', body: 'La dirección anterior deja de servir: tendrá que pegar la nueva en su tarea.' }))) return;
+    const r = await ipost('api/beats/retoken', { id: b.dataset.beatUrl });
+    if (r.error) flash(r.error); else again(r);
+  }));
+  $('instBody').querySelectorAll('[data-beat-pause]').forEach(b => b.addEventListener('click', async () => {
+    const r = await ipost('api/beats/update', { id: b.dataset.beatPause, paused: !!b.dataset.on });
+    if (r.error) flash(r.error); else again();
+  }));
+  $('instBody').querySelectorAll('[data-beat-remove]').forEach(b => b.addEventListener('click', async () => {
+    if (!(await ask({ title: `Quitar el latido «${b.dataset.beatName}»`, danger: true, icon: 'clock', ok: 'Quitar', body: 'Atalaya deja de esperarlo y su dirección deja de servir.' }))) return;
+    const r = await ipost('api/beats/remove', { id: b.dataset.beatRemove });
+    if (r.error) flash(r.error); else again();
+  }));
+}
+async function renderHosting(created, madeSite, madeBeat) {
   const W = await ipost('api/websites/list');
+  const B = await ipost('api/beats/list');
   const list = await ipost('api/agents/list');
   const rows = (list.agents || []).map(a => `<li><span class="pill ${a.pending ? 'waiting' : a.stale ? 'bad' : 'ok'}">${a.pending ? 'sin vincular' : a.stale ? 'sin señal' : 'conectado'}</span>
       <span class="grow"><b>${ie(a.label || a.id)}</b>${a.user ? ` <span class="dmuted mono">${ie(a.user)}@${ie(a.host)}</span>` : ''}</span>
@@ -342,6 +386,7 @@ async function renderHosting(created, madeSite) {
       Un agente pequeño corre por cron cada minuto, <b>lee solo esa cuenta</b> y envía los datos a esta pantalla. No se instala nada en <code>public_html</code>, no usa base de datos y no abre puertos.</p>
     ${got}
     ${W.error ? '' : sitesSection(W, madeSite)}
+    ${B.error ? '' : beatsSection(B, madeBeat)}
     <section class="wpbox"><h4>${px('wp')} Conectar un sitio WordPress (sin terminal ni cron)</h4>
       <p class="lhelp">Descargue el plugin <b>ya configurado</b> para este Atalaya, súbalo en <b>wp-admin › Plugins › Añadir nuevo › Subir plugin</b> y actívelo: se conecta solo.
         Además de lo del hosting, ve lo que solo se sabe desde adentro: versión de WordPress, plugins y temas por actualizar, PHP sin soporte, errores visibles, usuario «admin» y más.</p>
@@ -361,6 +406,7 @@ async function renderHosting(created, madeSite) {
       buzones de correo, uso de recursos y tareas cron (con los secretos tapados). Con <b>Analizar ahora</b> puede pedirle qué carpetas ocupan más espacio.
       Necesita <code>curl</code> y cron, que traen todos los hostings; con cPanel se aprovecha además <code>uapi</code>.</p></section>`;
   if (!W.error) bindSites(W, made => renderHosting(null, made));
+  if (!B.error) bindBeats(made => renderHosting(null, null, made));
   $('hcmd').addEventListener('click', async () => {
     const r = await ipost('api/setup/install-command');
     $('hcmdOut').innerHTML = r.hostingCommand ? `${copyBox('hosting', r.hostingCommand)}<p class="lhelp">Vale 24 horas y para 5 instalaciones. Sin Node en el hosting, conéctelo arriba como hosting de esta pantalla.</p>` : `<p class="dmuted">${ie(r.error || 'No se pudo generar')}</p>`;

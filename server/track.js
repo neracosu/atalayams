@@ -8,7 +8,7 @@ const path = require('path');
 
 const MAX = 1 << 20;
 // lo que envian las maquinas (agentes, hooks, visitas) no es uso de la persona
-const SKIP = /^\/api\/(clienterror$|beacon|agent\/|hook\/|drains\/|stream|me$|acceso$|themes$|changelog$|favicon\/|setup\/(mode|state|result)$)/;
+const SKIP = /^\/api\/(clienterror$|beats\/list$|websites\/list$|agents\/list$|beacon|agent\/|hook\/|drains\/|stream|me$|acceso$|themes$|changelog$|favicon\/|setup\/(mode|state|result)$)/;
 const clean = s => String(s == null ? '' : s).replace(/[\r\n]+/g, ' ').replace(/(eyJ[\w-]{10,}\.[\w-]+\.[\w-]+|sb_secret_[\w-]+|gh[pousr]_\w{20,}|github_pat_\w+|\b[A-Za-z0-9_-]{36,}\b)/g, '•••').slice(0, 300);
 
 class Track {

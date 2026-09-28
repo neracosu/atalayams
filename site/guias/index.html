@@ -43,6 +43,7 @@
     <a href="#wordpress"><span data-px="wp"></span> Un sitio WordPress</a>
     <a href="#laptop"><span data-px="laptop"></span> Claude Code en una laptop</a>
     <h4>Vigilar</h4>
+    <a href="#latidos"><span data-px="clock"></span> Latidos: respaldos y tareas cron</a>
     <a href="#alertas"><span data-px="mail"></span> Alertas por Telegram y correo</a>
     <a href="#analitica"><span data-px="chart"></span> Analítica sin cookies</a>
     <a href="#defensa"><span data-px="jail"></span> Defensa y cárcel</a>
@@ -141,6 +142,18 @@
       <div class="tip"><span data-px="trash"></span><span>Para quitarlo del hosting: <code>curl -fsSL https://nube.neracosu.com/su-pantalla/install/agent.sh | sh -s -- --uninstall</code>. En la pantalla, el mismo menú tiene <b>Quitar</b>.</span></div>
     </section>
 
+    <section class="guide" id="latidos">
+      <h2><span data-px="clock"></span> Latidos: saber que algo sí corrió</h2>
+      <p class="meta">2 minutos · Respaldos, tareas cron y programas</p>
+      <ol class="steps">
+        <li><b>En Atalaya:</b><p>menú › Conectar un hosting compartido › <b>Latidos</b>. Escriba un nombre, por ejemplo «Respaldo de la tienda», y cada cuánto debe avisar.</p></li>
+        <li><b>Copie la dirección secreta.</b><p>Se muestra una sola vez. Atalaya le da además ejemplos listos para cron, Node, un Worker de Cloudflare y PowerShell.</p></li>
+        <li><b>Péguela al final de su tarea,</b><p>de modo que solo se toque cuando la tarea terminó bien.</p></li>
+        <li><b>Listo.</b><p>Si la señal deja de llegar, Atalaya le avisa. Cuando vuelve, también.</p></li>
+      </ol>
+      <div class="tip"><span data-px="info"></span><span>Sirve para lo que no da error cuando falla: un respaldo que dejó de hacerse o un programa en el local de un cliente que lleva días apagado.</span></div>
+    </section>
+
     <section class="guide" id="cloudflare">
       <h2><span data-px="cloud"></span> Conectar Cloudflare</h2>
       <p class="meta">3 minutos · Pages, Workers y visitas · Token de solo lectura</p>
@@ -161,7 +174,7 @@
         <li><b>En Atalaya:</b><p>menú › Conectar un hosting compartido › <b>Vigilar un sitio por su dominio</b>. Escriba el dominio, por ejemplo <code>mitienda.com</code>, o una dirección dentro de él, como <code>mitienda.com/api/salud</code>.</p></li>
         <li><b>Diga qué respuesta es la correcta.</b><p>Casi siempre es «que abra bien». Para una puerta que debe exigir llave elija <b>401</b>: si un día abre sin llave, Atalaya le avisa.</p></li>
         <li><b>Escriba una frase que siempre esté en la página</b><p>(opcional), como su lema. Así detecta el sitio que se publicó en blanco o roto, que igual responde «todo bien».</p></li>
-        <li><b>Listo.</b><p>Atalaya lo visita cada 5 minutos y aparece en el mapa, en el distrito «Sitios vigilados». Con las <a href="#alertas">alertas</a> conectadas, avisa una vez al caer y una vez al volver.</p></li>
+        <li><b>Listo.</b><p>Una vez al día Atalaya lo revisa además como un buscador: si un sitio privado se puede indexar, si su <code>robots.txt</code> bloquea a las IA o si la página llega vacía, le avisa. Atalaya lo visita cada 5 minutos y aparece en el mapa, en el distrito «Sitios vigilados». Con las <a href="#alertas">alertas</a> conectadas, avisa una vez al caer y una vez al volver.</p></li>
       </ol>
       <div class="tip"><span data-px="chart"></span><span><b>Para ver sus visitas</b>, abra la ficha del sitio y copie la línea del script. Péguela antes de <code>&lt;/head&gt;</code>: verá visitantes, países, páginas y de dónde llegan. Sin cookies.</span></div>
       <div class="tip"><span data-px="shield"></span><span>Antes de avisar, Atalaya prueba dos veces. Y si es ella la que se quedó sin Internet, dice «sin medir» y no acusa a su sitio.</span></div>

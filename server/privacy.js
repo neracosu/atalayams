@@ -206,7 +206,7 @@ function makePrivacy(cfg) {
       top: host.topProcs,
       accounts,
       apps: host.apps.map(a => ({
-        id: alias(a.account + '/' + a.name), account: accId(a.account, priv), name: appName(a.account, a.name, priv, a.image, a.source === 'vercel' ? a.framework || '' : undefined), source: a.source,
+        id: alias(a.account + '/' + a.name), account: accId(a.account, priv), name: (priv && a.source === 'beat' && a.beat && a.beat.label) || appName(a.account, a.name, priv, a.image, a.source === 'vercel' ? a.framework || '' : undefined), source: a.source,
         kind: appInfo(a.account, a.name, a.image, a.source === 'vercel' ? a.framework || '' : undefined).label || '', icon: appInfo(a.account, a.name, a.image, a.source === 'vercel' ? a.framework || '' : undefined).icon || pickIcon(alias(a.account + '/' + a.name)),
         favicon: priv && ctx.favicons ? ctx.favicons.ready(appDomain(ctx, a)) || undefined : undefined,
         status: a.status, instances: a.instances, online: a.online, cpu: Math.round(a.cpu * 10) / 10, mem: a.mem,
@@ -322,6 +322,15 @@ function makePrivacy(cfg) {
         // un Worker con reloj dejo de correr (o volvio)
         Object.assign(out, { action: e.action, account: acct, app: alias(account + '/' + e.app), appName: appName(account, e.app, priv), label: accLabel(account, priv), since: e.since || 0 });
         break;
+      case 'beat':
+        // un latido se atraso, aviso que fallo, volvio o llego por primera vez; el nombre y la nota solo en privado
+        Object.assign(out, { action: e.action, account: acct, app: alias(account + '/' + e.app), appName: priv ? e.name : appName(account, e.app, false), label: accLabel(account, priv), downFor: e.downFor || 0 });
+        if (priv && e.note) out.note = e.note;
+        break;
+      case 'webrule':
+        // la revision diaria encontro (o ya no encuentra) una falta grave en un sitio vigilado
+        Object.assign(out, { action: e.action, account: acct, label: accLabel(account, priv), site: alias('site:' + e.site), rule: e.rule, text: e.text, name: priv ? e.domain : null });
+        break;
       case 'uptime':
         // un sitio vigilado deja de responder o vuelve: en publico el alias y el motivo; el dominio solo en privado
         Object.assign(out, { action: e.action, account: acct, label: accLabel(account, priv), site: alias('site:' + e.site), why: e.why || null, downFor: e.downFor || 0, name: priv ? e.domain : null });
@@ -353,7 +362,7 @@ function makePrivacy(cfg) {
     const { host, claude, logs, history } = ctx;
     const tilde = p => p ? p.replace(/^\/home\/[^/]+\/?/, '~/').replace(/^\/root\/?/, '/root/') : '';
     const fw = a => a.source === 'vercel' ? a.framework || '' : undefined;
-    const appSummary = a => ({ id: alias(a.account + '/' + a.name), name: appName(a.account, a.name, priv, a.image, fw(a)), category: appInfo(a.account, a.name, a.image, fw(a)).label || '',
+    const appSummary = a => ({ id: alias(a.account + '/' + a.name), name: (priv && a.source === 'beat' && a.beat && a.beat.label) || appName(a.account, a.name, priv, a.image, fw(a)), category: appInfo(a.account, a.name, a.image, fw(a)).label || '',
       icon: appInfo(a.account, a.name, a.image, fw(a)).icon || pickIcon(alias(a.account + '/' + a.name)), favicon: priv && ctx.favicons ? ctx.favicons.ready(appDomain(ctx, a)) || undefined : undefined, source: a.source, status: a.status, cpu: Math.round(a.cpu * 10) / 10, mem: a.mem,
       reqMin: logs.lastMinute.perApp[a.account + '/' + a.name] || a.cfReqMin || 0 });
     const sessSummary = x => ({ id: priv ? x.id : alias(x.id), title: priv ? scrub(x.title) : '', state: x.state,
@@ -389,6 +398,8 @@ function makePrivacy(cfg) {
         traffic: a.traffic ? { day: a.traffic.day, hours: a.traffic.hours, days: a.traffic.days, countries: a.traffic.countries, at: a.traffic.at, ...(priv ? { zone: a.zone } : {}) } : null,
         ...(a.cfKind === 'worker' ? { runs: a.runs, runErrors: a.runErrors, lastRun: a.lastRun, silent: a.silent, every: a.every, hasCron: !!(a.crons && a.crons.length), ...(priv ? { crons: a.crons } : {}) } : {}),
         ...(priv ? { domains: a.domains, repoHost: a.repoHost } : {}) });
+      // latido: cada cuanto debe llegar, cuando llego el ultimo y como le fue; el nombre y la nota solo en privado
+      if (a.source === 'beat' && ctx.beats) out.beat = ctx.beats.info(a.name, true) && (({ id, name, lastNote, ...pub }) => priv ? { id, name, lastNote, ...pub } : pub)(ctx.beats.info(a.name, true));
       if (a.source === 'supabase') Object.assign(out, { memTotal: a.memTotal, disk: a.disk, pooler: a.pooler, dbConns: a.dbConns, dbSize: a.dbSize,
         authReq: a.authReq, metrics: a.metrics, lastScrape: a.lastScrape, ...(priv ? { ref: a.ref, region: a.region } : {}) });
       if (!priv && a.source === 'docker') out.image = String(a.image || '').split('/').pop().split(':')[0]; // solo el nombre de la imagen
@@ -422,7 +433,8 @@ function makePrivacy(cfg) {
       out.probes = probesOf(ctx, 'site:' + g.id);
       // sitio vigilado por su dominio: como responde ahora y en 24 horas, y la linea del script para contar sus visitas
       const up = ctx.websites && ctx.websites.info(g.id, priv);
-      if (up) { out.avail = up; // «uptime» ya es el tiempo en linea de las apps
+      if (up) { out.webrules = ctx.webrules ? ctx.webrules.of(g.id) : null;
+        out.avail = up; // «uptime» ya es el tiempo en linea de las apps
         if (priv && ctx.analytics) out.siteToken = ctx.analytics.siteToken('site:' + g.id); }
       if (ctx.analytics) { out.analytics = ctx.analytics.summary('site:' + g.id); out.cfOnly = ctx.analytics.cfOnly('site:' + g.id); }
       out.watch = watchOf(ctx, 'site:' + g.id, priv);

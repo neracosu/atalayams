@@ -14,6 +14,17 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.80.0] - 2026-09-28
+
+### Agregado
+- **Latidos**: para saber que un respaldo, una tarea cron o un programa **sí corrió**. En menú › Conectar un hosting compartido › Latidos cree uno, diga cada cuánto debe avisar y pegue su dirección al final de la tarea. Si deja de llegar la señal, Atalaya avisa; cuando vuelve, también. La tarea puede avisar además que falló. Trae ejemplos listos para cron, Node, un Worker de Cloudflare y PowerShell.
+- Cada latido es un edificio en el distrito «Latidos»: en rojo si se atrasó o avisó que falló. Su ficha muestra cuándo se espera la próxima señal y qué porcentaje llegó a tiempo.
+- **Revisión web diaria** de los sitios vigilados, como los ve un buscador. Avisa lo grave: un sitio privado o un espejo técnico que **se puede indexar**, un sitio público que **dejó de indexarse**, una página que llega **vacía** a los buscadores, o un `robots.txt` que **bloquea a las IA** (Cloudflare puede encenderlo solo) o a todos. Y sugiere lo demás: sitemap, título, descripción, datos estructurados, `llms.txt` y direcciones inventadas que responden 200.
+- Cada falta dice cómo empezar a arreglarla. Lo que no se pudo medir se dice aparte y no acusa al sitio. Botón **Revisar ahora** en la ficha del sitio.
+
+### Corregido
+- **Fichas largas**: el contenido se recortaba dentro de la ficha y había que desplazarlo aparte. Ahora la ficha tiene un solo desplazamiento.
+
 ## [0.79.1] - 2026-09-28
 
 ### Agregado
@@ -1440,7 +1451,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.1...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.0...HEAD
+[0.80.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.1...v0.80.0
 [0.79.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.0...v0.79.1
 [0.79.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.78.0...v0.79.0
 [0.78.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.1...v0.78.0

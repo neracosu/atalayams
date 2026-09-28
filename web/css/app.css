@@ -682,3 +682,5 @@ small.down { color: var(--bad); font-weight: 700; margin-left: .3rem; }
 .inst .sitebox select { background: #050912; border: 1px solid var(--line-strong); border-radius: 8px; color: var(--ink); padding: .5rem .7rem; font: inherit; font-size: .88rem; flex: 1 1 200px; }
 .inst .sitebox .dlist li { flex-wrap: wrap; }
 .inst .sitebox .dlist li .grow { min-width: 9rem; overflow-wrap: anywhere; }
+/* la ficha tiene un solo scroll (el de .dbody): el contenido no se recorta ni desplaza por dentro; el desborde lateral lo corta .dbody */
+.drawer .dcontent, .drawer .dcontent2 { overflow: visible; }
