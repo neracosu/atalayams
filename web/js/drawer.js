@@ -740,7 +740,7 @@ export class Drawer {
         ${stat('Red ↓ / ↑', `${fmtBytes(s.net.rx)}/s · ${fmtBytes(s.net.tx)}/s`)}${stat('Encendido hace', dur(s.uptime))}${stat('Procesos', s.procs)}
         ${stat('Servicios', `${d.apps}${d.appsDown ? ` (${d.appsDown} con problemas)` : ''}`, d.appsDown ? 'bad' : '')}${stat('Agentes Claude', d.sessions)}
       </div>
-      ${d.connectors && d.connectors.length ? `<section class="dsec"><h4>Conectores de nube</h4><ul class="dlist">${d.connectors.map(c => `<li>
+      ${d.connectors && d.connectors.length ? `<section class="dsec"><h4>Conectores de nube</h4>${d.connectors.some(c => !c.ok || (c.warn || []).length) ? '<p class="dmuted">Hay conectores con problemas. Se arreglan en menú › <a href="setup#conectar"><b>Conectar o arreglar proyectos</b></a>.</p>' : ''}<ul class="dlist">${d.connectors.map(c => `<li>
         <span class="pill ${c.ok ? 'ok' : 'bad'}">${c.ok ? 'conectado' : 'error'}</span><span class="grow"><b>${esc(c.label)}</b> · ${c.projects} proyecto${c.projects === 1 ? '' : 's'}${c.error ? `<br><span class="dmuted">${esc(c.error)}</span>` : ''}${(c.warn || []).map(w => `<br><span class="dmuted">${px('warn')} ${esc(w)}</span>`).join('')}</span>
         <span class="dmuted">${c.lastOk ? 'leído hace ' + ago(Date.now() - c.lastOk) : 'sin lectura'}${c.type === 'vercel' ? (c.drainAt ? ` · visitas hace ${ago(Date.now() - c.drainAt)}` : ' · sin Drain') : ''}</span></li>`).join('')}</ul></section>` : ''}
       ${d.keys && d.keys.length ? `<section class="dsec"><h4>Servicios clave</h4><div class="keys">${d.keys.map(k => `<span class="keysvc ${k.state === 'active' ? 'ok' : k.state === 'failed' ? 'bad' : 'off'}" title="${esc(k.unit)} · ${esc(k.substate || k.state)}">${esc(k.label)}<b>${k.state === 'active' ? 'activo' : k.state === 'failed' ? 'FALLÓ' : k.state === 'inactive' ? 'detenido' : esc(k.state)}</b></span>`).join('')}</div></section>` : ''}`, `<section class="dsec"><h4>Visitantes por país · última hora</h4><ul class="dlist">${bars(d.countries, k => `${flag(k)} ${esc(countryName(k))}`, d.countries.reduce((n, x) => n + x.n, 0))}</ul></section>
@@ -808,7 +808,7 @@ export class Drawer {
       const maxMs = Math.max(1, ...u.series.map(x => x.ms));
       const bars = u.series.length ? `<div class="anahours upbars">${u.series.map(x => `<i class="${x.ok ? '' : 'bad'}" style="height:${x.ok ? Math.max(6, Math.round(x.ms / maxMs * 100)) : 100}%" title="${new Date(x.t).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', hour12: false })} · ${x.ok ? x.ms + ' ms' : 'falló'}"></i>`).join('')}</div>` : '';
       const head = u.ok === false ? `<div class="afind bad"><h5>${px('siren')} No responde bien: ${esc(u.why || 'sin respuesta')}</h5><p class="dmuted">Desde hace ${ago(Date.now() - u.since)}. Atalaya lo probó dos veces antes de avisar.</p>
-          <p class="fix">Ábralo en su navegador. Si tampoco le abre, revise el último despliegue y el estado de su proveedor. Si a usted sí le abre, puede que la frase o la respuesta esperada ya no correspondan: quite el sitio y agréguelo de nuevo desde menú › Instalar.</p></div>`
+          <p class="fix">Ábralo en su navegador. Si tampoco le abre, revise el último despliegue y el estado de su proveedor. Si a usted sí le abre, puede que la frase o la respuesta esperada ya no correspondan: quite el sitio y cámbielo en menú › Vigilar sitios y latidos › Cambiar.</p></div>`
         : u.ok ? `<p>${px('ok')} <b>Responde bien</b>${u.ms ? ` en ${fmtNum(u.ms)} ms` : ''}${u.since ? ` · sin caídas desde hace ${ago(Date.now() - u.since)}` : ''}</p>` : `<p class="dmuted">${px('clock')} Todavía no se midió: la primera visita sale en unos segundos.</p>`;
       const snippet = d.siteToken ? `<script defer src="${new URL('a.js', location.href).href}" data-site="${d.siteToken}"></script>` : '';
       body.insertAdjacentHTML('afterbegin', `<section class="dsec"><h4>Disponibilidad</h4>${head}
@@ -1261,5 +1261,5 @@ function beatHtml(d) {
     <div class="dstats">${stat('Debe avisar', b.every === 1440 ? 'cada día' : 'cada ' + mins(b.every))}${stat('Tolerancia', mins(b.grace))}${stat('Próxima señal', b.next ? (b.next > Date.now() ? 'en ' + ago(b.next - Date.now()) : 'ya debía llegar') : '–', b.next && b.next < Date.now() ? 'warn' : '')}
       ${stat('A tiempo', b.pct == null ? '–' : String(b.pct).replace('.', ',') + '%')}${stat('Señales', fmtNum(b.beats || 0))}${stat('Con fallo', fmtNum(b.fails || 0), b.fails ? 'warn' : '')}</div>
     ${bars}
-    <p class="hint">Un latido es una dirección secreta que su tarea toca al terminar bien. Si deja de tocarla, Atalaya avisa. Para cambiarlo o ver la dirección: menú › Conectar un hosting compartido › Latidos.</p></section>`;
+    <p class="hint">Un latido es una dirección secreta que su tarea toca al terminar bien. Si deja de tocarla, Atalaya avisa. Para cambiarlo o ver la dirección: menú › Vigilar sitios y latidos.</p></section>`;
 }

@@ -72,7 +72,7 @@
         <li><b>Elija la dirección.</b><p>Minúsculas, números y guiones, por ejemplo <code>mi-estudio</code>. No se puede cambiar después.</p></li>
         <li><b>Cree su usuario y un PIN de 6 dígitos.</b><p>Con ellos entrará desde el TV, la computadora o el teléfono. Usted es el <b>dueño</b>: el único que puede ver el modo privado y conectar cosas.</p></li>
         <li><b>Siga el asistente.</b><p>Se abre solo. En <b>Extras</b> conecta Vercel, Supabase, GitHub y sus laptops con Claude Code. Cada campo dice dónde encontrar el dato.</p></li>
-        <li><b>Conecte sus hostings y sitios WordPress</b><p>desde el menú de la pantalla › <b>Conectar un hosting compartido</b>. Las guías de <a href="#agente">hosting</a> y <a href="#wordpress">WordPress</a> lo explican.</p></li>
+        <li><b>Conecte sus hostings y sitios WordPress</b><p>desde el menú de la pantalla › <b>Conectar un hosting o WordPress</b>. Las guías de <a href="#agente">hosting</a> y <a href="#wordpress">WordPress</a> lo explican.</p></li>
       </ol>
       <div class="tip"><span data-px="info"></span><span>Lo que conecte aparece en uno o dos minutos como un distrito nuevo, con sus edificios. Puede volver al asistente cuando quiera: menú › <b>Asistente de configuración</b>.</span></div>
     </section>
@@ -133,7 +133,7 @@
       <p class="meta">5 minutos · cPanel, Hostinger, GoDaddy, Namecheap y otros</p>
       <p>Un agente pequeño corre por cron cada minuto, lee solo esa cuenta y envía los datos a su pantalla. No se instala nada en <code>public_html</code>, no usa base de datos y no abre puertos.</p>
       <ol class="steps">
-        <li><b>En Atalaya:</b><p>menú › <b>Conectar un hosting compartido</b>. Escriba un nombre corto (por ejemplo <code>cliente-godaddy</code>) y pulse <b>Generar código</b>. El código vale 24 horas y sirve una sola vez.</p></li>
+        <li><b>En Atalaya:</b><p>menú › <b>Conectar un hosting o WordPress</b>. Escriba un nombre corto (por ejemplo <code>cliente-godaddy</code>) y pulse <b>Generar código</b>. El código vale 24 horas y sirve una sola vez.</p></li>
         <li><b>Si el hosting tiene Terminal</b><p>(cPanel › Avanzado › Terminal, o SSH), pegue el comando que le mostró Atalaya y pulse Enter. Se ve así:</p>
           <pre class="cmd"><code>curl -fsSL https://nube.neracosu.com/su-pantalla/install/agent.sh | sh -s -- https://nube.neracosu.com/su-pantalla CODIGO</code></pre></li>
         <li><b>Si no tiene Terminal:</b><p>en cPanel › <b>Trabajos de cron</b> (o hPanel › Avanzado › Cron Jobs) cree una tarea <b>cada minuto</b> (<code>* * * * *</code>) con el mismo comando. En su primera ejecución el agente se instala y esa tarea se borra sola.</p></li>
@@ -146,7 +146,7 @@
       <h2><span data-px="clock"></span> Latidos: saber que algo sí corrió</h2>
       <p class="meta">2 minutos · Respaldos, tareas cron y programas</p>
       <ol class="steps">
-        <li><b>En Atalaya:</b><p>menú › Conectar un hosting compartido › <b>Latidos</b>. Escriba un nombre, por ejemplo «Respaldo de la tienda», y cada cuánto debe avisar.</p></li>
+        <li><b>En Atalaya:</b><p>menú › Vigilar sitios y latidos › <b>Latidos</b>. Escriba un nombre, por ejemplo «Respaldo de la tienda», y cada cuánto debe avisar.</p></li>
         <li><b>Copie la dirección secreta.</b><p>Se muestra una sola vez. Atalaya le da además ejemplos listos para cron, Node, un Worker de Cloudflare y PowerShell.</p></li>
         <li><b>Péguela al final de su tarea,</b><p>de modo que solo se toque cuando la tarea terminó bien.</p></li>
         <li><b>Listo.</b><p>Si la señal deja de llegar, Atalaya le avisa. Cuando vuelve, también.</p></li>
@@ -160,7 +160,7 @@
       <ol class="steps">
         <li><b>En Cloudflare:</b><p>su perfil › <b>API Tokens</b> › Create Token › <b>Create Custom Token</b>.</p></li>
         <li><b>Permisos, todos de lectura:</b><p>Account › <b>Cloudflare Pages</b>, <b>Workers Scripts</b> y <b>Account Analytics</b>; Zone › <b>Zone</b> y <b>Analytics</b>.</p></li>
-        <li><b>En Atalaya:</b><p>menú › Asistente de configuración › Extras › <b>Cloudflare</b>. Pegue el token y pulse <b>Guardar conector</b>.</p></li>
+        <li><b>En Atalaya:</b><p>menú › Conectar o arreglar proyectos › <b>Cloudflare</b>. Pegue el token y pulse <b>Guardar conector</b>.</p></li>
         <li><b>Listo.</b><p>En un minuto aparecen sus proyectos de Pages y sus Workers. Las visitas y las corridas, en unos cinco.</p></li>
       </ol>
       <div class="tip"><span data-px="clock"></span><span><b>Relojes que callan.</b> Si un Worker con reloj (cron) deja de correr, Cloudflare no da ningún error. Atalaya lo nota, pone el edificio en rojo y le avisa.</span></div>
@@ -171,7 +171,7 @@
       <h2><span data-px="antenna"></span> Vigilar un sitio por su dominio</h2>
       <p class="meta">1 minuto · Sin instalar nada · Cloudflare Pages, Netlify, Vercel o cualquier sitio</p>
       <ol class="steps">
-        <li><b>En Atalaya:</b><p>menú › Conectar un hosting compartido › <b>Vigilar un sitio por su dominio</b>. Escriba el dominio, por ejemplo <code>mitienda.com</code>, o una dirección dentro de él, como <code>mitienda.com/api/salud</code>.</p></li>
+        <li><b>En Atalaya:</b><p>menú › Vigilar sitios y latidos › <b>Vigilar un sitio por su dominio</b>. Escriba el dominio, por ejemplo <code>mitienda.com</code>, o una dirección dentro de él, como <code>mitienda.com/api/salud</code>.</p></li>
         <li><b>Diga qué respuesta es la correcta.</b><p>Casi siempre es «que abra bien». Para una puerta que debe exigir llave elija <b>401</b>: si un día abre sin llave, Atalaya le avisa.</p></li>
         <li><b>Escriba una frase que siempre esté en la página</b><p>(opcional), como su lema. Así detecta el sitio que se publicó en blanco o roto, que igual responde «todo bien».</p></li>
         <li><b>Listo.</b><p>Una vez al día Atalaya lo revisa además como un buscador: si un sitio privado se puede indexar, si su <code>robots.txt</code> bloquea a las IA o si la página llega vacía, le avisa. Atalaya lo visita cada 5 minutos y aparece en el mapa, en el distrito «Sitios vigilados». Con las <a href="#alertas">alertas</a> conectadas, avisa una vez al caer y una vez al volver.</p></li>
@@ -184,11 +184,11 @@
       <h2><span data-px="wp"></span> Conectar un sitio WordPress</h2>
       <p class="meta">2 minutos · Sin terminal ni cron · WordPress 5.6+ y PHP 7.4+</p>
       <ol class="steps">
-        <li><b>En Atalaya:</b><p>menú › Conectar un hosting compartido › <b>Conectar un sitio WordPress</b>. Escriba un nombre corto y pulse <b>Descargar plugin</b>: baja un .zip ya configurado para su pantalla.</p></li>
+        <li><b>En Atalaya:</b><p>menú › Conectar un hosting o WordPress › <b>Conectar un sitio WordPress</b>. Escriba un nombre corto y pulse <b>Descargar plugin</b>: baja un .zip ya configurado para su pantalla.</p></li>
         <li><b>En WordPress:</b><p>Plugins › Añadir nuevo › <b>Subir plugin</b>, elija el .zip y pulse <b>Activar</b>. Se conecta solo.</p></li>
         <li><b>Listo.</b><p>Verá la versión y las actualizaciones pendientes del núcleo, plugins y temas, PHP y su fin de soporte, y avisos concretos: depuración visible, <code>debug.log</code> descargable, usuario «admin», registro abierto con un rol peligroso, editor de archivos activo, WP-Cron atrasado. También la <a href="#analitica">analítica sin cookies</a> del sitio.</p></li>
       </ol>
-      <div class="tip"><span data-px="info"></span><span><b>¿El plugin ya está instalado?</b> En el mismo lugar (menú › Conectar un hosting compartido › Conectar un sitio WordPress) pulse <b>Ya lo tengo instalado: ver código</b>. Copie la dirección y el código, y péguelos en wp-admin › Ajustes › <b>Atalaya</b>.</span></div>
+      <div class="tip"><span data-px="info"></span><span><b>¿El plugin ya está instalado?</b> En el mismo lugar (menú › Conectar un hosting o WordPress › Conectar un sitio WordPress) pulse <b>Ya lo tengo instalado: ver código</b>. Copie la dirección y el código, y péguelos en wp-admin › Ajustes › <b>Atalaya</b>.</span></div>
       <div class="tip"><span data-px="shield"></span><span>El plugin no registra rutas públicas: solo envía. El código que trae el .zip vence en 24 horas; si lo instala después, genere uno nuevo.</span></div>
     </section>
 

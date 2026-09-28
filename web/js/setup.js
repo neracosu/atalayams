@@ -218,9 +218,9 @@ async function renderAccount() {
     <p class="lead">Atalaya Hosting ve la cuenta a través de un <b>agente</b>: una tarea cron que corre cada minuto, lee sus sitios, visitas, errores, cuota, bases,
       certificados y correo, y los envía a esta pantalla. No toca <code>public_html</code> ni cambia nada.</p>
     <div class="extra"><h3>${px('house')} Esta cuenta<span class="st ${has ? 'ok' : 'off'}" id="ast">${has ? 'conectada' : 'sin conectar'}</span></h3>
-      <p class="hint">Crea la tarea cron <code>* * * * *</code> con el agente en <code>~/.atalaya</code>. Se puede quitar cuando quiera desde el menú ⋮ › Conectar un hosting compartido.</p>
+      <p class="hint">Crea la tarea cron <code>* * * * *</code> con el agente en <code>~/.atalaya</code>. Se puede quitar cuando quiera desde el menú ⋮ › Conectar un hosting o WordPress.</p>
       <div class="row"><button class="btn" id="agl">${has ? 'Reinstalar el agente' : 'Instalar el agente aquí'}</button></div><div id="agout"></div></div>
-    <p class="hint">¿Tiene más hostings (de este u otro proveedor)? Conéctelos después desde el menú ⋮ › <b>Conectar un hosting compartido</b>: todos aparecen en esta misma pantalla.</p>
+    <p class="hint">¿Tiene más hostings (de este u otro proveedor)? Conéctelos después desde el menú ⋮ › <b>Conectar un hosting o WordPress</b>: todos aparecen en esta misma pantalla.</p>
     ${nav('Continuar')}`;
   bindNav();
   $('agl').addEventListener('click', async e => {
@@ -232,9 +232,9 @@ async function renderAccount() {
 
 async function renderExtras() {
   const p = st.platform;
-  card.innerHTML = `<h2>Extras (todo opcional)</h2>
-    <p class="lead">Puede activarlos ahora o más tarde desde el menú ⋮ › Asistente.</p>
-    ${mode.edition === 'cloud' ? `<p class="hint">¿Hostings o sitios WordPress? Se conectan desde la pantalla: menú › <b>Conectar un hosting compartido</b>.</p>` : mode.edition === 'equipo' ? '' : `<div class="extra"><h3>${px('web')} Países de las visitas<span class="st ${st.geo ? 'ok' : 'off'}" id="gst">${st.geo ? 'disponible' : 'sin base'}</span></h3>
+  card.innerHTML = `<h2>${mode.setupMode ? 'Conecte sus proyectos (todo opcional)' : 'Conectar o arreglar proyectos'}</h2>
+    <p class="lead">${mode.setupMode ? 'Puede hacerlo ahora o más tarde desde el menú ⋮ › Conectar o arreglar proyectos.' : 'Aquí conecta sus cuentas de nube y sus computadoras, y quita o corrige las que ya tiene. Se vuelve cuando quiera desde el menú ⋮ › Conectar o arreglar proyectos.'}</p>
+    ${mode.edition === 'cloud' ? `<p class="hint">¿Un sitio en Cloudflare Pages, Netlify u otro lugar, o un respaldo que debe avisar? Desde la pantalla: menú › <b>Vigilar sitios y latidos</b>. ¿Hostings o WordPress? Menú › <b>Conectar un hosting o WordPress</b>.</p>` : mode.edition === 'equipo' ? '' : `<div class="extra"><h3>${px('web')} Países de las visitas<span class="st ${st.geo ? 'ok' : 'off'}" id="gst">${st.geo ? 'disponible' : 'sin base'}</span></h3>
       <p class="hint">Para mostrar la bandera de cada visita. ${st.geo ? 'Ya hay una base en el servidor.' : 'Se descarga la gratuita de DB-IP (~8 MB).'}</p>
       ${st.geo ? '' : '<div class="row"><button class="btn" id="geo">Descargar base de países</button></div>'}</div>`}
     ${mode.edition !== 'vps' ? '' : `<div class="extra"><h3>${px('bot')} Claude Code en este servidor<span class="st off" id="hst">${p.claudeAccounts ? p.claudeAccounts + ' cuenta(s)' : 'no detectado'}</span></h3>
@@ -384,7 +384,8 @@ async function renderDone() {
   else if (mode.edition === 'equipo') steps = mode.setupMode ? [...(st ? [] : ['code']), 'equipo', 'owner', 'identity', 'extras', 'done'] : ['equipo', 'identity', 'extras', 'done'];
   else steps = mode.setupMode ? [...(st ? [] : ['code']), 'welcome', 'owner', 'identity', pub, 'extras', 'done'] : ['welcome', 'identity', pub, 'extras', 'done'];
   if (!mode.setupMode && !mode.owner) { location.href = 'login'; return; }
-  go(0);
+  // desde el menu «Conectar o arreglar proyectos» se entra directo al paso de los conectores
+  go(!mode.setupMode && /conectar/.test(location.hash) && steps.includes('extras') ? steps.indexOf('extras') : 0);
 })();
 
 // fondo de estrellas (igual que el acceso)

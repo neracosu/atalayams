@@ -187,6 +187,8 @@ $('menu').addEventListener('click', async e => {
   if (act === 'fullscreen') toggleFs();
   if (act === 'lock') goPublic();
   if (act === 'setup') location.href = 'setup';
+  if (act === 'connect') location.href = 'setup#conectar';
+  if (act === 'hosting2') openInstall('hosting');
   if (act === 'install') openInstall('vps');
   if (act === 'hosting') openInstall('hosting');
   if (act === 'equipo') openInstall('equipo');
@@ -341,7 +343,7 @@ function beatsSection(B, made) {
   const ST = { ok: ['ok', 'al día'], late: ['bad', 'atrasado'], failed: ['bad', 'falló'], new: ['waiting', 'sin señal aún'] };
   const every = n => n < 60 ? `${n} min` : n < 1440 ? `${Math.round(n / 6) / 10} h`.replace('.', ',') : n === 1440 ? 'día' : n === 10080 ? 'semana' : `${Math.round(n / 144) / 10} días`.replace('.', ',');
   const rows = (B.beats || []).map(x => `<li><span class="pill ${x.paused ? 'waiting' : (ST[x.state] || ST.new)[0]}">${x.paused ? 'en pausa' : (ST[x.state] || ST.new)[1]}</span>
-      <span class="grow"><b>${ie(x.name)}</b><br><span class="dmuted">cada ${every(x.every)}${x.last ? ' · última señal hace ' + Math.max(1, Math.round((Date.now() - x.last) / 60000)) + ' min' : ''}</span></span>
+      <span class="grow"><b>${ie(x.name)}</b><br><span class="dmuted">cada ${every(x.every)}${x.last ? ' · última señal hace ' + (m => m < 120 ? m + ' min' : m < 2880 ? Math.round(m / 60) + ' h' : Math.round(m / 1440) + ' días')(Math.max(1, Math.round((Date.now() - x.last) / 60000))) : ''}</span></span>
       <button class="btn small ghost" data-beat-url="${ie(x.id)}">Dirección nueva</button><button class="btn small ghost" data-beat-pause="${ie(x.id)}" data-on="${x.paused ? '' : '1'}">${x.paused ? 'Reanudar' : 'Pausar'}</button><button class="btn small ghost" data-beat-remove="${ie(x.id)}" data-beat-name="${ie(x.name)}">Quitar</button></li>`).join('');
   const how = m => `<div class="newagent"><h4>${px('ok')} ${m.name ? 'Listo: «' + ie(m.name) + '»' : 'Dirección nueva'}</h4>
       <p class="lhelp">Esta es la dirección secreta del latido. <b>Se muestra solo esta vez</b>: quien la tenga puede dar la señal.</p>${copyBox('beaturl', m.url)}

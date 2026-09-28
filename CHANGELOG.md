@@ -14,6 +14,12 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.81.1] - 2026-09-28
+
+### Cambiado
+- **El menú dice dónde está cada cosa**: «Conectar o arreglar proyectos» lleva directo a los conectores (Cloudflare, Supabase, Vercel, GitHub, laptops), «Vigilar sitios y latidos» a los sitios por dominio y los latidos, y «Conectar un hosting o WordPress» a los agentes. Antes todo estaba dentro de «Asistente de configuración» y «Conectar un hosting compartido».
+- Si un conector tiene problemas, la Torre de control enlaza a donde se arregla.
+
 ## [0.81.0] - 2026-09-28
 
 ### Cambiado
@@ -1480,7 +1486,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.1...HEAD
+[0.81.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.0...v0.81.1
 [0.81.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.2...v0.81.0
 [0.80.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.1...v0.80.2
 [0.80.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.0...v0.80.1

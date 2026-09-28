@@ -325,7 +325,7 @@ export function tickerEvent(e, accounts, priv) {
       addTicker('db', e.label || '', `Consulta lenta en ${e.db}: ${e.secs} s`, '#fbbf24', 'database:' + e.db);
       return;
     case 'account':
-      addTicker(e.action === 'added' ? 'city' : 'ruin', e.label || '', e.action === 'added' ? 'Nueva cuenta en el servidor: aparece un distrito nuevo' : 'Una cuenta fue eliminada del servidor', e.action === 'added' ? '#4ade80' : '#f87171', e.action === 'added' ? 'district:' + e.account : null);
+      addTicker(e.action === 'added' ? 'city' : 'ruin', e.label || '', e.action === 'added' ? (String(e.account || '').startsWith('_') ? 'Aparece un distrito nuevo en el mapa' : 'Nueva cuenta en el servidor: aparece un distrito nuevo') : (String(e.account || '').startsWith('_') ? 'Un distrito salió del mapa' : 'Una cuenta fue eliminada del servidor'), e.action === 'added' ? '#4ade80' : '#f87171', e.action === 'added' ? 'district:' + e.account : null);
       return;
     default: return;
   }

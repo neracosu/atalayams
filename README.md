@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.81.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.81.1-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -446,7 +446,7 @@ y reinicie la app desde Setup Node.js App.
 
 <br>
 
-En su Atalaya: menú › **Conectar un hosting compartido**, escriba un nombre corto (ej. `cliente-godaddy`) y
+En su Atalaya: menú › **Conectar un hosting o WordPress**, escriba un nombre corto (ej. `cliente-godaddy`) y
 pulse **Generar código**. Le da la línea completa, con la dirección de su Atalaya (`SU-ATALAYA` abajo) y un
 código de un solo uso. En la Terminal del hosting:
 
@@ -466,7 +466,7 @@ bases, certificados, correo, recursos y cron (con los secretos tapados). Quitarl
 
 <br>
 
-1. En su Atalaya: menú › **Conectar un hosting compartido**, escriba un nombre corto (ej. `blog-ana`) y pulse
+1. En su Atalaya: menú › **Conectar un hosting o WordPress**, escriba un nombre corto (ej. `blog-ana`) y pulse
    **Descargar plugin**: un `.zip` ya configurado para su Atalaya.
 2. En WordPress: **Plugins › Añadir nuevo › Subir plugin** y **Activar**. Se conecta solo.
 
@@ -482,7 +482,7 @@ El plugin **no registra rutas públicas**: solo envía. WordPress 5.6+ y PHP 7.4
 
 <br>
 
-1. En su Atalaya: menú › **Conectar un hosting compartido** › **Latidos**. Escriba un nombre y cada cuánto debe avisar.
+1. En su Atalaya: menú › **Vigilar sitios y latidos** › **Latidos**. Escriba un nombre y cada cuánto debe avisar.
 2. Atalaya le da una **dirección secreta**. Se muestra una sola vez.
 3. Haga que su tarea la toque al terminar bien:
 
@@ -523,7 +523,7 @@ genere una nueva. En modo público no se muestran los nombres de los latidos.
 | Zone › Zone: Read | La lista de sus dominios |
 | Zone › Analytics: Read | Las visitas de cada dominio |
 
-3. En su Atalaya: menú › **Asistente de configuración** › Extras › **Cloudflare**. Pegue el token y guarde.
+3. En su Atalaya: menú › **Conectar o arreglar proyectos** › **Cloudflare**. Pegue el token y guarde.
 
 Si omite un permiso, esa parte queda apagada y el resto funciona; la Torre de control dice cuál falta.
 Con este token Atalaya **no puede cambiar nada** en su cuenta.
@@ -546,7 +546,7 @@ Este conector es distinto del token de **Defensa web › Cloudflare**, que sí e
 
 Para sitios en Cloudflare Pages, Netlify, Vercel o cualquier otro lugar donde no puede instalar un agente.
 
-1. En su Atalaya: menú › **Conectar un hosting compartido** › **Vigilar un sitio por su dominio**.
+1. En su Atalaya: menú › **Vigilar sitios y latidos** › **Vigilar un sitio por su dominio**.
 2. Escriba el dominio (`mitienda.com`) o una dirección dentro de él (`mitienda.com/api/salud`).
 3. Elija qué respuesta es la correcta y, si quiere, una frase que siempre esté en la página.
 
