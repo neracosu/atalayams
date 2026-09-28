@@ -16,6 +16,13 @@ const { readJSON, writeJSONAtomic } = require('./util');
 const sha = s => crypto.createHash('sha256').update(s).digest('hex');
 const rid = () => crypto.randomBytes(9).toString('hex');
 
+// una cuenta de Cloudflare conectada mas de una vez: los conectores que llegaron despues se suman al primero
+function joinedTo(c, all) {
+  if (c.type !== 'cloudflare' || !c.accountId) return undefined;
+  const first = all.filter(x => x.type === 'cloudflare' && x.accountId === c.accountId).sort((a, b) => String(a.added || '').localeCompare(String(b.added || '')))[0];
+  return first && first.id !== c.id ? first.name || first.id : undefined;
+}
+
 class SetupFlow {
   constructor(ctx) {
     Object.assign(this, ctx); // cfg, auth, secrets, platform, platformMod, logs, ROOT, VERSION
@@ -68,7 +75,7 @@ class SetupFlow {
       version: this.VERSION, edition: this.cfg.edition, setupMode: this.isSetupMode(), users: Object.keys(this.auth.users).length,
       platform: s, settings: { title: this.cfg.title, subtitle: this.cfg.subtitle, publicUrl: this.cfg.publicUrl, public: this.cfg.public, promo: this.cfg.promo !== false },
       guessUrl: host ? `${proto}://${host}` : '', geo: this.logs.geo && this.logs.geo.file ? this.logs.geo.file : null,
-      connectors: this.secrets.connectors().map(c => ({ id: c.id, type: c.type, name: c.name || c.id, projects: c.type === 'supabase' ? (c.projects || []).map(p => p.name || p.ref) : undefined })), remotes: this.secrets.remotes(), agents: Object.keys(this.secrets.data.agents || {}).filter(k => this.secrets.data.agents[k].sha),
+      connectors: this.secrets.connectors().map(c => ({ id: c.id, type: c.type, name: c.name || c.id, joined: joinedTo(c, this.secrets.connectors()), projects: c.type === 'supabase' ? (c.projects || []).map(p => p.name || p.ref) : undefined })), remotes: this.secrets.remotes(), agents: Object.keys(this.secrets.data.agents || {}).filter(k => this.secrets.data.agents[k].sha),
       helper: (this.cfg.edition || 'vps') === 'vps' && fs.existsSync('/etc/systemd/system/atalaya-helper.path'), limits: this.cfg.limits || null, cpanelDomains: s.panelId === 'cpanel' ? domains : [],
       ...this.proxySnippet(s.proxyHint),
     };

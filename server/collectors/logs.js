@@ -248,11 +248,11 @@ class LogsCollector {
   }
 
   countExternal(e) {
-    const b = this.minute;
-    b.req++; if (e.status >= 500) b.err++;
-    if (e.account) b.perAccount[e.account] = (b.perAccount[e.account] || 0) + 1;
-    if (e.app) b.perApp[e.account + '/' + e.app] = (b.perApp[e.account + '/' + e.app] || 0) + 1;
-    this.bucket10.req++; if (e.status >= 500) this.bucket10.err++; if (e.bot) this.bucket10.bots++;
+    const b = this.minute, n = e.n > 0 ? e.n : 1; // una visita dibujada puede valer por varias (Cloudflare con mucho trafico)
+    b.req += n; if (e.status >= 500) b.err += n;
+    if (e.account) b.perAccount[e.account] = (b.perAccount[e.account] || 0) + n;
+    if (e.app) b.perApp[e.account + '/' + e.app] = (b.perApp[e.account + '/' + e.app] || 0) + n;
+    this.bucket10.req += n; if (e.status >= 500) this.bucket10.err += n; if (e.bot) this.bucket10.bots += n;
   }
 
   roll10() {

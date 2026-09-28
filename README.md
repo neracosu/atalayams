@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.83.1-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.84.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -67,7 +67,7 @@ revisar y cómo arreglarlo**.
     <td valign="top"><img src="docs/icons/search.svg" width="40"><br><b>Revisión web diaria</b><br><sub>Cada sitio vigilado se revisa como lo ve un buscador: privados o espejos que <b>se pueden indexar</b>, públicos que <b>dejaron de indexarse</b>, páginas que llegan <b>vacías</b> y <code>robots.txt</code> que <b>bloquea a las IA</b>. Cada falta trae cómo empezar a arreglarla.</sub></td>
   </tr>
   <tr>
-    <td colspan="3" valign="top"><img src="docs/icons/cloud.svg" width="40"><br><b>Cloudflare: Pages, Workers y visitas</b><br><sub>Con un token de <b>solo lectura</b>, sus proyectos de Pages y sus Workers son edificios. Ve cada <b>despliegue</b> (construyendo, listo, falló), las <b>corridas</b> de cada Worker y las <b>visitas de cada dominio</b> sin pegar nada en el sitio. Y algo que Cloudflare no avisa: si un <b>reloj (cron) deja de correr</b> no hay error, solo silencio; Atalaya lo nota, pone el edificio en rojo y avisa.</sub></td>
+    <td colspan="3" valign="top"><img src="docs/icons/cloud.svg" width="40"><br><b>Cloudflare: Pages, Workers y visitas</b><br><sub>Con un token de <b>solo lectura</b>, sus proyectos de Pages y sus Workers son edificios. Ve cada <b>despliegue</b> (construyendo, listo, falló), las <b>corridas</b> de cada Worker y las <b>visitas entrando en vivo</b> a cada sitio, sin pegar nada en él. Y algo que Cloudflare no avisa: si un <b>reloj (cron) deja de correr</b> no hay error, solo silencio; Atalaya lo nota, pone el edificio en rojo y avisa.</sub></td>
   </tr>
   <tr>
     <td colspan="3" valign="top"><img src="docs/icons/antenna.svg" width="40"><br><b>Sitios vigilados por su dominio</b><br><sub>Para proyectos que viven en <b>Cloudflare Pages, Netlify o Vercel</b>, o cualquier sitio que quiera mirar desde afuera: escribe el dominio y Atalaya lo visita cada 5 minutos, sin instalar nada. Usted decide qué respuesta es la correcta (una puerta que exige llave responde 401 y está sana) y una <b>frase que debe aparecer</b>, que detecta el sitio publicado en blanco. Avisa <b>una vez al caer y una vez al volver</b>; antes lo prueba dos veces, y si es Atalaya la que se quedó sin Internet lo dice y no acusa al sitio. Las visitas llegan con una línea de script sin cookies.</sub></td>
@@ -593,8 +593,14 @@ Con este token Atalaya **no puede cambiar nada** en su cuenta.
 cada cuánto debería correr con la última vez que corrió: si pasaron más de tres vueltas (y al menos tres
 horas, porque Cloudflare entrega esas cifras por hora y con atraso), el edificio queda en rojo y llega el aviso.
 
-**Visitas.** Son los totales de Cloudflare para todo el dominio: incluyen robots y llegan con hasta una hora
-de atraso. Para páginas, origen y conversiones use además el script de un sitio vigilado.
+**Visitas en vivo.** Cada visita que se ve entrar a un edificio llegó a ese sitio hace un par de minutos, que
+es lo que tarda Cloudflare en contarlas. Van al proyecto de Pages o al Worker que atiende ese dominio, con su
+país y sus errores. Si un minuto trae muchas, se dibujan unas 45 por dominio y la cuenta sigue completa. Son
+cuentas de Cloudflare: incluyen robots y no traen IPs ni páginas. Los totales del día y de la semana llegan
+con hasta una hora de atraso. Para páginas, origen y conversiones use además el script de un sitio vigilado.
+
+**Un token nuevo para la misma cuenta.** Si crea otro token para sumar un permiso que faltaba, puede conectarlo
+con otro nombre: Atalaya reconoce que es la misma cuenta, usa los dos y muestra un solo distrito.
 
 Este conector es distinto del token de **Defensa web › Cloudflare**, que sí escribe (bloquea IPs) y es opcional.
 

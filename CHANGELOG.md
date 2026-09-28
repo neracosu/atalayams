@@ -14,6 +14,17 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.84.0] - 2026-09-28
+
+### Agregado
+- **Cloudflare: las visitas ya se mueven en el mapa.** Antes solo llegaba una cifra por hora y los edificios se veían quietos. Ahora cada visita entra a su proyecto de Pages o a su Worker, con su país y sus errores. Llegan con un par de minutos de atraso, que es lo que tarda Cloudflare en contarlas. Necesita el permiso Zone › Analytics: Read.
+- Las visitas por minuto de cada edificio de Cloudflare son las de ese proyecto, no las de todo el dominio.
+- **La misma cuenta de Cloudflare con dos tokens es un solo distrito.** Si creó un token nuevo para sumar un permiso, Atalaya usa los dos y no repite los edificios. El asistente lo dice al guardar.
+
+### Corregido
+- El subtítulo de un distrito de Cloudflare decía «9 servicios · 0 sitios». Ahora dice cuántos sitios en Pages y cuántos Workers tiene.
+- Al pegar algo que no es un token de API de Cloudflare, el asistente explica qué pegar en vez de mostrar «Invalid request headers».
+
 ## [0.83.1] - 2026-09-28
 
 ### Corregido
@@ -1536,7 +1547,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.83.1...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.0...HEAD
+[0.84.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.83.1...v0.84.0
 [0.83.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.83.0...v0.83.1
 [0.83.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.82.0...v0.83.0
 [0.82.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.4...v0.82.0

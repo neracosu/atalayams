@@ -364,7 +364,7 @@ function makePrivacy(cfg) {
     const tilde = p => p ? p.replace(/^\/home\/[^/]+\/?/, '~/').replace(/^\/root\/?/, '/root/') : '';
     const fw = a => a.source === 'vercel' ? a.framework || '' : undefined;
     const appSummary = a => ({ id: alias(a.account + '/' + a.name), name: (priv && a.source === 'beat' && a.beat && a.beat.label) || appName(a.account, a.name, priv, a.image, fw(a)), category: a.source === 'beat' ? '' : appInfo(a.account, a.name, a.image, fw(a)).label || '',
-      icon: appInfo(a.account, a.name, a.image, fw(a)).icon || pickIcon(alias(a.account + '/' + a.name)), favicon: priv && ctx.favicons ? ctx.favicons.ready(appDomain(ctx, a)) || undefined : undefined, source: a.source, status: a.status, cpu: Math.round(a.cpu * 10) / 10, mem: a.mem,
+      icon: appInfo(a.account, a.name, a.image, fw(a)).icon || pickIcon(alias(a.account + '/' + a.name)), favicon: priv && ctx.favicons ? ctx.favicons.ready(appDomain(ctx, a)) || undefined : undefined, source: a.source, cfKind: a.cfKind, status: a.status, cpu: Math.round(a.cpu * 10) / 10, mem: a.mem,
       reqMin: logs.lastMinute.perApp[a.account + '/' + a.name] || a.cfReqMin || 0 });
     const sessSummary = x => ({ id: priv ? x.id : alias(x.id), title: priv ? scrub(x.title) : '', state: x.state,
       activity: STATION_LABEL[x.station] || '', waitKind: x.waitKind || null });
@@ -485,7 +485,7 @@ function makePrivacy(cfg) {
           ...(priv ? { domains: [...logs.groups.values()].filter(g => g.account === a && g.app === x.name).flatMap(g => g.domainList).slice(0, 4) } : {}) })),
         sites: logs.sites.filter(g => g.account === a).map(g => ({ ...siteSummary(ctx, g, priv), category: logs.siteLabel(g), ...(priv ? { domains: g.domainList.slice(0, 4) } : {}) })),
         ...(priv && a !== 'root' && !a.startsWith('_') ? { cpanel: a, main: logs.mainDomain.get(a) || '' } : {}),
-        ...(ctx.connectors && a.startsWith('_cf-') && ctx.connectors.byAccount(a) ? { cloudflare: (c => ({ pages: c.info().pages, workers: c.info().workers, zones: c.info().zones, warn: c.info().warn, lastOk: c.lastOk,
+        ...(ctx.connectors && a.startsWith('_cf-') && ctx.connectors.byAccount(a) ? { cloudflare: (c => ({ pages: c.info().pages, workers: c.info().workers, zones: c.info().zones, warn: c.info().warn, lastOk: c.lastOk, live: c.info().live, merged: priv ? c.info().merged : [],
           traffic: c.trafficOf().map(t => ({ zone: priv ? t.zone : null, day: t.day, days: t.days, countries: t.countries })) }))(ctx.connectors.byAccount(a)) } : {}),
         ...(ctx.agents && a.startsWith('_host-') ? { hosting: ctx.agents.info(a, priv), ...(priv ? { main: logs.mainDomain.get(a) || '' } : {}) } : {}),
         changes: logs.changes.toArray().filter(c => c.account === a).slice(-15).reverse()

@@ -5,7 +5,7 @@
 const assert = require('assert');
 const { CloudflareConnector, cronEvery, deployState, verify } = require('../server/connectors/cloudflare');
 
-const TOKEN = 'T'.repeat(40), ACC = 'a'.repeat(32), H = 3600000;
+const TOKEN = 'T'.repeat(40), TOKEN2 = 'V'.repeat(40), ACC = 'a'.repeat(32), H = 3600000;
 let now = Date.parse('2026-09-28T12:30:00Z');
 const iso = t => new Date(t).toISOString();
 const evs = [], bus = { emit: (_, e) => evs.push(e), on() { } };
@@ -13,6 +13,8 @@ const evs = [], bus = { emit: (_, e) => evs.push(e), on() { } };
 // el mundo simulado
 const world = {
   denied: new Set(), // partes sin permiso
+  denied2: new Set(['accounts', 'pages', 'workers', 'runs']), // el segundo token de la misma cuenta: solo zonas y visitas
+  live: [], // pedidos por minuto y por dominio: { m: minutos atras, host, status, cc, count }
   stage: { name: 'deploy', status: 'success' },
   depId: 'dep-1',
   runs: { 'torre-sondas': [0, 1, 2, 3].map(h => ({ h, requests: 12, errors: 0 })), 'respaldo': [{ h: 2, requests: 1, errors: 0 }], 'api-roto': [{ h: 1, requests: 40, errors: 30 }] },
@@ -20,35 +22,49 @@ const world = {
 const dep = (id, stage, env = 'production', msg = 'Arregla el carrito') => ({ id, url: `https://${id}.tienda.pages.dev`, environment: env, created_on: iso(now - 120000), modified_on: iso(now - 60000), latest_stage: stage,
   deployment_trigger: { type: 'ad_hoc', metadata: { branch: 'main', commit_message: msg } } });
 const calls = [];
+const used = [];
 const fake = async (url, o = {}) => {
   const u = url.replace('https://api.cloudflare.com/client/v4', '');
   calls.push(`${o.method} ${u.split('?')[0]}`);
   const ok = (result, extra = {}) => ({ status: 200, json: async () => ({ success: true, result, ...extra }) });
   const no = () => ({ status: 403, json: async () => ({ success: false, errors: [{ code: 10000, message: 'Authentication error' }] }) });
-  if ((o.headers || {}).Authorization !== 'Bearer ' + TOKEN) return no();
-  if (u.startsWith('/accounts?')) return world.denied.has('accounts') ? no() : ok([{ id: ACC, name: 'GG Innovations' }]);
-  if (u.startsWith(`/accounts/${ACC}/pages/projects?`)) return world.denied.has('pages') ? no() : ok([
+  const tok = String((o.headers || {}).Authorization || '').replace('Bearer ', '');
+  if (tok === 'G'.repeat(37)) return { status: 400, json: async () => ({ success: false, errors: [{ code: 6003, message: 'Invalid request headers' }] }) };
+  if (tok !== TOKEN && tok !== TOKEN2) return no();
+  const denied = tok === TOKEN2 ? world.denied2 : world.denied;
+  used.push(tok === TOKEN2 ? 2 : 1);
+  if (u.startsWith('/accounts?')) return denied.has('accounts') ? no() : ok([{ id: ACC, name: 'GG Innovations' }]);
+  if (u.startsWith(`/accounts/${ACC}/pages/projects?`)) return denied.has('pages') ? no() : ok([
     { id: 'p1', name: 'tienda', subdomain: 'tienda.pages.dev', domains: ['tienda.pages.dev', 'pedir.tienda.com'], source: { type: 'gitlab', config: { owner: 'gg', repo_name: 'tienda' } }, latest_deployment: dep(world.depId, world.stage) },
     { id: 'p2', name: 'panel', subdomain: 'panel.pages.dev', domains: ['panel.pages.dev'], source: { type: 'github', config: { owner: 'GG', repo_name: 'Panel' } }, latest_deployment: null },
   ], { result_info: { total_pages: 1 } });
   if (u.startsWith(`/accounts/${ACC}/pages/projects/tienda/deployments`)) return ok([dep(world.depId, world.stage), dep('dep-0', { name: 'deploy', status: 'success' }, 'preview', 'Prueba')]);
-  if (u === `/accounts/${ACC}/workers/scripts`) return world.denied.has('workers') ? no() : ok([
+  if (u === `/accounts/${ACC}/workers/scripts`) return denied.has('workers') ? no() : ok([
     { id: 'torre-sondas', created_on: iso(now - 50 * 24 * H), modified_on: iso(now - 20 * 24 * H) },
     { id: 'respaldo', created_on: iso(now - 50 * 24 * H), modified_on: iso(now - 20 * 24 * H) },
     { id: 'api-roto', created_on: iso(now - 50 * 24 * H), modified_on: iso(now - 20 * 24 * H) },
     { id: 'tienda', created_on: iso(now - 50 * 24 * H), modified_on: iso(now - 20 * 24 * H) }, // las funciones del proyecto de Pages
   ]);
   if (/\/workers\/scripts\/[^/]+\/schedules$/.test(u)) { const n = u.split('/').slice(-2)[0]; return ok({ schedules: n === 'torre-sondas' ? [{ cron: '*/5 * * * *' }] : n === 'respaldo' ? [{ cron: '0 */6 * * *' }] : [] }); }
-  if (u.startsWith('/zones?')) return world.denied.has('zones') ? no() : ok([{ id: 'z1', name: 'tienda.com' }, { id: 'z2', name: 'otra.com' }], { result_info: { total_pages: 1 } });
+  if (u === `/accounts/${ACC}/workers/domains`) return denied.has('workers') ? no() : ok([{ hostname: 'api.tienda.com', service: 'api-roto' }]);
+  if (u === '/zones/z1/workers/routes') return denied.has('workers') ? no() : ok([{ pattern: '*.tienda.com/*', script: 'torre-sondas' }]);
+  if (u.startsWith('/zones?')) return denied.has('zones') ? no() : ok([{ id: 'z1', name: 'tienda.com' }, { id: 'z2', name: 'otra.com' }], { result_info: { total_pages: 1 } });
   if (u === '/graphql') {
     const q = JSON.parse(o.body).query;
     if (q.includes('workersInvocationsAdaptive')) {
-      if (world.denied.has('runs')) return { status: 200, json: async () => ({ data: null, errors: [{ message: 'not authorized for that account' }] }) };
+      if (denied.has('runs')) return { status: 200, json: async () => ({ data: null, errors: [{ message: 'not authorized for that account' }] }) };
       const hour = Math.floor(now / H) * H, rows = [];
       for (const [n, list] of Object.entries(world.runs)) for (const r of list) rows.push({ sum: { requests: r.requests, errors: r.errors }, dimensions: { scriptName: n, datetimeHour: iso(hour - r.h * H) } });
       return { status: 200, json: async () => ({ data: { viewer: { accounts: [{ runs: rows }] } }, errors: null }) };
     }
-    if (world.denied.has('traffic')) return { status: 200, json: async () => ({ data: null, errors: [{ message: 'zone does not have access to the path' }] }) };
+    if (q.includes('httpRequestsAdaptiveGroups')) {
+      if (denied.has('traffic')) return { status: 200, json: async () => ({ data: null, errors: [{ message: 'not authorized' }] }) };
+      const from = Date.parse(/datetime_geq: "([^"]+)"/.exec(q)[1]), to = Date.parse(/datetime_lt: "([^"]+)"/.exec(q)[1]), top = Math.floor((now - 90000) / 60000) * 60000;
+      const rows = !q.includes('zoneTag: "z1"') ? [] : world.live.map(r => ({ t: top - r.m * 60000, r })).filter(x => x.t >= from && x.t < to)
+        .map(({ t, r }) => ({ count: r.count, dimensions: { datetimeMinute: iso(t), clientRequestHTTPHost: r.host, edgeResponseStatus: r.status || 200, clientCountryName: r.cc || 'VE' } }));
+      return { status: 200, json: async () => ({ data: { viewer: { zones: [{ vivo: rows }] } }, errors: null }) };
+    }
+    if (denied.has('traffic')) return { status: 200, json: async () => ({ data: null, errors: [{ message: 'zone does not have access to the path' }] }) };
     if (!q.includes('zoneTag: "z1"')) return { status: 200, json: async () => ({ data: { viewer: { zones: [{ horas: [], dias: [], detalle: [] }] } } }) };
     const hour = Math.floor(now / H) * H;
     return { status: 200, json: async () => ({ data: { viewer: { zones: [{
@@ -153,6 +169,72 @@ const round = async c => { for (const [n, fn] of [['account', () => c.pollAccoun
   await Q.pollAccount(); await Q.pollPages(); Q.build();
   assert.strictEqual(Q.apps.length, 2);
   await assert.rejects(verify(TOKEN, null, fake), /rechazó el token/);
+
+  // visitas en vivo: los pedidos de cada dominio en el ultimo minuto cerrado se reparten sobre su edificio
+  world.denied = new Set();
+  world.live = [{ m: 0, host: 'pedir.tienda.com', count: 6, cc: 'VE' }, { m: 0, host: 'pedir.tienda.com', count: 2, status: 502, cc: 'US' }, { m: 0, host: 'api.tienda.com', count: 3 },
+    { m: 0, host: 'sondas.tienda.com', count: 1 }, { m: 0, host: 'tienda.com', count: 4 }, { m: 5, host: 'pedir.tienda.com', count: 900 }];
+  const liveOf = async (conn, more = {}) => {
+    const out = [], c = new CloudflareConnector({ id: 'empresa', name: 'empresa', token: TOKEN, ...conn }, { emit: (_, e) => { if (e.kind === 'http') out.push(e); } }, { fetch: fake, now: () => now, defer: fn => fn(), ...more });
+    c.part = async (n, fn) => { try { await fn(); delete c.warn[n]; } catch (e) { c.warn[n] = e.denied ? 'sin permiso: ' + n : e.message; if (n === 'live') c.liveOk = false; } c.build(); };
+    await round(c); await c.pollHosts(); await c.part('live', () => c.pollLive());
+    return { c, out };
+  };
+  const L = await liveOf({});
+  assert.ok(L.out.every(e => e.kind === 'http' && e.via === 'cloudflare' && e.live && e.account === '_cf-empresa' && e.ip === null), 'son visitas que se dibujan y se cuentan, sin IP y fuera de la analítica');
+  const perApp = list => list.reduce((m, e) => (m[e.app || '-'] = (m[e.app || '-'] || 0) + e.n, m), {});
+  assert.deepStrictEqual(perApp(L.out), { tienda: 8, 'api-roto': 3, 'torre-sondas': 1, '-': 4 }, 'cada dominio va a su proyecto de Pages, al Worker de ese dominio o al de la ruta; el que no es de nadie no se dibuja');
+  assert.strictEqual(L.out.length, 16, 'con poco tráfico, una visita dibujada por cada pedido; el minuto viejo no entra');
+  assert.strictEqual(L.out.filter(e => e.status === 502).length, 2); assert.strictEqual(L.out.filter(e => e.cc === 'US').length, 2);
+  assert.strictEqual(L.c.apps.find(a => a.name === 'tienda').cfReqMin, 8, 'las visitas por minuto son las de ese proyecto, no las de toda la zona');
+  assert.strictEqual(L.c.apps.find(a => a.name === 'panel').cfReqMin, 0);
+  assert.strictEqual(L.c.info().live, true);
+  // el mismo minuto no se reparte dos veces
+  L.out.length = 0; await L.c.part('live', () => L.c.pollLive());
+  assert.strictEqual(L.out.length, 0);
+  // pasa un minuto: llega el siguiente
+  now += 60000; world.live = [{ m: 0, host: 'pedir.tienda.com', count: 5 }];
+  await L.c.part('live', () => L.c.pollLive());
+  assert.deepStrictEqual(perApp(L.out), { tienda: 5 });
+  // mucho tráfico: se dibujan pocas y cada una vale por varias, sin perder la cuenta
+  now += 60000; world.live = [{ m: 0, host: 'pedir.tienda.com', count: 4000, cc: 'VE' }, { m: 0, host: 'pedir.tienda.com', count: 400, status: 503, cc: 'CO' }, { m: 0, host: 'api.tienda.com', count: 100 }];
+  L.out.length = 0; await L.c.part('live', () => L.c.pollLive());
+  assert.ok(L.out.length <= 48, 'a lo sumo unas 45 visitas dibujadas por zona y minuto: ' + L.out.length);
+  assert.deepStrictEqual(perApp(L.out), { tienda: 4400, 'api-roto': 100 });
+  const bad = L.out.filter(e => e.status === 503).length; assert.ok(bad >= 3 && bad <= 5, 'los errores salen en proporción: ' + bad);
+  // sin el permiso de visitas no hay movimiento y queda un solo aviso
+  world.denied = new Set(['traffic']);
+  const S = await liveOf({});
+  assert.strictEqual(S.out.length, 0); assert.strictEqual(S.c.info().live, false);
+  assert.strictEqual(S.c.apps.find(a => a.name === 'tienda').cfReqMin, 0);
+
+  // la misma cuenta con dos tokens: el primero lee los proyectos y el segundo, las visitas. Un solo distrito
+  now += 60000; world.live = [{ m: 0, host: 'pedir.tienda.com', count: 7 }];
+  const M = await liveOf({ more: [TOKEN2], merged: ['trafico'] });
+  assert.deepStrictEqual(M.c.apps.map(a => a.name), ['api-roto', 'panel', 'respaldo', 'tienda', 'torre-sondas']);
+  assert.deepStrictEqual(perApp(M.out), { tienda: 7 }, 'las visitas llegan con el segundo token');
+  assert.deepStrictEqual(M.c.warn, {}, 'entre los dos tokens no falta ningún permiso');
+  assert.strictEqual(M.c.apps.find(a => a.name === 'tienda').traffic.day.visitors, 80);
+  assert.deepStrictEqual(M.c.info().merged, ['trafico']);
+  used.length = 0; now += 60000; await M.c.part('live', () => M.c.pollLive());
+  assert.deepStrictEqual(used, [2, 2], 'ya sabe qué token sirve para las visitas de cada zona: no vuelve a probar el otro');
+  world.denied = new Set();
+
+  // las cuentas repetidas se juntan al cargar, sin tocar lo guardado: manda la que se conectó primero
+  const { Connectors } = require('../server/connectors');
+  const saved = [{ id: 'trafico', type: 'cloudflare', name: 'Tráfico', token: TOKEN2, accountId: ACC, added: '2026-09-28T03:36:00Z' }, { id: 'gustito', type: 'cloudflare', name: 'Gustito', token: TOKEN, accountId: ACC, added: '2026-09-27T22:23:00Z' },
+    { id: 'otra', type: 'cloudflare', name: 'Otra', token: TOKEN, accountId: 'b'.repeat(32), added: '2026-09-28T01:00:00Z' }, { id: 'gh', type: 'github', name: 'gh', token: 'x' }];
+  const K = new Connectors({}, bus, { connectors: () => saved, sync() { } });
+  const W = K.wanted ? (K.mergedInto = new Map(), K.wanted()) : null;
+  assert.deepStrictEqual([...W.keys()].sort(), ['gh', 'gustito', 'otra']);
+  assert.deepStrictEqual(W.get('gustito').more, [TOKEN2]); assert.deepStrictEqual(W.get('gustito').merged, ['Tráfico']);
+  assert.deepStrictEqual(W.get('otra').more, []);
+  assert.strictEqual(saved[1].more, undefined, 'lo guardado no se toca');
+  assert.deepStrictEqual(K.sameAccount('cloudflare', ACC, 'nuevo'), { id: 'trafico', name: 'Tráfico' });
+  assert.strictEqual(K.sameAccount('cloudflare', ACC.replace('a', 'c'), 'nuevo'), null);
+
+  // lo que no es un token de API (la Global API Key, por ejemplo) se explica en palabras
+  await assert.rejects(verify('G'.repeat(37), null, fake), /no reconoció eso como un token de API/);
 
   // solo lectura: ni una sola llamada que cambie algo (GraphQL es una consulta por POST)
   assert.ok(calls.every(c => c.startsWith('GET ') || c === 'POST /graphql'), 'el conector nunca escribe en Cloudflare');

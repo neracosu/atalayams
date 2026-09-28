@@ -14,7 +14,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 
 let mode = null, st = null, idx = 0, steps = [];
 // lo ya conectado de un tipo, con su boton para quitarlo
-const have = type => { const L = st.connectors.filter(c => c.type === type); return L.length ? `<ul class="havelist">${L.map(c => `<li><span><b>${esc(c.name || c.id)}</b>${c.projects ? ` <span class="hint">${c.projects.length ? esc(c.projects.join(', ')) : 'sin proyectos: conéctelo de nuevo con el mismo nombre'}</span>` : ''}</span><button class="btn ghost small" data-unplug="${esc(c.id)}" data-label="${esc(c.name || c.id)}">Quitar</button></li>`).join('')}</ul>` : ''; };
+const have = type => { const L = st.connectors.filter(c => c.type === type); return L.length ? `<ul class="havelist">${L.map(c => `<li><span><b>${esc(c.name || c.id)}</b>${c.joined ? ` <span class="hint">misma cuenta que «${esc(c.joined)}»: suma sus permisos a ese distrito</span>` : ''}${c.projects ? ` <span class="hint">${c.projects.length ? esc(c.projects.join(', ')) : 'sin proyectos: conéctelo de nuevo con el mismo nombre'}</span>` : ''}</span><button class="btn ghost small" data-unplug="${esc(c.id)}" data-label="${esc(c.name || c.id)}">Quitar</button></li>`).join('')}</ul>` : ''; };
 const haveRemotes = () => st.remotes.length ? `<ul class="havelist">${st.remotes.map(r => `<li><span><b>${esc(r)}</b></span><button class="btn ghost small" data-unplug-remote="${esc(r)}" data-label="${esc(r)}">Quitar</button></li>`).join('')}</ul>` : '';
 
 const card = $('card');
@@ -332,7 +332,8 @@ async function renderExtras() {
   });
   act('cfgo', async () => {
     const r = await api('api/setup/connector', { type: 'cloudflare', id: $('cfid').value.trim(), token: $('cftok').value.trim(), accountId: $('cfacc').value.trim() });
-    refresh('cfgo'); $('cfout').innerHTML = `<p class="msg ok">Conector guardado${r.account ? ': cuenta «' + esc(r.account) + '»' : ''}. Sus proyectos aparecen en un minuto; las visitas y las corridas, en unos cinco.${r.accounts > 1 ? ' El token ve varias cuentas: se usa la primera. Para otra, agregue un conector con su ID de cuenta.' : ''}</p>`;
+    refresh('cfgo'); $('cfout').innerHTML = r.joined ? `<p class="msg ok">Esa cuenta ya estaba conectada como «${esc(r.joined)}»: este token se sumó a ese mismo distrito, sin repetir los proyectos. Lo que el primero no podía leer (por ejemplo, las visitas) aparece en un par de minutos.</p>`
+      : `<p class="msg ok">Conector guardado${r.account ? ': cuenta «' + esc(r.account) + '»' : ''}. Sus proyectos aparecen en un minuto; las visitas empiezan a moverse en un par de minutos y las corridas llegan en unos cinco.${r.accounts > 1 ? ' El token ve varias cuentas: se usa la primera. Para otra, agregue un conector con su ID de cuenta.' : ''}</p>`;
   });
   act('ggo', async () => {
     await api('api/setup/connector', { type: 'github', id: $('gid').value.trim(), token: $('gtok').value.trim() });

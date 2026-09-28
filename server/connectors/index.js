@@ -18,8 +18,23 @@ class Connectors {
     setInterval(() => { this.secrets.sync(); this.reconcile(); }, 5000);
     setInterval(() => { this.apps = [...this.list.values()].flatMap(x => x.inst.apps); }, 2000);
   }
+  // la misma cuenta de Cloudflare conectada dos veces (un token con los proyectos y otro con las visitas) es un solo
+  // distrito: manda el que se conecto primero y usa tambien los tokens de los demas
+  wanted() {
+    const want = new Map(), main = new Map();
+    const list = this.secrets.connectors().map((c, i) => ({ c, i })).sort((a, b) => String(a.c.added || '').localeCompare(String(b.c.added || '')) || a.i - b.i);
+    for (const { c } of list) {
+      const k = c.type === 'cloudflare' && c.accountId ? c.accountId : null, m = k && main.get(k);
+      if (m) { if (c.token) m.more.push(c.token); m.merged.push(c.name || c.id); this.mergedInto.set(c.id, m.id); continue; }
+      const x = k ? { ...c, more: [], merged: [] } : c;
+      if (k) main.set(k, x);
+      want.set(c.id, x);
+    }
+    return want;
+  }
   reconcile() {
-    const want = new Map(this.secrets.connectors().map(c => [c.id, c]));
+    this.mergedInto = new Map(); // conector sumado a otro -> el que manda
+    const want = this.wanted();
     for (const [id, x] of this.list) {
       const c = want.get(id);
       if (!c || JSON.stringify(c) !== x.sig) { x.inst.stop(); this.list.delete(id); }
@@ -41,6 +56,8 @@ class Connectors {
     return x.inst.drain(raw, headers);
   }
   infos() { return [...this.list.values()].map(x => x.inst.info()); }
+  // si esa cuenta de Cloudflare ya esta conectada, con que conector
+  sameAccount(type, accountId, except) { const c = this.secrets.connectors().find(x => x.type === type && x.accountId && x.accountId === accountId && x.id !== except); return c ? { id: c.id, name: c.name || c.id } : null; }
   byAccount(account) { return [...this.list.values()].map(x => x.inst).find(i => i.account === account) || null; }
 }
 

@@ -970,8 +970,10 @@ async function handleSetup(req, res, p, url, session, ip) {
         // el token se prueba antes de guardarlo: debe ver la cuenta
         const accountId = /^[0-9a-f]{32}$/.test(String(body.accountId || '').trim()) ? String(body.accountId).trim() : undefined;
         let v; try { v = await require('./connectors/cloudflare').verify(body.token, accountId); } catch (e) { return json(res, 400, { error: e.message }); }
+        // la misma cuenta con otro token (por ejemplo, uno nuevo con el permiso de visitas) se suma al distrito que ya tiene
+        const same = connectors.sameAccount('cloudflare', v.accountId, idFor('cloudflare'));
         secrets.addConnector(idFor('cloudflare'), { type: 'cloudflare', name: shown, token: String(body.token).trim(), accountId: v.accountId });
-        return json(res, 200, { ok: true, account: v.accountName, accounts: v.accounts });
+        return json(res, 200, { ok: true, account: v.accountName, accounts: v.accounts, joined: same ? same.name : undefined });
       }
       else if (body.type === 'leakix') { secrets.addConnector('leakix', { type: 'leakix', name: 'leakix', apiKey: String(body.apiKey || '').trim() }); ctx.leakix.check().catch(() => { }); }
       else return json(res, 400, { error: 'Tipo de conector desconocido' });

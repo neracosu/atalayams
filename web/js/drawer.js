@@ -658,7 +658,7 @@ export class Drawer {
     const h = d.hosting;
     const sub = h ? (h.kind === 'wordpress' ? `Sitio WordPress${h.wp ? ' ' + esc(h.wp.version) : ''}${h.user ? ` · <span class="mono">${esc(h.user)}</span>` : ''}`
         : h.user ? `Hosting compartido · <span class="mono">${esc(h.user)}@${esc(h.host)}</span>${d.main ? ` · <span class="mono">${esc(d.main)}</span>` : ''}` : 'Hosting compartido')
-      : d.cpanel ? `cPanel <b>${esc(d.cpanel)}</b> · <span class="mono">${esc(d.main)}</span>` : `${d.apps.length} servicios · ${d.sites.length} sitios`;
+      : d.cpanel ? `cPanel <b>${esc(d.cpanel)}</b> · <span class="mono">${esc(d.main)}</span>` : districtCount(d);
     this.setHead('district:' + d.id, sw, d.label, sub, '');
     if (h) return this.renderHosting(d, h);
     const apps = d.apps.map(a => `<li class="link" data-go="app:${esc(a.id)}"><span class="sico" data-icon="${esc(a.icon)}"></span>
@@ -1240,9 +1240,22 @@ function cfHtml(d, DEP) {
     ${priv && d.domains.length ? `<p class="dmuted">${d.domains.map(x => `<span class="chip">${esc(x)}</span>`).join(' ')}${d.repoHost ? ` · código en ${esc(d.repoHost === 'gitlab' ? 'GitLab' : d.repoHost === 'github' ? 'GitHub' : d.repoHost)}` : ''}</p>` : ''}
     ${cfTraffic(d.traffic, 'Visitas según Cloudflare')}`.replace(/^/, d.status === 'down' ? `<section class="dsec"><div class="afind bad"><h5>${px('siren')} Falló el último despliegue a producción</h5><p class="fix">El sitio sigue sirviendo la versión anterior. En Cloudflare abra Workers y Pages › este proyecto › Deployments y mire el registro del despliegue fallido: casi siempre es un error al compilar. Corríjalo y vuelva a desplegar.</p></div></section>` : '');
 }
+// que hay en un distrito, con el nombre de cada cosa: en Cloudflare los sitios son proyectos de Pages, no «servicios»
+function districtCount(d) {
+  const n = (k, one, many) => k ? `${k} ${k === 1 ? one : many}` : '', id = String(d.id || '');
+  const pages = d.apps.filter(a => a.cfKind === 'pages').length, workers = d.apps.filter(a => a.cfKind === 'worker').length;
+  const parts = d.cloudflare ? [n(pages, 'sitio en Pages', 'sitios en Pages'), n(workers, 'Worker', 'Workers')]
+    : id.startsWith('_supa') ? [n(d.apps.length, 'base', 'bases')]
+    : id.startsWith('_latidos') ? [n(d.apps.length, 'latido', 'latidos')]
+    : [n(d.apps.length, id.startsWith('_') ? 'proyecto' : 'servicio', id.startsWith('_') ? 'proyectos' : 'servicios'), n(d.sites.length, 'sitio', 'sitios')];
+  return parts.filter(Boolean).join(' · ') || 'Todavía sin proyectos';
+}
+
 function cfDistrict(c) {
   return `<section class="dsec"><h4>${px('cloud')} Cuenta de Cloudflare</h4>
     <div class="dstats">${stat('Proyectos de Pages', c.pages)}${stat('Workers', c.workers)}${stat('Dominios', c.zones)}</div>
+    ${c.live ? `<p class="dmuted">${px('ok')} Visitas en vivo: cada una que se ve en el mapa llegó a ese sitio hace un par de minutos, que es lo que tarda Cloudflare en contarlas.</p>` : ''}
+    ${(c.merged || []).length ? `<p class="dmuted">${px('key')} Este distrito usa también ${c.merged.length === 1 ? 'el token' : 'los tokens'} de ${c.merged.map(m => '«' + esc(m) + '»').join(', ')}, que ${c.merged.length === 1 ? 'es' : 'son'} de la misma cuenta.</p>` : ''}
     ${(c.warn || []).map(w => `<p class="dmuted">${px('warn')} ${esc(w)}</p>`).join('')}</section>
     ${(c.traffic || []).map(t => cfTraffic(t, t.zone ? `Visitas de ${esc(t.zone)}` : 'Visitas de un dominio')).join('')}`;
 }
