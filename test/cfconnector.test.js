@@ -33,7 +33,7 @@ const fake = async (url, o = {}) => {
   if (tok !== TOKEN && tok !== TOKEN2) return no();
   const denied = tok === TOKEN2 ? world.denied2 : world.denied;
   used.push(tok === TOKEN2 ? 2 : 1);
-  if (u.startsWith('/accounts?')) return denied.has('accounts') ? no() : ok([{ id: ACC, name: 'GG Innovations' }]);
+  if (u.startsWith('/accounts?')) return denied.has('accounts') ? no() : ok([{ id: ACC, name: 'Tienda Ejemplo' }]);
   if (u.startsWith(`/accounts/${ACC}/pages/projects?`)) return denied.has('pages') ? no() : ok([
     { id: 'p1', name: 'tienda', subdomain: 'tienda.pages.dev', domains: ['tienda.pages.dev', 'pedir.tienda.com'], source: { type: 'gitlab', config: { owner: 'gg', repo_name: 'tienda' } }, latest_deployment: dep(world.depId, world.stage) },
     { id: 'p2', name: 'panel', subdomain: 'panel.pages.dev', domains: ['panel.pages.dev'], source: { type: 'github', config: { owner: 'GG', repo_name: 'Panel' } }, latest_deployment: null },
@@ -99,7 +99,7 @@ const round = async c => { for (const [n, fn] of [['account', () => c.pollAccoun
   // el token se prueba antes de guardarlo
   await assert.rejects(verify('corto', null, fake), /no parece un token/);
   await assert.rejects(verify('X'.repeat(40), null, fake), /rechazó el token/);
-  assert.deepStrictEqual(await verify(TOKEN, null, fake), { accountId: ACC, accountName: 'GG Innovations', accounts: 1 });
+  assert.deepStrictEqual(await verify(TOKEN, null, fake), { accountId: ACC, accountName: 'Tienda Ejemplo', accounts: 1 });
 
   const C = make();
   await round(C);
@@ -248,12 +248,12 @@ const round = async c => { for (const [n, fn] of [['account', () => c.pollAccoun
 
   // las cuentas repetidas se juntan al cargar, sin tocar lo guardado: manda la que se conectó primero
   const { Connectors } = require('../server/connectors');
-  const saved = [{ id: 'trafico', type: 'cloudflare', name: 'Tráfico', token: TOKEN2, accountId: ACC, added: '2026-09-28T03:36:00Z' }, { id: 'gustito', type: 'cloudflare', name: 'Gustito', token: TOKEN, accountId: ACC, added: '2026-09-27T22:23:00Z' },
+  const saved = [{ id: 'trafico', type: 'cloudflare', name: 'Tráfico', token: TOKEN2, accountId: ACC, added: '2026-09-28T03:36:00Z' }, { id: 'tienda', type: 'cloudflare', name: 'Tienda', token: TOKEN, accountId: ACC, added: '2026-09-27T22:23:00Z' },
     { id: 'otra', type: 'cloudflare', name: 'Otra', token: TOKEN, accountId: 'b'.repeat(32), added: '2026-09-28T01:00:00Z' }, { id: 'gh', type: 'github', name: 'gh', token: 'x' }];
   const K = new Connectors({}, bus, { connectors: () => saved, sync() { } });
   const W = K.wanted ? (K.mergedInto = new Map(), K.wanted()) : null;
-  assert.deepStrictEqual([...W.keys()].sort(), ['gh', 'gustito', 'otra']);
-  assert.deepStrictEqual(W.get('gustito').more, [TOKEN2]); assert.deepStrictEqual(W.get('gustito').merged, ['Tráfico']);
+  assert.deepStrictEqual([...W.keys()].sort(), ['gh', 'tienda', 'otra']);
+  assert.deepStrictEqual(W.get('tienda').more, [TOKEN2]); assert.deepStrictEqual(W.get('tienda').merged, ['Tráfico']);
   assert.deepStrictEqual(W.get('otra').more, []);
   assert.strictEqual(saved[1].more, undefined, 'lo guardado no se toca');
   assert.deepStrictEqual(K.sameAccount('cloudflare', ACC, 'nuevo'), { id: 'trafico', name: 'Tráfico' });
@@ -263,8 +263,8 @@ const round = async c => { for (const [n, fn] of [['account', () => c.pollAccoun
   process.env.ATALAYA_CF_API = 'http://127.0.0.1:9'; // los conectores arrancan de verdad: que no salgan a la red
   const V = new Connectors({}, bus, { connectors: () => saved.filter(c => c.type === 'cloudflare'), sync() { } });
   V.reconcile();
-  assert.deepStrictEqual(V.virtual().map(v => `${v.id}=${v.publicLabel}`), ['_cf-gustito=Cloudflare 1', '_cf-otra=Cloudflare 2']);
-  assert.deepStrictEqual(V.virtual().map(v => v.label), ['Cloudflare · Gustito', 'Cloudflare · Otra'], 'en privado, el nombre que la persona le puso');
+  assert.deepStrictEqual(V.virtual().map(v => `${v.id}=${v.publicLabel}`), ['_cf-tienda=Cloudflare 1', '_cf-otra=Cloudflare 2']);
+  assert.deepStrictEqual(V.virtual().map(v => v.label), ['Cloudflare · Tienda', 'Cloudflare · Otra'], 'en privado, el nombre que la persona le puso');
   for (const x of V.list.values()) x.inst.stop();
   V.list.delete('otra');
   assert.deepStrictEqual(V.virtual().map(v => v.publicLabel), ['Cloudflare']);

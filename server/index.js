@@ -933,7 +933,7 @@ async function handleSetup(req, res, p, url, session, ip) {
       return json(res, 200, { ok: true });
     }
     if (p === '/api/setup/connector' && req.method === 'POST') {
-      // la persona escribe el nombre como quiera («Gustito Xpress»): se guarda tal cual para mostrarlo y de ahi sale el nombre interno
+      // la persona escribe el nombre como quiera («Mi Tienda»): se guarda tal cual para mostrarlo y de ahi sale el nombre interno
       const shown = String(body.id || '').replace(/\s+/g, ' ').trim().slice(0, 40);
       const id = shown.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 31).replace(/-+$/, '');
       if (!id) return json(res, 400, { error: 'Escriba un nombre para el conector, por ejemplo el de su empresa' });
