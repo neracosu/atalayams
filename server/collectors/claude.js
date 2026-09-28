@@ -359,7 +359,9 @@ class ClaudeCollector {
         const msg = String(ev.message || '').slice(0, 200);
         // el aviso generico solo cuenta si no hay ya un PermissionRequest registrado
         if (t === 'permission_prompt' || /permission/i.test(msg)) { if (!s.waits.size) wait('notif:permission', 'permission', null, null, msg); }
-        else if (t === 'idle_prompt') { if (s.state === 'idle' || s.state === 'waiting') wait('notif:idle', 'idle', null, null, msg); }
+        // en su propia computadora, una sesion que termino y quedo abierta no es un pendiente: la persona la tiene
+        // delante. Solo avisa lo que de verdad frena a Claude (un permiso o una pregunta)
+        else if (t === 'idle_prompt') { if (!s.remote && (s.state === 'idle' || s.state === 'waiting')) wait('notif:idle', 'idle', null, null, msg); }
         else if (t === 'elicitation_dialog') wait('notif:question', 'question', null, null, msg);
         return;
       }

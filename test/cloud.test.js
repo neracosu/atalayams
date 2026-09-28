@@ -119,6 +119,14 @@ supavisor_connections_active{mode="session",db_name="postgres"} 2
   assert.strictEqual(C.list()[0].state, 'waiting');
   H('PostToolUse', { tool_name: 'Bash', tool_use_id: 't2' });
   H('Stop'); assert.strictEqual(C.list()[0].state, 'idle');
+  // termino y la sesion quedo abierta: en una laptop eso no es un pendiente
+  const quiet = cb.ev.length;
+  H('Notification', { notification_type: 'idle_prompt', message: 'Claude is waiting for your input' });
+  assert.strictEqual(C.list()[0].state, 'idle'); assert.ok(!C.list()[0].waitKind); assert.strictEqual(cb.ev.length, quiet, 'ni aviso ni globo');
+  // una pregunta si frena a Claude: esa se avisa
+  H('Notification', { notification_type: 'elicitation_dialog', message: 'pregunta' });
+  assert.strictEqual(C.list()[0].state, 'waiting'); assert.strictEqual(C.list()[0].waitKind, 'question');
+  H('UserPromptSubmit', {}); H('Stop'); assert.strictEqual(C.list()[0].state, 'idle');
   H('SessionEnd', { reason: 'other' }); assert.strictEqual(C.list().length, 0);
   H('PostToolUse', { tool_name: 'Read', tool_use_id: 't9' }); assert.strictEqual(C.list().length, 0, 'hook atrasado no resucita');
   assert.ok(cb.ev.some(e => e.action === 'prompt' && e.text === 'agrega el boton de pagar'));

@@ -20,7 +20,7 @@ const { execFileSync, spawn } = require('child_process');
   const rec = fs.readFileSync(path.join(dir, 'sim/recording.jsonl'), 'utf8');
   assert.ok(!rec.includes('"priv":true'), 'grabacion en modo publico');
   assert.ok(!/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/.test(rec.replace(/"(version|v)":"[^"]*"/g, '')), 'sin IPs');
-  const port = 4600 + Math.floor(Math.random() * 300);
+  const port = require('./puerto')();
   const p = spawn(process.execPath, [path.join(dir, 'sim/server.js'), `--port=${port}`, '--speed=20'], { stdio: 'pipe' });
   await new Promise(r => p.stdout.once('data', r));
   const B = `http://127.0.0.1:${port}`;

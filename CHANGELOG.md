@@ -14,6 +14,11 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.85.1] - 2026-09-28
+
+### Cambiado
+- **Claude Code desde su computadora**: una sesión que terminó y quedó abierta ya no aparece como «espera su respuesta». Se ve en reposo. Sigue avisando lo que de verdad frena a Claude: un permiso o una pregunta. En un servidor no cambia nada.
+
 ## [0.85.0] - 2026-09-28
 
 ### Cambiado
@@ -1578,7 +1583,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.1...HEAD
+[0.85.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.0...v0.85.1
 [0.85.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.4...v0.85.0
 [0.84.4]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.3...v0.84.4
 [0.84.3]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.2...v0.84.3

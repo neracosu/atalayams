@@ -32,7 +32,7 @@ const HOME = path.join(T, 'home');
 fs.mkdirSync(HOME);
 const TGZ = path.join(T, 'app.tgz');
 execFileSync('tar', ['--format=ustar', '-czf', TGZ, '-C', ROOT, 'server', 'web', 'defs', 'agent', 'hooks', 'wordpress', 'licenses', 'CHANGELOG.md', 'package.json', 'cli.js']);
-const PORT = 4300 + Math.floor(Math.random() * 300);
+const PORT = require('./puerto')();
 const get = (p, headers = {}) => new Promise((resolve, reject) => {
   http.get({ host: '127.0.0.1', port: PORT, path: p, headers }, res => { let b = ''; res.on('data', c => { b += c; }); res.on('end', () => resolve({ status: res.statusCode, body: b, headers: res.headers })); }).on('error', reject);
 });

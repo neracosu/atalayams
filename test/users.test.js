@@ -59,7 +59,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   console.log('ok   pase al panel maestro: firmado, de un solo uso y solo con nube en el servidor');
 
   // ---- rutas del servidor: solo un dueno con el modo privado activo
-  const PORT = 4100 + Math.floor(Math.random() * 300);
+  const PORT = require('./puerto')();
   const state = path.join(tmp, 'srv');
   fs.mkdirSync(state);
   const cfgFile = path.join(tmp, 'config.json');

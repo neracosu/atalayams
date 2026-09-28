@@ -103,7 +103,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const fresh = build(path.join(T, 'nuevo.tgz'), '9.9.9');
   served = { env: sign(man('9.9.9', fresh)), pkg: fresh };
   const pubFile = path.join(T, 'prueba.pub'); fs.writeFileSync(pubFile, PUB);
-  const PORT = 4600 + Math.floor(Math.random() * 300);
+  const PORT = require('./puerto')();
   const env = { ...process.env, HOME, USERPROFILE: HOME, XDG_CACHE_HOME: path.join(HOME, '.cache'), XDG_DATA_HOME: path.join(HOME, '.local/share'), ATALAYA_APP_TGZ: oldTgz, ATALAYA_APP_VERSION: '0.81.4',
     ATALAYA_UPDATE_URL: base, ATALAYA_UPDATE_PUB: pubFile, ATALAYA_UPDATE_DELAY: '300', ATALAYA_NO_BROWSER: '1', ATALAYA_FORCE_LITE: '1', ATALAYA_EDITION: '', ATALAYA_STATE: '', ATALAYA_NO_UPDATE: '' };
   const run = async () => { const p = spawn(process.execPath, [path.join(ROOT, 'exe/main.js'), '--puerto', String(PORT)], { env, stdio: ['ignore', 'pipe', 'pipe'] }); let log = ''; p.stdout.on('data', d => { log += d; }); p.stderr.on('data', d => { log += d; });
