@@ -70,7 +70,8 @@ body[data-theme="planta"] .cc { font-family: var(--font); background: #000; bord
 /* columna mas corta (arriba va el parte de novedades): graficas mas bajas y 5 procesos */
 body[data-theme="planta"] #right .chart { height: clamp(3.5rem, 8vh, 6rem); }
 body[data-theme="planta"] #right .procs > :nth-child(n+6) { display: none; }
-body[data-theme="planta"] #right .projrow:nth-child(n+4) { display: none; }
+/* :nth-of-type cuenta solo las filas de proyectos (la fila de resumen es otro elemento) */
+body[data-theme="planta"] #right .projrow:nth-of-type(n+4) { display: none; }
 
 /* mundo 3D: placas de las naves como carteles de fabrica (negro y amarillo) */
 body[data-theme="planta"] .w3-plaque { background: #15151b; border: 0; box-shadow: 0 0 0 2px #000, 0 0 0 4px #5f574f; }

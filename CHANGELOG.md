@@ -14,6 +14,13 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.83.1] - 2026-09-28
+
+### Corregido
+- **Atalaya Cloud**: la Torre de control mostraba CPU, memoria y disco en cero, como si midiera un servidor. Ahora muestra solo lo que tiene conectado.
+- Los distritos de sitios vigilados, latidos y bases ya no muestran secciones vacías de «Servicios (PM2)».
+- En los temas Ops y Planta, el panel Proyectos escondía una fila de más.
+
 ## [0.83.0] - 2026-09-28
 
 ### Agregado
@@ -1529,7 +1536,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.83.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.83.1...HEAD
+[0.83.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.83.0...v0.83.1
 [0.83.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.82.0...v0.83.0
 [0.82.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.4...v0.82.0
 [0.81.4]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.3...v0.81.4

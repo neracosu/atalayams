@@ -674,10 +674,10 @@ export class Drawer {
     // cuota de la cuenta: disco, inodos y ancho de banda del mes (con barra si tiene limite)
     const Q = d.quotas, qrow = (label, x, fmt) => x ? `<li class="${x.limit ? 'bar' : ''}"><span class="grow">${label}</span>${x.limit ? `<span class="bw"><i style="width:${Math.min(100, x.pct * 100).toFixed(1)}%;${x.pct >= 0.85 ? 'background:#f87171' : ''}"></i></span>` : ''}<span class="mono">${fmt(x.used)}${x.limit ? ` / ${fmt(x.limit)}` : ' <span class="dmuted">sin límite</span>'}</span></li>` : '';
     const quotaSec = Q ? `<section class="dsec"><h4>${px('folder')} Cuota de la cuenta</h4><ul class="dlist">${qrow('Disco', Q.disk, fmtBytes)}${qrow('Archivos (inodos)', Q.inodes, n => fmtNum(n))}${qrow('Ancho de banda este mes', Q.bw, fmtBytes)}</ul></section>` : '';
-    this.content(`<div class="dstats">${stat(d.cloudflare ? 'Proyectos' : 'Servicios PM2', d.apps.length)}${stat('Sitios', d.sites.length)}${stat('Visitas / min', fmtNum(d.reqMin))}</div>${quotaSec}
+    this.content(`<div class="dstats">${String(d.id || '') === '_sitios' ? '' : stat(d.cloudflare ? 'Proyectos' : String(d.id || '').startsWith('_latidos') ? 'Latidos' : String(d.id || '').startsWith('_supa') ? 'Bases' : String(d.id || '').startsWith('_') ? 'Proyectos' : 'Servicios PM2', d.apps.length)}${d.sites.length || !String(d.id || '').startsWith('_') ? stat('Sitios', d.sites.length) : ''}${stat('Visitas / min', fmtNum(d.reqMin))}</div>${quotaSec}
       ${changes}
-      <section class="dsec"><h4>${d.cloudflare ? 'Proyectos y Workers' : 'Servicios (PM2)'}</h4><ul class="dlist">${apps}</ul></section>
-      <section class="dsec"><h4>Sitios web</h4><ul class="dlist">${sites}</ul></section>
+      ${d.apps.length || !String(d.id || '').startsWith('_') ? `<section class="dsec"><h4>${d.cloudflare ? 'Proyectos y Workers' : String(d.id || '').startsWith('_latidos') ? 'Latidos' : String(d.id || '').startsWith('_supa') ? 'Bases de datos' : 'Servicios (PM2)'}</h4><ul class="dlist">${apps}</ul></section>` : ''}
+      ${d.sites.length || !String(d.id || '').startsWith('_') ? `<section class="dsec"><h4>Sitios web</h4><ul class="dlist">${sites}</ul></section>` : ''}
       <section class="dsec"><h4>Agentes de Claude</h4><ul class="dlist">${ses}</ul></section>
       ${d.cloudflare ? cfDistrict(d.cloudflare) : ''}
       ${d.dbs && d.dbs.length ? `<section class="dsec"><h4>Bases de datos</h4><ul class="dlist">${d.dbs.map(dbRow).join('')}</ul>
@@ -728,23 +728,25 @@ export class Drawer {
 
   renderSystem(d) {
     const s = d.system;
-    this.setHead('system', iconCanvas('terminal', 4), forEdition('Torre de control'), d.host ? esc(d.host) : forEdition('El servidor completo'), d.health ? this.healthPill(d.health) : '');
-    this.frame([{ title: 'CPU y memoria · 10 min', range: [0, 100], fmt: v => v + '%',
+    this.setHead('system', iconCanvas('terminal', 4), forEdition('Torre de control'), d.host ? esc(d.host) : document.body.classList.contains('ed-cloud') ? 'Todo lo que tiene conectado' : forEdition('El servidor completo'), d.health ? this.healthPill(d.health) : '');
+    // en Atalaya Cloud no hay un servidor propio que medir: la ficha muestra lo conectado, sin cifras en cero
+    const cloud = document.body.classList.contains('ed-cloud');
+    this.frame(cloud ? [] : [{ title: 'CPU y memoria · 10 min', range: [0, 100], fmt: v => v + '%',
       series: [{ stroke: '#22d3ee', width: 2, fill: 'rgba(34,211,238,.1)', points: { show: false } }, { stroke: '#a78bfa', width: 2, points: { show: false } }] }]);
     this.setChart(0, d.hist, [r => r.cpu, r => r.mem]);
     const top = d.top.map(p => `<li><span class="mono grow">${esc(p.comm)} <span class="dmuted">×${p.n}</span></span><span class="mono">${p.cpu.toFixed(1)}%</span><span class="mono dmuted">${fmtBytes(p.mem)}</span></li>`).join('');
     const health = d.health ? `<section class="dsec hsec"><h4>${px('shield')} Salud del servidor ${this.healthPill(d.health)}</h4>${this.healthHtml(d.health, true)}</section>` : '';
     this.content(`${health}<div class="dstats">
-        ${stat('CPU', s.cpu.toFixed(0) + '%')}${stat('Núcleos', s.cores)}${stat('Carga 1/5/15', s.load.map(x => x.toFixed(2)).join(' · '))}
+        ${cloud ? '' : `${stat('CPU', s.cpu.toFixed(0) + '%')}${stat('Núcleos', s.cores)}${stat('Carga 1/5/15', s.load.map(x => x.toFixed(2)).join(' · '))}
         ${stat('Memoria', `${fmtBytes(s.mem.used)} / ${fmtBytes(s.mem.total)}`)}${stat('Swap', fmtBytes(s.swap.used))}${stat('Disco', s.disk ? `${fmtBytes(s.disk.used)} / ${fmtBytes(s.disk.total)}` : '–', s.disk?.pct > 85 ? 'warn' : '')}
-        ${stat('Red ↓ / ↑', `${fmtBytes(s.net.rx)}/s · ${fmtBytes(s.net.tx)}/s`)}${stat('Encendido hace', dur(s.uptime))}${stat('Procesos', s.procs)}
-        ${stat('Servicios', `${d.apps}${d.appsDown ? ` (${d.appsDown} con problemas)` : ''}`, d.appsDown ? 'bad' : '')}${stat('Agentes Claude', d.sessions)}
+        ${stat('Red ↓ / ↑', `${fmtBytes(s.net.rx)}/s · ${fmtBytes(s.net.tx)}/s`)}${stat('Encendido hace', dur(s.uptime))}${stat('Procesos', s.procs)}`}
+        ${stat(cloud ? 'Proyectos' : 'Servicios', d.appsDown ? `${d.appsDown} mal de ${d.apps}` : d.apps, d.appsDown ? 'bad' : '')}${stat('Agentes Claude', d.sessions)}
       </div>
       ${d.connectors && d.connectors.length ? `<section class="dsec"><h4>Conectores de nube</h4>${d.connectors.some(c => !c.ok || (c.warn || []).length) ? '<p class="dmuted">Hay conectores con problemas. Se arreglan en menú › <a href="setup#conectar"><b>Conectar o arreglar proyectos</b></a>.</p>' : ''}<ul class="dlist">${d.connectors.map(c => `<li>
         <span class="pill ${c.ok ? 'ok' : 'bad'}">${c.ok ? 'conectado' : 'error'}</span><span class="grow"><b>${esc(c.label)}</b> · ${c.projects} proyecto${c.projects === 1 ? '' : 's'}</span>
         <span class="dmuted">${c.lastOk ? 'leído hace ' + ago(Date.now() - c.lastOk) : 'sin lectura'}${c.type === 'vercel' ? (c.drainAt ? ` · visitas hace ${ago(Date.now() - c.drainAt)}` : ' · sin Drain') : ''}</span></li>${c.error || (c.warn || []).length ? `<li class="sub wrap"><span class="dmuted">${[c.error, ...(c.warn || [])].filter(Boolean).map(w => px('warn') + ' ' + esc(w)).join('<br>')}</span></li>` : ''}`).join('')}</ul></section>` : ''}
       ${d.keys && d.keys.length ? `<section class="dsec"><h4>Servicios clave</h4><div class="keys">${d.keys.map(k => `<span class="keysvc ${k.state === 'active' ? 'ok' : k.state === 'failed' ? 'bad' : 'off'}" title="${esc(k.unit)} · ${esc(k.substate || k.state)}">${esc(k.label)}<b>${k.state === 'active' ? 'activo' : k.state === 'failed' ? 'FALLÓ' : k.state === 'inactive' ? 'detenido' : esc(k.state)}</b></span>`).join('')}</div></section>` : ''}`, `<section class="dsec"><h4>Visitantes por país · última hora</h4><ul class="dlist">${bars(d.countries, k => `${flag(k)} ${esc(countryName(k))}`, d.countries.reduce((n, x) => n + x.n, 0))}</ul></section>
-      <section class="dsec"><h4>Procesos que más consumen</h4><ul class="dlist">${top}</ul></section>
+      ${cloud ? '' : `<section class="dsec"><h4>Procesos que más consumen</h4><ul class="dlist">${top}</ul></section>`}
       <p class="dlinks"><a data-go="security:all">${px('shield')} Ver defensa</a> · <a data-go="webdef:all">${px('invader')} Defensa web</a> · <a data-go="mail:all">${px('mail')} Ver correo</a> · <a data-go="databases:all">${px('db')} Bases de datos</a></p>`);
   }
 
