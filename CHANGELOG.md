@@ -14,6 +14,16 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.80.2] - 2026-09-28
+
+### Agregado
+- **Quitar conectores y laptops desde el asistente**: cada conector y cada equipo conectado aparece en su bloque con un botón Quitar. Antes solo se podía por terminal.
+- **Cambiar un sitio vigilado** sin perder su historial: botón Cambiar junto a cada sitio, para su dirección, la respuesta esperada y la frase.
+
+### Corregido
+- **Supabase no conectaba y decía que sí**: si el proyecto se escribía como dirección (`https://….supabase.co`) o faltaba la llave, el conector se guardaba vacío y el asistente decía «guardado». Ahora acepta la dirección o el código, **prueba la llave antes de guardar** y dice qué falta: llave pública en lugar de la secreta, llave de otro proyecto, proyecto pausado o código mal escrito.
+- Un mismo conector de Supabase puede tener **varias bases**: repita con el mismo nombre para sumar otra.
+
 ## [0.80.1] - 2026-09-28
 
 ### Corregido
@@ -1456,7 +1466,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.1...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.2...HEAD
+[0.80.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.1...v0.80.2
 [0.80.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.0...v0.80.1
 [0.80.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.1...v0.80.0
 [0.79.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.0...v0.79.1

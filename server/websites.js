@@ -99,6 +99,7 @@ class WebSites {
     if (!p.startsWith('/') || p.length > 200 || /\s/.test(p)) throw new Error('La dirección dentro del sitio debe empezar con / y no llevar espacios');
     const id = String(input.id || domain.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 31)).toLowerCase();
     if (!SLUG.test(id)) throw new Error('Nombre inválido: minúsculas, números y guiones (hasta 31)');
+    if (input.edit && !this.sites[id]) throw new Error('No vigila ese sitio');
     const editing = !!input.edit && !!this.sites[id];
     if (!editing && this.sites[id]) throw new Error('Ya vigila ese sitio');
     if (!editing && this.ids().some(x => this.sites[x].domain === domain)) throw new Error('Ya vigila ese dominio');

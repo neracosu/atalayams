@@ -13,6 +13,10 @@ async function api(path, body) {
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 let mode = null, st = null, idx = 0, steps = [];
+// lo ya conectado de un tipo, con su boton para quitarlo
+const have = type => { const L = st.connectors.filter(c => c.type === type); return L.length ? `<ul class="havelist">${L.map(c => `<li><span><b>${esc(c.name || c.id)}</b>${c.projects ? ` <span class="hint">${c.projects.length ? esc(c.projects.join(', ')) : 'sin proyectos: conéctelo de nuevo con el mismo nombre'}</span>` : ''}</span><button class="btn ghost small" data-unplug="${esc(c.id)}" data-label="${esc(c.name || c.id)}">Quitar</button></li>`).join('')}</ul>` : ''; };
+const haveRemotes = () => st.remotes.length ? `<ul class="havelist">${st.remotes.map(r => `<li><span><b>${esc(r)}</b></span><button class="btn ghost small" data-unplug-remote="${esc(r)}" data-label="${esc(r)}">Quitar</button></li>`).join('')}</ul>` : '';
+
 const card = $('card');
 
 const STEP = {
@@ -244,6 +248,7 @@ async function renderExtras() {
         <div class="row"><button class="btn" id="lkgo">Guardar</button></div><div id="lkout"></div></details></div>` : ''}
     <div class="extra"><h3>${px('branch')} GitHub<span class="st ${st.connectors.some(c => c.type === 'github') ? 'ok' : 'off'}">${st.connectors.filter(c => c.type === 'github').length || 'sin'} conector(es)</span></h3>
       <p class="hint">Une cada proyecto con su código y revisa sus repos: archivos con secretos subidos, .gitignore, CI y alertas de dependencias.</p>
+      ${have('github')}
       <details><summary>Conectar una cuenta de GitHub</summary>
         <p class="hint">Cree un token <b>fine-grained</b> en github.com › Settings › Developer settings › Personal access tokens, con acceso a sus repos y permisos
           <b>solo de lectura</b>: Metadata, Contents y (opcional) Dependabot alerts.</p>
@@ -251,6 +256,7 @@ async function renderExtras() {
         <div class="field"><label>Token</label><input type="password" id="gtok" autocomplete="off" placeholder="github_pat_..."></div></div>
         <div class="row"><button class="btn" id="ggo">Guardar conector</button></div><div id="gout"></div></details></div>
     <div class="extra"><h3>${px('triangle')} Vercel<span class="st ${st.connectors.some(c => c.type === 'vercel') ? 'ok' : 'off'}">${st.connectors.filter(c => c.type === 'vercel').length || 'sin'} conector(es)</span></h3>
+      ${have('vercel')}
       <details><summary>Conectar una cuenta de Vercel</summary>
         <div class="grid2"><div class="field"><label>Nombre</label><input type="text" id="vid" placeholder="Mi empresa" maxlength="40"></div>
         <div class="field"><label>ID de equipo (opcional)</label><input type="text" id="vteam" placeholder="team_..."></div></div>
@@ -259,6 +265,7 @@ async function renderExtras() {
         <div class="row"><button class="btn" id="vgo">Guardar conector</button></div><div id="vout"></div></details></div>
     <div class="extra"><h3>${px('cloud')} Cloudflare<span class="st ${st.connectors.some(c => c.type === 'cloudflare') ? 'ok' : 'off'}">${st.connectors.filter(c => c.type === 'cloudflare').length || 'sin'} conector(es)</span></h3>
       <p class="hint">Sus proyectos de Pages y sus Workers como edificios, los despliegues, las visitas de cada dominio y un aviso si un reloj (cron) deja de correr.</p>
+      ${have('cloudflare')}
       <details><summary>Conectar una cuenta de Cloudflare</summary>
         <p class="hint">En dash.cloudflare.com › su perfil › <b>API Tokens</b> › Create Token › <b>Create Custom Token</b>, con estos permisos, todos <b>de solo lectura</b>:</p>
         <ul class="hint"><li>Account › <b>Cloudflare Pages</b>: Read</li><li>Account › <b>Workers Scripts</b>: Read</li><li>Account › <b>Account Analytics</b>: Read</li><li>Zone › <b>Zone</b>: Read</li><li>Zone › <b>Analytics</b>: Read</li></ul>
@@ -268,14 +275,16 @@ async function renderExtras() {
         <div class="field"><label>Token</label><input type="password" id="cftok" autocomplete="off"></div>
         <div class="row"><button class="btn" id="cfgo">Guardar conector</button></div><div id="cfout"></div></details></div>
     <div class="extra"><h3>${px('bolt')} Supabase<span class="st ${st.connectors.some(c => c.type === 'supabase') ? 'ok' : 'off'}">${st.connectors.filter(c => c.type === 'supabase').length || 'sin'} conector(es)</span></h3>
+      ${have('supabase')}
       <details><summary>Conectar un proyecto de Supabase</summary>
         <div class="grid2"><div class="field"><label>Nombre</label><input type="text" id="sid" placeholder="Base de la tienda" maxlength="40"></div>
-        <div class="field"><label>Project ref</label><input type="text" id="sref" placeholder="abcdefghijklmnop"></div></div>
+        <div class="field"><label>Proyecto (su dirección o su código)</label><input type="text" id="sref" placeholder="https://abcd1234.supabase.co"></div></div>
         <div class="grid2"><div class="field"><label>Nombre para mostrar</label><input type="text" id="sname" placeholder="Base de la tienda"></div>
-        <div class="field"><label>Secret key (sb_secret_...)</label><input type="password" id="skey" autocomplete="off"></div></div>
+        <div class="field"><label>Llave secreta (secret key o service_role)</label><input type="password" id="skey" autocomplete="off"></div></div>
         <div class="field"><label>Token de gestión (opcional: ver si está pausado)</label><input type="password" id="smg" autocomplete="off"></div>
         <div class="row"><button class="btn" id="sgo">Guardar conector</button></div><div id="sout"></div></details></div>
     <div class="extra"><h3>${px('laptop')} Claude Code en una laptop<span class="st ${st.remotes.length ? 'ok' : 'off'}">${st.remotes.length || 'sin'} equipo(s)</span></h3>
+      ${haveRemotes()}
       <details><summary>Agregar un equipo</summary>
         <div class="row"><div class="field grow"><label>Nombre del equipo</label><input type="text" id="rname" placeholder="laptop-ana"></div><button class="btn" id="rgo" style="align-self:flex-end">Generar comando</button></div>
         <div id="rout"></div></details></div>
@@ -289,6 +298,13 @@ async function renderExtras() {
     $('gst').className = 'st ok'; $('gst').textContent = 'disponible'; b.remove();
   });
   act('hooks', async b => { const out = await helperAction('install-hooks', {}, $('hst')); b.insertAdjacentHTML('afterend', `<pre class="cmd">${esc(out.trim().split('\n').slice(-8).join('\n'))}</pre>`); b.remove(); });
+  card.querySelectorAll('[data-unplug], [data-unplug-remote]').forEach(btn => btn.addEventListener('click', async () => {
+    const remote = btn.dataset.unplugRemote != null;
+    if (btn.dataset.sure !== '1') { btn.dataset.sure = '1'; btn.textContent = `¿Quitar «${btn.dataset.label}»? Pulse otra vez`; setTimeout(() => { btn.dataset.sure = ''; btn.textContent = 'Quitar'; }, 5000); return; }
+    btn.disabled = true;
+    try { await api(remote ? 'api/setup/remote-remove' : 'api/setup/connector-remove', { id: remote ? btn.dataset.unplugRemote : btn.dataset.unplug }); btn.closest('li').remove(); }
+    catch (ex) { btn.disabled = false; btn.textContent = ex.message; }
+  }));
   act('vgo', async () => {
     const r = await api('api/setup/connector', { type: 'vercel', id: $('vid').value.trim(), token: $('vtok').value, teamId: $('vteam').value.trim(), drainSecret: $('vsec').value });
     $('vout').innerHTML = `<p class="msg ok">Conector guardado.${r.drainUrl ? ' Para ver las visitas en vivo, en Vercel › Team Settings › Drains › Add Drain › Logs › Custom Endpoint use:' : ''}</p>${r.drainUrl ? copyBlock(r.drainUrl) : ''}`;
@@ -306,8 +322,8 @@ async function renderExtras() {
     $('gout').innerHTML = '<p class="msg ok">Conector guardado. Los proyectos aparecen en un minuto en el panel «Proyectos».</p>';
   });
   act('sgo', async () => {
-    await api('api/setup/connector', { type: 'supabase', id: $('sid').value.trim(), mgmtToken: $('smg').value, projects: [{ ref: $('sref').value.trim(), name: $('sname').value.trim(), serviceKey: $('skey').value }] });
-    $('sout').innerHTML = '<p class="msg ok">Conector guardado. Las métricas aparecen en un minuto.</p>';
+    const r = await api('api/setup/connector', { type: 'supabase', id: $('sid').value.trim(), mgmtToken: $('smg').value, projects: [{ ref: $('sref').value.trim(), name: $('sname').value.trim(), serviceKey: $('skey').value }] });
+    $('sout').innerHTML = `<p class="msg ok">Conectado: Atalaya ya pudo leer el proyecto. Aparece en el mapa en un minuto.${r.projects && r.projects.length > 1 ? ' Este conector tiene ' + r.projects.length + ' proyectos.' : ''} Para sumar otra base a este mismo conector, repita con el mismo nombre.</p>`;
   });
   act('rgo', async () => {
     const r = await api('api/setup/remote', { name: $('rname').value.trim() });

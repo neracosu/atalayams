@@ -68,7 +68,7 @@ class SetupFlow {
       version: this.VERSION, edition: this.cfg.edition, setupMode: this.isSetupMode(), users: Object.keys(this.auth.users).length,
       platform: s, settings: { title: this.cfg.title, subtitle: this.cfg.subtitle, publicUrl: this.cfg.publicUrl, public: this.cfg.public, promo: this.cfg.promo !== false },
       guessUrl: host ? `${proto}://${host}` : '', geo: this.logs.geo && this.logs.geo.file ? this.logs.geo.file : null,
-      connectors: this.secrets.connectors().map(c => ({ id: c.id, type: c.type })), remotes: this.secrets.remotes(), agents: Object.keys(this.secrets.data.agents || {}).filter(k => this.secrets.data.agents[k].sha),
+      connectors: this.secrets.connectors().map(c => ({ id: c.id, type: c.type, name: c.name || c.id, projects: c.type === 'supabase' ? (c.projects || []).map(p => p.name || p.ref) : undefined })), remotes: this.secrets.remotes(), agents: Object.keys(this.secrets.data.agents || {}).filter(k => this.secrets.data.agents[k].sha),
       helper: (this.cfg.edition || 'vps') === 'vps' && fs.existsSync('/etc/systemd/system/atalaya-helper.path'), limits: this.cfg.limits || null, cpanelDomains: s.panelId === 'cpanel' ? domains : [],
       ...this.proxySnippet(s.proxyHint),
     };

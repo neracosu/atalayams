@@ -288,7 +288,7 @@ function sitesSection(W, made) {
   const rows = (W.sites || []).map(x => `<li><span class="pill ${x.ok === false ? 'bad' : x.ok ? 'ok' : 'waiting'}">${x.ok === false ? 'no responde' : x.ok ? 'responde' : 'midiendo'}</span>
       <span class="grow"><b>${ie(x.domain)}</b>${x.path && x.path !== '/' ? `<span class="dmuted mono">${ie(x.path)}</span>` : ''}${x.ok === false && x.why ? `<br><span class="dmuted">${ie(x.why)}</span>` : x.note ? `<br><span class="dmuted">sin medir: ${ie(x.note)}</span>` : ''}</span>
       <span class="dmuted">${x.ok && x.ms ? x.ms + ' ms' : ''}</span>
-      <button class="btn small ghost" data-site-line="${ie(x.siteToken)}">Línea de visitas</button><button class="btn small ghost" data-site-remove="${ie(x.id)}" data-site-name="${ie(x.domain)}">Quitar</button></li>`).join('');
+      <button class="btn small ghost" data-site-edit="${ie(x.id)}" data-path="${ie(x.path || '/')}" data-expect="${ie(x.expect || 0)}" data-phrase="${ie(x.phrase || '')}" data-domain="${ie(x.domain)}">Cambiar</button><button class="btn small ghost" data-site-line="${ie(x.siteToken)}">Línea de visitas</button><button class="btn small ghost" data-site-remove="${ie(x.id)}" data-site-name="${ie(x.domain)}">Quitar</button></li>`).join('');
   const line = t => `<script defer src="${W.script}" data-site="${t}"></script>`;
   return `<section class="sitebox"><h4>${px('antenna')} Vigilar un sitio por su dominio (sin instalar nada)</h4>
       <p class="lhelp">Para proyectos en <b>Cloudflare Pages, Netlify, Vercel</b> o cualquier sitio que quiera mirar desde afuera. Atalaya lo visita cada 5 minutos y le avisa <b>una vez al caer y una vez al volver</b>.</p>
@@ -308,6 +308,25 @@ function bindSites(W, again) {
     if (r.error) { $('siteErr').textContent = r.error; return; }
     again(r.site);
   });
+  // cambiar un sitio: el formulario se llena con lo que tiene y guarda sobre el mismo (no pierde su historial)
+  let editing = null;
+  $('instBody').querySelectorAll('[data-site-edit]').forEach(b => b.addEventListener('click', () => {
+    const f = $('siteForm'), d = b.dataset;
+    editing = d.siteEdit;
+    f.domain.value = d.domain + (d.path && d.path !== '/' ? d.path : ''); f.domain.readOnly = false;
+    f.expect.value = d.expect; f.phrase.value = d.phrase;
+    f.querySelector('button').textContent = 'Guardar cambios';
+    $('siteErr').textContent = `Cambiando ${d.domain}: puede cambiar la dirección dentro del sitio, la respuesta esperada y la frase. El dominio no cambia.`;
+    f.scrollIntoView({ block: 'center' }); f.phrase.focus();
+  }));
+  $('siteForm').addEventListener('submit', async ev => {
+    if (!editing) return;
+    ev.preventDefault(); ev.stopImmediatePropagation();
+    const f = new FormData(ev.target), dom = String(f.get('domain') || ''), cut = dom.replace(/^https?:\/\//, '').indexOf('/');
+    const r = await ipost('api/websites/add', { edit: true, id: editing, domain: dom, path: cut > 0 ? dom.replace(/^https?:\/\//, '').slice(cut) : '/', expect: Number(f.get('expect')), phrase: f.get('phrase') });
+    if (r.error) { $('siteErr').textContent = r.error; return; }
+    again();
+  }, true);
   $('instBody').querySelectorAll('[data-site-line]').forEach(b => b.addEventListener('click', () => {
     $('siteLine').innerHTML = `<p class="lhelp">Pegue esta línea en el sitio, antes de &lt;/head&gt;:</p>${copyBox('siteline2', `<script defer src="${W.script}" data-site="${b.dataset.siteLine}"></script>`)}`;
   }));

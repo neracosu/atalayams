@@ -893,6 +893,16 @@ async function handleSetup(req, res, p, url, session, ip) {
       return json(res, 200, { id: setup.request(String(body.action), body.params || {}, by) });
     }
     if (p === '/api/setup/result') return json(res, 200, setup.result(url.searchParams.get('id')) || { pending: true });
+    // quitar un conector o una laptop desde la pantalla (solo un dueno con sesion)
+    if ((p === '/api/setup/connector-remove' || p === '/api/setup/remote-remove') && req.method === 'POST') {
+      if (!(session && session.role === 'owner')) return json(res, 403, { error: 'Solo un dueño puede quitarlo' });
+      const id = String(body.id || '').slice(0, 40);
+      res.atalayaNote = id;
+      try { if (p === '/api/setup/connector-remove') secrets.delConnector(id); else secrets.delRemote(id); } catch (e) { return json(res, 400, { error: e.message }); }
+      console.log(`[asistente] ${session.user} quitó ${p.endsWith('connector-remove') ? 'el conector' : 'la laptop'} ${id}`);
+      accounts.sync();
+      return json(res, 200, { ok: true });
+    }
     if (p === '/api/setup/connector' && req.method === 'POST') {
       // la persona escribe el nombre como quiera («Gustito Xpress»): se guarda tal cual para mostrarlo y de ahi sale el nombre interno
       const shown = String(body.id || '').replace(/\s+/g, ' ').trim().slice(0, 40);
@@ -900,8 +910,17 @@ async function handleSetup(req, res, p, url, session, ip) {
       if (!id) return json(res, 400, { error: 'Escriba un nombre para el conector, por ejemplo el de su empresa' });
       res.atalayaNote = `${String(body.type || '').slice(0, 20)} ${id}`;
       if (body.type === 'vercel') secrets.addConnector(id, { type: 'vercel', name: shown, token: String(body.token || ''), teamId: body.teamId || undefined, drainSecret: body.drainSecret || undefined });
-      else if (body.type === 'supabase') secrets.addConnector(id, { type: 'supabase', name: shown, mgmtToken: body.mgmtToken || undefined,
-        projects: (body.projects || []).filter(x => x && /^[a-z0-9]{8,40}$/.test(String(x.ref || '')) && x.serviceKey).map(x => ({ ref: String(x.ref), name: String(x.name || x.ref), serviceKey: String(x.serviceKey) })) });
+      else if (body.type === 'supabase') {
+        // cada proyecto se prueba antes de guardarlo; con el mismo nombre de conector se van sumando proyectos
+        const SB = require('./connectors/supabase'), list = [];
+        const want = (body.projects || []).filter(x => x && (x.ref || x.serviceKey)).slice(0, 10);
+        if (!want.length) return json(res, 400, { error: 'Escriba el proyecto de Supabase y su llave secreta' });
+        for (const x of want) { try { list.push(await SB.verify(x)); } catch (e) { return json(res, 400, { error: e.message }); } }
+        const old = secrets.connectors().find(c => c.id === id && c.type === 'supabase');
+        const projects = [...((old && old.projects) || []).filter(p => !list.some(n => n.ref === p.ref)), ...list];
+        secrets.addConnector(id, { type: 'supabase', name: shown, mgmtToken: String(body.mgmtToken || '').trim() || (old && old.mgmtToken) || undefined, projects });
+        return json(res, 200, { ok: true, projects: projects.map(p => p.name) });
+      }
       else if (body.type === 'github') secrets.addConnector(id, { type: 'github', name: shown, token: String(body.token || '') });
       else if (body.type === 'cloudflare') {
         // el token se prueba antes de guardarlo: debe ver la cuenta

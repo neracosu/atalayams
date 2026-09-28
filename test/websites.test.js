@@ -127,6 +127,14 @@ W.onChange = () => changed++;
   assert.deepStrictEqual(W2.ids(), W.ids());
   assert.strictEqual(W2.state['blog-com'].ok, false);
 
+  // cambiar un sitio: conserva su dominio y su historial; uno que no existe no se crea por error
+  const hist = W.state['tienda-com'].log.length;
+  const ch = W.add({ edit: true, id: 'tienda-com', domain: 'otro.com/salud', path: '/salud', expect: 401, phrase: '' });
+  assert.strictEqual(ch.domain, 'tienda.com'); assert.strictEqual(ch.path, '/salud'); assert.strictEqual(ch.expect, 401);
+  assert.strictEqual(W.state['tienda-com'].log.length, hist);
+  assert.throws(() => W.add({ edit: true, id: 'no-existe', domain: 'x.com' }), /No vigila ese sitio/);
+  W.add({ edit: true, id: 'tienda-com', domain: 'tienda.com', path: '/', expect: 0, phrase: 'la tienda' });
+
   // baja
   W.remove('blog-com');
   assert.throws(() => W.remove('blog-com'), /No vigila/);

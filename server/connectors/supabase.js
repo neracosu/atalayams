@@ -110,7 +110,39 @@ class SupabaseConnector {
     });
   }
 
-  info() { return { id: this.conn.id, type: 'supabase', label: this.label, account: this.account, error: this.error, lastOk: this.lastOk, projects: (this.conn.projects || []).length }; }
+  info() { const n = (this.conn.projects || []).length; return { id: this.conn.id, type: 'supabase', label: this.label, account: this.account, error: n ? this.error : 'No tiene ningún proyecto: conéctelo de nuevo desde el asistente', lastOk: this.lastOk, projects: n }; }
 }
 
-module.exports = { SupabaseConnector, parseProm };
+// el codigo del proyecto, venga como venga: «abcd...», «https://abcd....supabase.co» o la direccion del panel
+function refOf(v) {
+  const t = String(v || '').trim().toLowerCase();
+  const m = /^(?:https?:\/\/)?([a-z0-9]{8,40})\.supabase\.(?:co|in|net)\b/.exec(t) || /supabase\.com\/dashboard\/project\/([a-z0-9]{8,40})/.exec(t) || /^([a-z0-9]{8,40})$/.exec(t);
+  return m ? m[1] : null;
+}
+// que clase de llave es, sin probarla: la publica (anon o publishable) no sirve para leer la salud de la base
+function keyKind(k) {
+  const t = String(k || '').trim();
+  if (/^sb_secret_/.test(t)) return 'secret';
+  if (/^sb_publishable_/.test(t)) return 'public';
+  const p = t.split('.');
+  if (p.length === 3 && t.startsWith('eyJ')) { try { const j = JSON.parse(Buffer.from(p[1], 'base64url').toString('utf8')); return j.role === 'service_role' ? 'secret' : j.role === 'anon' ? 'public' : 'unknown'; } catch { return 'unknown'; } }
+  return t ? 'unknown' : 'none';
+}
+// antes de guardar: el codigo debe ser valido y la llave debe poder leer la salud del proyecto
+async function verify(input) {
+  const ref = refOf(input.ref);
+  if (!ref) throw new Error('No reconozco el proyecto. Pegue su dirección (https://abcd1234.supabase.co) o su código: está en Supabase › Project Settings › General › Project ID.');
+  const key = String(input.serviceKey || '').trim(), kind = keyKind(key);
+  if (kind === 'none') throw new Error('Falta la llave secreta del proyecto: en Supabase › Project Settings › API Keys, la «secret key» (sb_secret_…) o la «service_role».');
+  if (kind === 'public') throw new Error('Esa es la llave pública (anon o publishable): con ella no se puede leer la salud de la base. Use la «secret key» (sb_secret_…) o la «service_role», en Supabase › Project Settings › API Keys.');
+  try { await request(`${HOST || `https://${ref}.supabase.co`}/customer/v1/privileged/metrics`, { Authorization: 'Basic ' + Buffer.from('service_role:' + key).toString('base64') }); }
+  catch (e) {
+    if (/ 40[13]$/.test(e.message)) throw new Error('Supabase rechazó la llave para ese proyecto. Revise que sea la «secret key» o la «service_role» de ESE proyecto y que esté completa.');
+    if (/ENOTFOUND|EAI_AGAIN/.test(e.message)) throw new Error('Ese proyecto no existe o su código está mal escrito: no se encontró ' + ref + '.supabase.co.');
+    if (/ 5\d\d$|timeout/.test(e.message)) throw new Error('El proyecto no respondió (puede estar pausado). Reactívelo en Supabase y vuelva a intentar.');
+    throw new Error('No se pudo leer el proyecto: ' + e.message);
+  }
+  return { ref, serviceKey: key, name: String(input.name || '').replace(/\s+/g, ' ').trim().slice(0, 60) || ref };
+}
+
+module.exports = { SupabaseConnector, parseProm, refOf, keyKind, verify };
