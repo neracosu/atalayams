@@ -343,7 +343,7 @@ export class World {
   screenOf(kind, id) {
     if (kind === 'gate') return pixiScreen(this.app, this.hwBar); // el peaje: de ahi salen los sondeos
     if (kind === 'tower') return this.hq ? pixiScreen(this.app, this.hq.c) : null; // de aqui salen las patrullas
-    if (kind === 'jail') return this.jail ? pixiScreen(this.app, this.jail.c) : null; // aqui dejan a los bloqueados
+    if (kind === 'jail') return this.jail && this.jail.c.visible ? pixiScreen(this.app, this.jail.c) : null; // aqui dejan a los bloqueados
     if (kind === 'session' || kind === 'agent') return pixiScreen(this.app, this.robots.get(id));
     return pixiScreen(this.app, this.buildings.get(id));
   }
@@ -884,7 +884,7 @@ export class World {
     else if (kind === 'district') f = this.districtFrame(id);
     else if (kind === 'system') f = this.districtFrame('root');
     else if (kind === 'security') f = this.frame(-420, 420, this.gate.y - 80, 260, 1.1);
-    else if (kind === 'jail' && this.jail) f = this.frame(this.jail.c.x - 200, this.jail.c.x + 200, this.jail.c.y - 140, this.jail.c.y + 140, 1.6);
+    else if (kind === 'jail' && this.jail && this.jail.c.visible) f = this.frame(this.jail.c.x - 200, this.jail.c.x + 200, this.jail.c.y - 140, this.jail.c.y + 140, 1.6);
     if (!f) return;
     this.manualUntil = this.t + 90;
     this.camTarget = f;
@@ -973,6 +973,8 @@ export class World {
     }
     this.hq.heat = clamp((state.system?.cpu || 0) / 100, 0, 1);
     this.hq.alarm = (state.keys || []).filter(k => k.state === 'failed').map(k => k.label);
+    // sin defensa (Cloud, Equipo, Hosting) no hay a quien encerrar: la carcel no se dibuja
+    if (this.jail) this.jail.c.visible = !!state.jail;
     if (state.jail) { this.drawJail(state.jail.n); this.drawQuarantine(state.jail.quarantine || 0); }
     this.lastQueue = state.mailQueue; this.drawPost(state.mailQueue);
     if (this.hqName) { const n = forEdition('TORRE DE CONTROL'); if (this.hqName.text !== n) this.hqName.text = n; }

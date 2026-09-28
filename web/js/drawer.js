@@ -855,7 +855,7 @@ export class Drawer {
   // la carcel: bloqueos manuales del firewall (permanentes) y de la defensa de Atalaya (con vencimiento)
   renderJail(d) {
     this.setHead('jail:all', iconCanvas('jail', 4), 'Cárcel', 'IPs bloqueadas a mano y por la defensa de Atalaya', '');
-    if (!d.available) return this.content('<p class="dmuted">La cárcel necesita la edición VPS con el ayudante de Atalaya.</p>');
+    if (!d.available) return this.content('<p class="dmuted">Aquí no hay cárcel. Encerrar una IP es bloquearla en el firewall de un servidor, y eso solo puede hacerlo una Atalaya instalada en un servidor propio (edición VPS). Lo que tiene conectado en esta pantalla se sigue vigilando igual.</p>');
     const now = Date.now();
     const perm = d.items.filter(x => x.permanent), temp = d.items.filter(x => !x.permanent);
     const row = x => `<li class="${x.ip ? 'link' : ''}" ${x.ip ? `data-go="prisoner:${esc(x.ip)}"` : ''}><span class="cell">${px(x.permanent ? 'lock' : 'shield')}</span><span class="grow">${x.ip ? `<span class="mono">${esc(x.ip)}</span> <span class="dmuted">· ver expediente</span><br>` : ''}
