@@ -14,6 +14,11 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.84.1] - 2026-09-28
+
+### Corregido
+- **Atalaya Cloud**: el registro de uso de la pantalla anotaba como «ficha abierta» el refresco automático del panel Proyectos. Ahora solo cuenta lo que hace una persona.
+
 ## [0.84.0] - 2026-09-28
 
 ### Agregado
@@ -1547,7 +1552,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.1...HEAD
+[0.84.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.0...v0.84.1
 [0.84.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.83.1...v0.84.0
 [0.83.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.83.0...v0.83.1
 [0.83.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.82.0...v0.83.0

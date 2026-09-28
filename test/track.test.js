@@ -32,6 +32,7 @@ hit(T, 'POST', '/api/setup/connector', 400, me, { atalayaError: 'Cloudflare rech
 hit(T, 'GET', '/api/detail?kind=site&id=abc', 200, me);
 hit(T, 'GET', '/api/detail?kind=site&id=otro', 200, me); // la misma clase de ficha en 10 minutos: una sola anotacion
 hit(T, 'GET', '/api/detail?kind=app&id=abc', 200, me);
+hit(T, 'GET', '/api/detail?kind=projects&id=all&auto=1', 200, me); // el panel Proyectos se refresca solo: no es una ficha abierta
 // ruido que no es uso de la persona
 hit(T, 'POST', '/api/beacon', 204, null); hit(T, 'POST', '/api/agent/push', 200, null); hit(T, 'GET', '/api/stream', 200, me); hit(T, 'GET', '/api/me', 401, null);
 hit(T, 'POST', '/api/websites/add', 401, null, { atalayaError: 'Sesion expirada' }); // sin sesion: robots

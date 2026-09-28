@@ -36,7 +36,8 @@ class Track {
     if (!this.on || SKIP.test(p) || !p.startsWith('/api/') && p !== '/setup') return;
     res.on('finish', () => {
       const bad = res.statusCode >= 400, user = session ? session.user : undefined;
-      if (p === '/api/detail') { if (bad) return; return this.add('ficha', { what: String(url.searchParams.get('kind') || '').slice(0, 30), user }, 10 * 60000); }
+      // lo que la pantalla pide sola para refrescar un panel no es algo que hizo la persona
+      if (p === '/api/detail') { if (bad || url.searchParams.get('auto')) return; return this.add('ficha', { what: String(url.searchParams.get('kind') || '').slice(0, 30), user }, 10 * 60000); }
       if (p === '/setup') return this.add('asistente', { what: 'abrió el asistente', user }, 10 * 60000);
       if (req.method !== 'POST') { if (bad && res.statusCode !== 401) this.add('error', { what: p, status: res.statusCode, error: res.atalayaError, user }, 60000); return; }
       // sin sesion solo interesa el acceso fallido (el resto es ruido de robots)

@@ -504,8 +504,9 @@ async function openThemes() {
 }
 
 // ---------------------------------------------------------------- resumen de proyectos (panel derecho)
+// auto=1: es la pantalla la que pide, no una persona que abre la ficha (el seguimiento de la nube no lo anota)
 async function refreshProjects() {
-  const r = await fetch('api/detail?kind=projects&id=all').then(x => x.ok ? x.json() : null).catch(() => null);
+  const r = await fetch('api/detail?kind=projects&id=all&auto=1').then(x => x.ok ? x.json() : null).catch(() => null);
   if (!r || !r.projects) return;
   const n = r.projects.length, bad = r.projects.filter(x => x.bad || x.down).length, warn = r.projects.filter(x => !x.bad && !x.down && x.warn).length;
   $('projSub').textContent = n ? `${n} · promedio ${r.avg}` : '';
