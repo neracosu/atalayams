@@ -24,14 +24,15 @@
       <p id="subtitle"></p>
     </div>
   </div>
-  <div class="kpis" id="kpis"></div>
+  <div class="kpis" id="kpis" data-tour="cifras"></div>
   <div class="right">
-    <button id="mode" class="mode pub" data-tip="Modo de pantalla|Público: oculta nombres, rutas, IPs y comandos. Privado: lo muestra todo; actívelo solo si la pantalla la ve usted. Teclas P y L.">
+    <button id="mode" class="mode pub" data-tour="modo" data-tip="Modo de pantalla|Público: oculta nombres, rutas, IPs y comandos. Privado: lo muestra todo; actívelo solo si la pantalla la ve usted. Teclas P y L.">
       <span class="dot"></span><span class="txt">PÚBLICO</span><span class="left"></span>
     </button>
     <div class="clock"><span id="time">--:--</span><span id="date"></span></div>
-    <button id="menuBtn" class="icon-btn" aria-label="Menú" aria-haspopup="true">⋮</button>
+    <button id="menuBtn" class="icon-btn" data-tour="menu" aria-label="Menú" aria-haspopup="true">⋮</button>
     <div id="menu" class="menu" hidden>
+      <button data-act="tour">Visita guiada</button>
       <button data-act="theme">Tema <kbd>T</kbd></button>
       <button data-act="fullscreen">Pantalla completa <kbd>F</kbd></button>
       <button data-act="director">Modo director <kbd>D</kbd></button>
@@ -53,13 +54,13 @@
   </div>
 </header>
 
-<aside id="left" class="panel">
+<aside id="left" class="panel" data-tour="agentes">
   <h2><span class="pix">Agentes Claude</span><span class="count" id="agentCount">0</span></h2>
   <div id="agents" class="agents"></div>
   <p class="empty" id="agentsEmpty">Ningún agente trabajando ahora.</p>
 </aside>
 
-<aside id="right" class="panel">
+<aside id="right" class="panel" data-tour="paneles">
   <section class="link syschart" data-go="metric:cpu">
     <h2><span class="pix">CPU y memoria</span><span class="legend"><i class="sw cpu"></i>CPU <i class="sw mem"></i>RAM</span></h2>
     <div class="chart" id="chCpu"></div>
@@ -97,7 +98,7 @@
   <div class="dbody"></div>
 </aside>
 
-<nav id="navbar" aria-label="Navegación del mapa">
+<nav id="navbar" data-tour="mapa" aria-label="Navegación del mapa">
   <button id="navHome" data-tip="Vista general|Vuelve a ver todo el mapa. También con doble clic." aria-label="Vista general">⌂</button>
   <button id="navOut" data-tip="Alejar|También con la rueda del mouse o pellizcando." aria-label="Alejar">−</button>
   <button id="navIn" data-tip="Acercar|También con la rueda del mouse o pellizcando." aria-label="Acercar">+</button>
@@ -105,7 +106,7 @@
   <span id="navState"><span data-px="camera"></span> Director</span>
 </nav>
 
-<footer id="ticker" aria-live="polite">
+<footer id="ticker" data-tour="cinta" aria-live="polite">
   <div class="tscroll" id="tscroll"><div id="log"><span class="ev ph"><span class="ic"><span data-px="antenna"></span></span><span>Escuchando eventos del servidor…</span></span></div></div>
   <button id="tall" class="tall" data-tip="Historial|Todas las novedades recientes, con filtros.">Ver todo <b id="tcount">0</b></button>
 </footer>

@@ -690,3 +690,64 @@ small.down { color: var(--bad); font-weight: 700; margin-left: .3rem; }
 .dlist li.dep .grow { flex: 1 1 12rem; white-space: normal; overflow-wrap: anywhere; }
 /* solo en Atalaya para su computadora */
 body:not(.ed-equipo) .onlyequipo { display: none !important; }
+
+/* ==========================================================================
+   Visita guiada (web/js/tour.js)
+   El oscurecido lo hace la sombra del recorte: lo senalado se ve con su color real.
+   Va por encima de todo el HUD de cualquier tema, y no depende de los estilos del tema.
+   ========================================================================== */
+.tour-velo { position: fixed; inset: 0; z-index: 60; background: transparent; opacity: 0; transition: opacity .2s ease, background .24s ease; }
+.tour-velo.ver { opacity: 1; }
+.tour-velo.opaco { background: rgba(3, 6, 14, .8); backdrop-filter: blur(3px); }
+.tour-foco { position: fixed; z-index: 61; top: 0; left: 0; width: 0; height: 0; opacity: 0; border-radius: 14px; pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(3, 6, 14, .8), 0 0 0 2px var(--accent, #22d3ee), 0 0 34px rgba(34, 211, 238, .35);
+  transition: top .3s cubic-bezier(.2, .7, .2, 1), left .3s cubic-bezier(.2, .7, .2, 1), width .3s cubic-bezier(.2, .7, .2, 1), height .3s cubic-bezier(.2, .7, .2, 1), opacity .2s ease, border-radius .3s ease; }
+.tour-foco.redondo { border-radius: 50%; transition: opacity .2s ease, border-radius .3s ease; } /* lo del mapa se sigue cuadro a cuadro: sin retraso */
+.tour-carta { position: fixed; z-index: 62; width: min(24rem, calc(100vw - 1.75rem)); padding: 1.2rem 1.35rem 1.1rem; color: #e6edf7;
+  background: #0d1528; border: 1px solid rgba(148, 163, 184, .32); border-top: 3px solid var(--accent, #22d3ee); border-radius: 12px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .6); font-family: 'Space Grotesk', system-ui, sans-serif; text-align: left;
+  transition: top .3s cubic-bezier(.2, .7, .2, 1), left .3s cubic-bezier(.2, .7, .2, 1), opacity .18s ease; }
+.tour-carta.esperando { opacity: 0; pointer-events: none; }
+.tour-carta::before { content: ""; position: absolute; width: 12px; height: 12px; background: #0d1528; border: 1px solid rgba(148, 163, 184, .32); transform: rotate(45deg); }
+.tour-carta[data-flecha="arriba"]::before { top: -9px; left: calc(var(--fx, 28px) - 6px); border-color: var(--accent, #22d3ee); border-width: 3px 0 0 3px; }
+.tour-carta[data-flecha="abajo"]::before { bottom: -7px; left: calc(var(--fx, 28px) - 6px); border-left: 0; border-top: 0; }
+.tour-carta[data-flecha="izquierda"]::before { left: -7px; top: calc(var(--fy, 26px) - 6px); border-right: 0; border-top: 0; }
+.tour-carta[data-flecha="derecha"]::before { right: -7px; top: calc(var(--fy, 26px) - 6px); border-left: 0; border-bottom: 0; }
+.tour-carta[data-flecha="ninguna"]::before { display: none; }
+.tour-carta.centrada { top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(31rem, calc(100vw - 1.75rem)); padding: 2rem 2.1rem 1.5rem; animation: tour-entra .3s cubic-bezier(.2, .7, .2, 1); }
+.tour-carta.centrada .tour-titulo { font-size: 1.5rem; line-height: 1.28; }
+.tour-carta.centrada .tour-texto { font-size: .97rem; }
+@keyframes tour-entra { from { opacity: 0; transform: translate(-50%, -46%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+.tour-kicker { display: flex; align-items: center; gap: .55rem; margin-bottom: .7rem; font-family: 'Silkscreen', ui-monospace, monospace; font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent, #22d3ee); }
+.tour-kicker b { font-family: ui-monospace, Menlo, monospace; font-weight: 400; letter-spacing: 0; font-size: .7rem; color: #a9b6ca; padding: 1px 8px; border-radius: 20px; background: rgba(148, 163, 184, .12); border: 1px solid rgba(148, 163, 184, .16); }
+.tour-titulo { margin: 0 0 .55rem; font-size: 1.1rem; font-weight: 600; line-height: 1.32; color: #f3f6fb; text-transform: none; letter-spacing: -.01em; }
+.tour-texto { margin: 0; color: #a9b6ca; font-size: .9rem; line-height: 1.6; }
+.tour-texto b, .tour-nota b { color: #f3f6fb; font-weight: 600; }
+.tour-nota { margin-top: .8rem; padding: .6rem .8rem; border-radius: 6px; font-size: .84rem; line-height: 1.55; background: rgba(148, 163, 184, .1); border-left: 3px solid var(--accent, #22d3ee); color: #a9b6ca; }
+.tour-progreso { height: 2px; background: rgba(148, 163, 184, .16); border-radius: 2px; margin: 1.1rem 0 .85rem; overflow: hidden; }
+.tour-progreso i { display: block; height: 100%; background: var(--accent, #22d3ee); transition: width .3s cubic-bezier(.2, .7, .2, 1); }
+.tour-pie { display: flex; align-items: center; gap: .75rem; }
+.tour-botones { display: flex; gap: .5rem; margin-left: auto; }
+.tour-btn { padding: .5rem .95rem; border-radius: 8px; border: 1px solid rgba(148, 163, 184, .32); background: rgba(148, 163, 184, .08); color: #e6edf7; font: inherit; font-size: .85rem; font-weight: 600; }
+.tour-btn:hover { border-color: var(--accent, #22d3ee); }
+.tour-btn-ir { background: var(--accent, #22d3ee); color: #03161b; border-color: transparent; }
+.tour-btn-ir:hover { filter: brightness(1.08); }
+.tour-salir { background: none; border: 0; color: #6b7a93; font: inherit; font-size: .8rem; padding: .4rem .15rem; }
+.tour-salir:hover { color: #e6edf7; text-decoration: underline; }
+.tour-carta.hoja, .tour-carta.hoja-arriba { left: 0; right: 0; width: 100%; max-height: 55dvh; overflow-y: auto; border-left: 0; border-right: 0; }
+.tour-carta.hoja { top: auto; bottom: 0; border-bottom: 0; border-radius: 12px 12px 0 0; padding-bottom: calc(1.1rem + env(safe-area-inset-bottom)); }
+.tour-carta.hoja-arriba { top: 0; bottom: auto; border-top: 0; border-bottom: 3px solid var(--accent, #22d3ee); border-radius: 0 0 12px 12px; padding-top: calc(1.1rem + env(safe-area-inset-top)); }
+.tour-carta.hoja .tour-btn, .tour-carta.hoja-arriba .tour-btn, .tour-carta.hoja .tour-salir, .tour-carta.hoja-arriba .tour-salir { min-height: 44px; }
+/* la invitacion de la primera vez: un aviso que no tapa nada */
+.tour-oferta { position: fixed; z-index: 25; left: 50%; bottom: 8.4rem; transform: translate(-50%, .6rem); opacity: 0; display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; max-width: calc(100vw - 1.75rem);
+  padding: .75rem 1rem; color: #e6edf7; background: #0d1528; border: 1px solid rgba(148, 163, 184, .32); border-left: 3px solid var(--accent, #22d3ee); border-radius: 10px; box-shadow: 0 18px 50px rgba(0, 0, 0, .55);
+  font-family: 'Space Grotesk', system-ui, sans-serif; transition: opacity .3s ease, transform .3s ease; }
+.tour-oferta.ver { opacity: 1; transform: translate(-50%, 0); }
+.tour-oferta div { display: grid; gap: .1rem; }
+.tour-oferta b { font-size: .9rem; }
+.tour-oferta span { font-size: .8rem; color: #a9b6ca; }
+html body.compact .tour-oferta { bottom: calc(var(--tabs-h, 3.6rem) + 1rem); }
+@media (prefers-reduced-motion: reduce) {
+  .tour-foco, .tour-carta, .tour-progreso i, .tour-velo, .tour-oferta { transition: none; }
+  .tour-carta.centrada { animation: none; }
+}

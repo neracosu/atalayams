@@ -14,6 +14,14 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.86.0] - 2026-09-28
+
+### Agregado
+- **Visita guiada.** Un recorrido de un minuto que señala cada cosa en su sitio y le dice para qué sirve: el centro del mapa, sus proyectos, los agentes, los números, la cinta, el modo público y privado, y el menú. La cámara se acerca sola a lo que explica.
+- La primera vez se ofrece con un aviso que no tapa nada. Después queda en menú › **Visita guiada**, para repetirla cuando quiera.
+- Funciona en los diez temas, en el teléfono y con el teclado (flechas para avanzar y volver, Esc para salir).
+- Se adapta a lo que usted tiene: si no hay agentes trabajando o un panel no está en su edición, ese paso no aparece.
+
 ## [0.85.2] - 2026-09-28
 
 ### Corregido
@@ -1592,7 +1600,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.2...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.86.0...HEAD
+[0.86.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.2...v0.86.0
 [0.85.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.1...v0.85.2
 [0.85.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.0...v0.85.1
 [0.85.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.4...v0.85.0

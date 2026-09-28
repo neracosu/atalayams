@@ -13,6 +13,7 @@ import { CommFx } from './commfx.js';
 import { ask } from './ask.js';
 import { Director } from './director.js';
 import { forEdition } from './accounts.js';
+import { Tour } from './tour.js';
 
 const $ = id => document.getElementById(id);
 const post = (url, body = {}) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Atalaya': '1' }, body: JSON.stringify(body) })
@@ -28,8 +29,24 @@ const tm = new ThemeManager($('world'), w => {
   w.onSelect = (kind, id) => { hideTip(); drawer.open(kind, id); };
   w.onTip = (t, x, y) => (t ? showWorldTip({ ...t, title: forEdition(t.title), body: forEdition(t.body) }, x, y) : hideTip()); // en la edicion Equipo, «este equipo»
   w.onNav = onNav;
-  window.atalaya = { world: w, drawer, themes: tm, comm }; // referencia para depurar desde la consola
+  window.atalaya = { world: w, drawer, themes: tm, comm, tour, state }; // referencia para depurar desde la consola
 });
+
+// la visita guiada: senala cada cosa y dice para que sirve (tour.js; los pasos, en tourpasos.js)
+const tour = new Tour({
+  world: () => world, state: () => state, hello: () => hello,
+  antes: () => { drawer.close(); hideTip(); openSheet(''); $('menu').hidden = true; },
+});
+let tourListo = false;
+// con la primera foto del servidor: sigue la visita que quedo a medias o, la primera vez, la ofrece
+function tourAlEntrar() {
+  if (tourListo) return; tourListo = true;
+  setTimeout(() => {
+    if (tour.retomar()) return;
+    if (document.querySelector('dialog[open]') || drawer.isOpen || new URLSearchParams(location.search).get('go')) return; // no encima de otra cosa
+    tour.ofrecer();
+  }, 2500);
+}
 
 // ---------------------------------------------------------------- detalle y navegacion
 // Todo lo que se toca pasa por aqui: el mundo enfoca la entidad y el panel muestra su detalle
@@ -183,6 +200,7 @@ $('menuBtn').addEventListener('click', e => { e.stopPropagation(); $('menu').hid
 document.addEventListener('click', () => { $('menu').hidden = true; });
 $('menu').addEventListener('click', async e => {
   const act = e.target.closest('button')?.dataset.act;
+  if (act === 'tour') tour.abrir(0);
   if (act === 'theme') openThemes();
   if (act === 'fullscreen') toggleFs();
   if (act === 'lock') goPublic();
@@ -770,6 +788,7 @@ function connect() {
     const go = new URLSearchParams(location.search).get('go');
     if (go && !window.__went && /^[a-z]+:[\w:-]+$/.test(go)) { window.__went = true; const [k, ...r] = go.split(':'); setTimeout(() => openDetail(k, r.join(':')), 600); history.replaceState(null, '', location.pathname); }
     if (window.atalaya) window.atalaya.state = state;
+    tourAlEntrar();
     withFavicons(state.apps); withFavicons(state.sites);
     renderState(state);
     tm.update(state);

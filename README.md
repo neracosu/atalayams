@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.85.2-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.86.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -813,6 +813,10 @@ de cPanel sin privilegios; el plugin de WordPress, en un WordPress simulado.
 
 <br>
 
+- **Visita guiada**: menú › **Visita guiada**. Un recorrido de un minuto que señala cada parte de la pantalla y
+  dice para qué sirve; la cámara se acerca sola a lo que explica. La primera vez se ofrece con un aviso que no
+  tapa nada. Flechas para avanzar y volver, `Esc` para salir. Se salta lo que usted no tiene (sin agentes
+  trabajando, ese paso no aparece) y no muestra ningún nombre, así que sirve igual en modo público.
 - **Modo director**: la cámara sigue lo que pasa en el servidor (lo más grave primero) con un rótulo que lo
   cuenta; sin novedades, muestra lo activo o recorre los distritos. Si usted mueve la cámara, se aparta.
 - **Clic** en cualquier cosa abre su detalle; **pasar el mouse** explica qué es.
@@ -977,10 +981,11 @@ Atalaya es nuevo y crece con lo que piden quienes lo usan. Si algo le falta,
 - [ ] Más revisiones: integridad de WordPress
 - [ ] **Historial largo en SQLite**: el registro de seguridad y las métricas pasan a una base SQLite (un solo archivo, sin servidor aparte, nunca el MySQL que se vigila) para expedientes de meses y gráficas históricas. Requiere Node 22. Usuarios, ajustes y cárcel siguen en JSON
 - [ ] Plugin de WHM y modo cuenta de cPanel
-- [ ] Tour guiado
+- [ ] Visita guiada: pasos propios de cada edición, y recorridos para el asistente y el panel maestro
 
 **Hecho:**
 
+- [x] Visita guiada: recorrido base en los diez temas y en el teléfono
 - [x] Ciudad pixel, HUD, modo público y privado, Claude Code
 - [x] VPS en cPanel, Plesk, DirectAdmin, CyberPanel y sin panel
 - [x] Vercel, Supabase y GitHub
