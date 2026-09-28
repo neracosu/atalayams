@@ -150,3 +150,14 @@ const srv = http.createServer((req, res) => {
   console.log('ok   alertas: la configuración vieja de Telegram se muda sola y libera el conector');
   srv.close();
 })().catch(e => { console.error(e); process.exit(1); });
+
+// el aviso de certificado solo trae el dominio: el enlace busca su sitio (con o sin www)
+{
+  const { makePrivacy } = require('../server/privacy');
+  const P = makePrivacy({ accounts: {}, public: {}, apps: {}, sites: {}, stateDir: require('os').tmpdir() });
+  const ctx = { logs: { sites: [{ id: 'ana/blog', domain: 'blog.example.com' }] } };
+  const go = P.goOf({ kind: 'cert', domain: 'www.blog.example.com' }, ctx);
+  assert.ok(/^site:[0-9a-f]+$/.test(go), 'certificado con enlace al sitio: ' + go);
+  assert.strictEqual(P.goOf({ kind: 'cert', domain: 'otro.example.com' }, ctx), null);
+  assert.strictEqual(P.goOf({ kind: 'cert' }, ctx), null);
+}

@@ -181,7 +181,7 @@ ctx.reports = new Reports(cfg, ctx);
 const { Cloudflare } = require('./cloudflare');
 ctx.cloudflare = new Cloudflare(cfg, bus);
 const { Defense } = require('./defense');
-ctx.alerts = new Alerts(cfg, bus, secrets, { goOf: e => privacy.goOf(e),
+ctx.alerts = new Alerts(cfg, bus, secrets, { goOf: e => privacy.goOf(e, ctx),
   healthLine: () => { const h = ctx.hostAudit && ctx.hostAudit.summary(); return h ? (h.bad ? `Salud del servidor: ${h.bad} grave(s)${h.warn ? `, ${h.warn} para revisar` : ''}` : h.warn ? `Salud del servidor: ${h.warn} para revisar` : 'Salud del servidor: en orden') : ''; } });
 // solicitudes de acceso de la nube que vive en este servidor (si la hay): avisan por Telegram o correo
 if (maestroPass.available(cfg)) {

@@ -14,6 +14,14 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.77.1] - 2026-09-28
+
+### Corregido
+- **Alertas de certificado**: el enlace «Abrir en Atalaya» ahora lleva a la ficha del sitio (lo busca por su dominio, con o sin `www`). Antes el aviso llegaba sin enlace.
+
+### Cambiado
+- Capturas de los diez temas del README al día: cada una muestra la cárcel, el correo con su cola, las bases y las cuotas como las dibuja hoy su tema.
+
 ## [0.77.0] - 2026-09-27
 
 ### Agregado
@@ -1403,7 +1411,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.1...HEAD
+[0.77.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.0...v0.77.1
 [0.77.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.76.0...v0.77.0
 [0.76.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.75.0...v0.76.0
 [0.75.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.74.0...v0.75.0

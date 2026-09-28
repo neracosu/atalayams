@@ -739,7 +739,14 @@ function makePrivacy(cfg) {
   }
 
   // enlace directo a la ficha del sitio o app de un evento (mismo alias que usa la pantalla)
-  const goOf = e => e.app && e.account ? 'app:' + alias(e.account + '/' + e.app) : e.site ? 'site:' + alias('site:' + e.site) : null;
+  // los avisos que solo traen dominio (certificados) buscan su sitio por el dominio
+  const goOf = (e, ctx) => {
+    if (e.app && e.account) return 'app:' + alias(e.account + '/' + e.app);
+    if (e.site) return 'site:' + alias('site:' + e.site);
+    const d = String(e.domain || '').toLowerCase().replace(/^www\./, '');
+    const g = d && ctx && ctx.logs && ctx.logs.sites.find(x => String(x.domain || '').toLowerCase().replace(/^www\./, '') === d);
+    return g ? 'site:' + siteId(g) : null;
+  };
   return { state, event, detail, scrub, goOf, analyticsTarget };
 }
 
