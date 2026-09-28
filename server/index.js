@@ -923,8 +923,11 @@ async function handleSetup(req, res, p, url, session, ip) {
       const shown = String(body.id || '').replace(/\s+/g, ' ').trim().slice(0, 40);
       const id = shown.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 31).replace(/-+$/, '');
       if (!id) return json(res, 400, { error: 'Escriba un nombre para el conector, por ejemplo el de su empresa' });
+      // dos conectores de tipos distintos pueden llamarse igual («Mi empresa» en Cloudflare y en Supabase): no se pisan
+      const clash = secrets.connectors().find(c => c.id === id);
+      const idFor = type => clash && clash.type !== type ? `${id.slice(0, 31 - type.length - 1)}-${type}` : id;
       res.atalayaNote = `${String(body.type || '').slice(0, 20)} ${id}`;
-      if (body.type === 'vercel') secrets.addConnector(id, { type: 'vercel', name: shown, token: String(body.token || ''), teamId: body.teamId || undefined, drainSecret: body.drainSecret || undefined });
+      if (body.type === 'vercel') secrets.addConnector(idFor('vercel'), { type: 'vercel', name: shown, token: String(body.token || ''), teamId: body.teamId || undefined, drainSecret: body.drainSecret || undefined });
       else if (body.type === 'supabase') {
         // cada proyecto se prueba antes de guardarlo; con el mismo nombre de conector se van sumando proyectos
         const SB = require('./connectors/supabase'), list = [];
@@ -935,22 +938,22 @@ async function handleSetup(req, res, p, url, session, ip) {
         for (const x of want) { try { const v = await SB.verify(x); if (list.some(n => n.ref === v.ref)) throw new Error('Ese proyecto está repetido en esta lista'); list.push(v); results.push({ ok: true, name: v.name }); } catch (e) { results.push({ ok: false, error: e.message }); } }
         res.atalayaNote = `supabase ${id}: ${list.length} de ${want.length}`;
         if (!list.length) return json(res, 400, { error: want.length === 1 ? results[0].error : 'Ningún proyecto se pudo conectar. Revise el motivo de cada uno.', results });
-        const old = secrets.connectors().find(c => c.id === id && c.type === 'supabase');
+        const sid = idFor('supabase'), old = secrets.connectors().find(c => c.id === sid && c.type === 'supabase');
         const projects = [...((old && old.projects) || []).filter(p => !list.some(n => n.ref === p.ref)), ...list];
-        secrets.addConnector(id, { type: 'supabase', name: shown, mgmtToken: String(body.mgmtToken || '').trim() || (old && old.mgmtToken) || undefined, projects });
+        secrets.addConnector(sid, { type: 'supabase', name: shown, mgmtToken: String(body.mgmtToken || '').trim() || (old && old.mgmtToken) || undefined, projects });
         return json(res, 200, { ok: true, projects: projects.map(p => p.name), results });
       }
-      else if (body.type === 'github') secrets.addConnector(id, { type: 'github', name: shown, token: String(body.token || '') });
+      else if (body.type === 'github') secrets.addConnector(idFor('github'), { type: 'github', name: shown, token: String(body.token || '') });
       else if (body.type === 'cloudflare') {
         // el token se prueba antes de guardarlo: debe ver la cuenta
         const accountId = /^[0-9a-f]{32}$/.test(String(body.accountId || '').trim()) ? String(body.accountId).trim() : undefined;
         let v; try { v = await require('./connectors/cloudflare').verify(body.token, accountId); } catch (e) { return json(res, 400, { error: e.message }); }
-        secrets.addConnector(id, { type: 'cloudflare', name: shown, token: String(body.token).trim(), accountId: v.accountId });
+        secrets.addConnector(idFor('cloudflare'), { type: 'cloudflare', name: shown, token: String(body.token).trim(), accountId: v.accountId });
         return json(res, 200, { ok: true, account: v.accountName, accounts: v.accounts });
       }
       else if (body.type === 'leakix') { secrets.addConnector('leakix', { type: 'leakix', name: 'leakix', apiKey: String(body.apiKey || '').trim() }); ctx.leakix.check().catch(() => { }); }
       else return json(res, 400, { error: 'Tipo de conector desconocido' });
-      return json(res, 200, { ok: true, drainUrl: body.type === 'vercel' ? `${cfg.publicUrl || 'https://' + req.headers.host}/api/drains/vercel/${id}` : null });
+      return json(res, 200, { ok: true, drainUrl: body.type === 'vercel' ? `${cfg.publicUrl || 'https://' + req.headers.host}/api/drains/vercel/${idFor('vercel')}` : null });
     }
     // Atalaya Hosting: instala el agente en esta misma cuenta (crea su tarea cron) con un clic del asistente
     if (p === '/api/setup/agent-local' && req.method === 'POST') {

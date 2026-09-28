@@ -116,7 +116,11 @@ class SupabaseConnector {
 // el codigo del proyecto, venga como venga: «abcd...», «https://abcd....supabase.co» o la direccion del panel
 function refOf(v) {
   const t = String(v || '').trim().toLowerCase();
-  const m = /^(?:https?:\/\/)?([a-z0-9]{8,40})\.supabase\.(?:co|in|net)\b/.exec(t) || /supabase\.com\/dashboard\/project\/([a-z0-9]{8,40})/.exec(t) || /^([a-z0-9]{8,40})$/.exec(t);
+  // tambien sale de la cadena de conexion de Postgres (db.<codigo>.supabase.co o postgres.<codigo>@...pooler.supabase.com)
+  const m = /^(?:https?:\/\/)?([a-z0-9]{8,40})\.supabase\.(?:co|in|net)\b/.exec(t) || /supabase\.com\/dashboard\/project\/([a-z0-9]{8,40})/.exec(t)
+    || /(?:@|\/\/|^)db\.([a-z0-9]{8,40})\.supabase\.(?:co|in|net)\b/.exec(t) || /\/\/postgres\.([a-z0-9]{8,40}):[^@]*@[a-z0-9.-]+\.pooler\.supabase\.com/.exec(t) || /^([a-z0-9]{8,40})$/.exec(t)
+    // el ID copiado con algo alrededor («Project ID: abcd…», comillas, un punto final): son 20 letras seguidas
+    || /(?:^|[^a-z0-9])([a-z]{20})(?:[^a-z0-9]|$)/.exec(t);
   return m ? m[1] : null;
 }
 // que clase de llave es, sin probarla: la publica (anon o publishable) no sirve para leer la salud de la base
@@ -130,8 +134,12 @@ function keyKind(k) {
 }
 // antes de guardar: el codigo debe ser valido y la llave debe poder leer la salud del proyecto
 async function verify(input) {
-  const ref = refOf(input.ref);
-  if (!ref) throw new Error('No reconozco el proyecto. Pegue su dirección (https://abcd1234.supabase.co) o su código: está en Supabase › Project Settings › General › Project ID.');
+  const ref = refOf(input.ref), typed = String(input.ref || '').trim();
+  // el motivo exacto, segun la forma de lo que se pego (nunca se guarda ni se muestra lo pegado)
+  if (!ref) throw new Error(!typed ? 'Falta el ID del proyecto. Está en Supabase › Project Settings › General › Project ID: son 20 letras, como abcdefghijklmnopqrst'
+    : keyKind(typed) !== 'unknown' ? 'En «ID del proyecto» pegó una llave. Ahí va el ID (20 letras, en Project Settings › General); la llave va en el campo de abajo.'
+    : /^[\w .áéíóúñ-]{1,60}$/i.test(typed) && !/\./.test(typed) ? 'Eso parece el nombre del proyecto, no su ID. El ID está en Supabase › Project Settings › General › Project ID: son 20 letras, como abcdefghijklmnopqrst'
+    : 'No reconozco eso como un proyecto de Supabase. Pegue su ID (20 letras, en Supabase › Project Settings › General › Project ID) o su dirección https://<ID>.supabase.co');
   const key = String(input.serviceKey || '').trim(), kind = keyKind(key);
   if (kind === 'none') throw new Error('Falta la llave secreta del proyecto: en Supabase › Project Settings › API Keys, la «secret key» (sb_secret_…) o la «service_role».');
   if (kind === 'public') throw new Error('Esa es la llave pública (anon o publishable): con ella no se puede leer la salud de la base. Use la «secret key» (sb_secret_…) o la «service_role», en Supabase › Project Settings › API Keys.');

@@ -13,13 +13,20 @@ const http = require('http');
 
   for (const v of ['abcdefghijklmnopqrst', 'https://abcdefghijklmnopqrst.supabase.co', 'https://abcdefghijklmnopqrst.supabase.co/', ' ABCDEFGHIJKLMNOPQRST.supabase.co/rest/v1/ ', 'https://supabase.com/dashboard/project/abcdefghijklmnopqrst/settings/api'])
     assert.strictEqual(refOf(v), 'abcdefghijklmnopqrst', v);
+  for (const v of ['postgresql://postgres:clave@db.abcdefghijklmnopqrst.supabase.co:5432/postgres', 'db.abcdefghijklmnopqrst.supabase.co', 'postgresql://postgres.abcdefghijklmnopqrst:clave@aws-0-us-east-1.pooler.supabase.com:6543/postgres'])
+    assert.strictEqual(refOf(v), 'abcdefghijklmnopqrst', v);
+  for (const v of ['Project ID: abcdefghijklmnopqrst', '"abcdefghijklmnopqrst"', 'abcdefghijklmnopqrst.', 'ABCDEFGHIJKLMNOPQRST ']) assert.strictEqual(refOf(v), 'abcdefghijklmnopqrst', v);
   for (const v of ['', 'mi base', 'https://ejemplo.com', 'abc', 'evil.com/#', '127.0.0.1', 'abcdefghij@evil.com', 'evil.com/abcdefghijklmnop.supabase.co']) assert.strictEqual(refOf(v), null, v);
   // lo unico que sale es el codigo: la conexion va siempre a <codigo>.supabase.co, nunca a lo que venga detras
   assert.strictEqual(refOf('abcdefghijklmnop.supabase.co.evil.com/x'), 'abcdefghijklmnop');
   assert.strictEqual(keyKind('sb_secret_abc'), 'secret'); assert.strictEqual(keyKind('sb_publishable_abc'), 'public');
   assert.strictEqual(keyKind(jwt('service_role')), 'secret'); assert.strictEqual(keyKind(jwt('anon')), 'public'); assert.strictEqual(keyKind(''), 'none');
 
-  await assert.rejects(verify({ ref: 'mi base', serviceKey: 'sb_secret_x' }), /No reconozco el proyecto/);
+  await assert.rejects(verify({ ref: 'mi base', serviceKey: 'sb_secret_x' }), /parece el nombre del proyecto/);
+  await assert.rejects(verify({ ref: '', serviceKey: 'sb_secret_x' }), /Falta el ID del proyecto/);
+  await assert.rejects(verify({ ref: 'sb_secret_abc', serviceKey: 'sb_secret_x' }), /pegó una llave/);
+  await assert.rejects(verify({ ref: jwt('service_role'), serviceKey: '' }), /pegó una llave/);
+  await assert.rejects(verify({ ref: 'https://ejemplo.com/x', serviceKey: 'sb_secret_x' }), /No reconozco eso como un proyecto/);
   await assert.rejects(verify({ ref: 'abcdefghijklmnopqrst', serviceKey: '' }), /Falta la llave secreta/);
   await assert.rejects(verify({ ref: 'abcdefghijklmnopqrst', serviceKey: jwt('anon') }), /llave pública/);
   answer = 401; await assert.rejects(verify({ ref: 'abcdefghijklmnopqrst', serviceKey: 'sb_secret_x' }), /rechazó la llave/);

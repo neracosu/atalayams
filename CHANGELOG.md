@@ -14,6 +14,12 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.81.4] - 2026-09-28
+
+### Corregido
+- **Supabase pide el ID del proyecto**, que es lo que hoy muestra su panel (Project Settings › General › Project ID). Sigue aceptando la dirección y la cadena de conexión de Postgres. Si no reconoce lo pegado, dice por qué: falta el ID, se pegó una llave en ese campo, o se escribió el nombre del proyecto.
+- Dos conectores de tipos distintos con el mismo nombre (por ejemplo «Mi empresa» en Cloudflare y en Supabase) ya no se reemplazan uno al otro.
+
 ## [0.81.3] - 2026-09-28
 
 ### Corregido
@@ -1505,7 +1511,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.3...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.4...HEAD
+[0.81.4]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.3...v0.81.4
 [0.81.3]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.2...v0.81.3
 [0.81.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.1...v0.81.2
 [0.81.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.0...v0.81.1

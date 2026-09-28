@@ -277,7 +277,7 @@ async function renderExtras() {
     <div class="extra"><h3>${px('bolt')} Supabase<span class="st ${st.connectors.some(c => c.type === 'supabase') ? 'ok' : 'off'}">${st.connectors.filter(c => c.type === 'supabase').length || 'sin'} conector(es)</span></h3>
       ${have('supabase')}
       <details><summary>Conectar proyectos de Supabase</summary>
-        <p class="hint">De cada proyecto hacen falta <b>dos datos</b>, los dos en Supabase › Project Settings: su <b>dirección</b> (en Data API, «Project URL») y su <b>llave secreta</b> (en API Keys: la «secret key» o la «service_role», no la pública). Atalaya prueba cada uno antes de guardarlo.</p>
+        <p class="hint">De cada proyecto hacen falta <b>dos datos</b>, los dos en Supabase › Project Settings: su <b>ID</b> (en General, «Project ID»: 20 letras) y su <b>llave secreta</b> (en API Keys: la «secret key» o la «service_role», no la pública). Si tiene a mano la dirección del proyecto, también sirve. Atalaya prueba cada uno antes de guardarlo.</p>
         <div class="grid2"><div class="field"><label>Nombre del grupo</label><input type="text" id="sid" placeholder="Mis bases" maxlength="40" value="Supabase"></div>
         <div class="field"><label>¿Cuántos proyectos va a conectar?</label><select id="sn">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}">${n}</option>`).join('')}</select></div></div>
         <div id="srows"></div>
@@ -334,7 +334,7 @@ async function renderExtras() {
   // bloquean; las que fallan dicen el motivo y se pueden corregir y volver a probar sin recargar
   const srow = i => `<fieldset class="sbrow" data-i="${i}"><legend>Proyecto ${i + 1}</legend>
       <div class="grid2"><div class="field"><label>Nombre para mostrar</label><input type="text" class="sb-name" placeholder="Base de la tienda" maxlength="60"></div>
-      <div class="field"><label>Dirección del proyecto</label><input type="text" class="sb-ref" placeholder="https://abcd1234.supabase.co" autocomplete="off"></div></div>
+      <div class="field"><label>ID del proyecto</label><input type="text" class="sb-ref" placeholder="abcdefghijklmnopqrst" autocomplete="off" spellcheck="false"></div></div>
       <div class="field"><label>Llave secreta</label><input type="password" class="sb-key" placeholder="sb_secret_… o la service_role" autocomplete="off"></div><p class="sb-out" role="status"></p></fieldset>`;
   const srows = () => { const box = $('srows'), n = Number($('sn').value) || 1, cur = [...box.children]; for (let i = cur.length; i < n; i++) box.insertAdjacentHTML('beforeend', srow(i)); for (const el of cur.slice(n)) if (!el.classList.contains('done')) el.remove(); };
   if ($('sn')) { $('sn').addEventListener('change', srows); srows(); }
@@ -344,7 +344,7 @@ async function renderExtras() {
     const filled = rows.filter(el => val(el, '.sb-ref') || val(el, '.sb-key'));
     $('sout').innerHTML = '';
     for (const el of rows) { el.classList.remove('bad'); el.querySelector('.sb-out').textContent = ''; }
-    if (!filled.length) { $('sout').innerHTML = '<p class="msg bad">Llene al menos un proyecto: su dirección y su llave secreta.</p>'; return; }
+    if (!filled.length) { $('sout').innerHTML = '<p class="msg bad">Llene al menos un proyecto: su ID y su llave secreta.</p>'; return; }
     $('sout').innerHTML = `<p class="msg info">Probando ${filled.length} proyecto(s)…</p>`;
     let r;
     try { r = await api('api/setup/connector', { type: 'supabase', id: $('sid').value.trim() || 'Supabase', mgmtToken: $('smg').value, projects: filled.map(el => ({ ref: val(el, '.sb-ref'), name: val(el, '.sb-name'), serviceKey: val(el, '.sb-key') })) }); }
