@@ -233,6 +233,16 @@ const round = async c => { for (const [n, fn] of [['account', () => c.pollAccoun
   assert.deepStrictEqual(K.sameAccount('cloudflare', ACC, 'nuevo'), { id: 'trafico', name: 'Tráfico' });
   assert.strictEqual(K.sameAccount('cloudflare', ACC.replace('a', 'c'), 'nuevo'), null);
 
+  // en público, varias cuentas del mismo servicio se numeran por orden de conexión; una sola no lleva número
+  process.env.ATALAYA_CF_API = 'http://127.0.0.1:9'; // los conectores arrancan de verdad: que no salgan a la red
+  const V = new Connectors({}, bus, { connectors: () => saved.filter(c => c.type === 'cloudflare'), sync() { } });
+  V.reconcile();
+  assert.deepStrictEqual(V.virtual().map(v => `${v.id}=${v.publicLabel}`), ['_cf-gustito=Cloudflare 1', '_cf-otra=Cloudflare 2']);
+  assert.deepStrictEqual(V.virtual().map(v => v.label), ['Cloudflare · Gustito', 'Cloudflare · Otra'], 'en privado, el nombre que la persona le puso');
+  for (const x of V.list.values()) x.inst.stop();
+  V.list.delete('otra');
+  assert.deepStrictEqual(V.virtual().map(v => v.publicLabel), ['Cloudflare']);
+
   // lo que no es un token de API (la Global API Key, por ejemplo) se explica en palabras
   await assert.rejects(verify('G'.repeat(37), null, fake), /no reconoció eso como un token de API/);
 

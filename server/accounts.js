@@ -119,7 +119,8 @@ class Accounts {
       const s = this.saved[id] || {}, c = this.configured[id] || {};
       next[id] = id === 'root'
         ? { label: 'Torre de control', publicLabel: 'Torre de control', color: '#f8fafc', ...c }
-        : { label: c.label || a.label || id, publicLabel: c.publicLabel || s.publicLabel, color: c.color || s.color };
+        // un distrito virtual dice su nombre publico de ahora (su numero cambia si se conecta o se quita otro)
+        : { label: c.label || a.label || id, publicLabel: c.publicLabel || (a.virtual && a.publicLabel) || s.publicLabel, color: c.color || s.color };
     }
     if (!initial) {
       for (const id of Object.keys(next)) if (!this.cfg.accounts[id]) this.bus.emit('ev', { kind: 'account', action: 'added', account: id, privLabel: next[id].label, publicLabel: next[id].publicLabel });

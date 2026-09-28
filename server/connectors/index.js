@@ -44,11 +44,18 @@ class Connectors {
       const inst = c.type === 'vercel' ? new VercelConnector(c, this.bus, this.geo) : c.type === 'supabase' ? new SupabaseConnector(c, this.bus) : c.type === 'github' ? new GithubConnector(c) : c.type === 'cloudflare' ? new CloudflareConnector(c, this.bus) : null;
       if (!inst) continue;
       inst.start();
-      this.list.set(id, { sig: JSON.stringify(c), inst });
+      this.list.set(id, { sig: JSON.stringify(c), inst, added: String(c.added || '') });
     }
   }
   // distritos virtuales: uno por conector
-  virtual() { return [...this.list.values()].filter(({ inst }) => inst.account).map(({ inst }) => ({ id: inst.account, label: inst.label, publicLabel: inst.label.split(' · ')[0] })); }
+  // en publico no se dice el nombre de cada cuenta: si hay varias del mismo servicio se numeran («Cloudflare 1»,
+  // «Cloudflare 2») por orden de conexion, para poder distinguirlas en el mapa
+  virtual() {
+    const list = [...this.list.entries()].filter(([, x]) => x.inst.account).sort((a, b) => (a[1].added || '').localeCompare(b[1].added || '') || a[0].localeCompare(b[0]));
+    const total = {}, n = {};
+    for (const [, { inst }] of list) { const k = inst.label.split(' · ')[0]; total[k] = (total[k] || 0) + 1; }
+    return list.map(([, { inst }]) => { const k = inst.label.split(' · ')[0]; n[k] = (n[k] || 0) + 1; return { id: inst.account, label: inst.label, publicLabel: total[k] > 1 ? `${k} ${n[k]}` : k }; });
+  }
   ofType(type) { return [...this.list.values()].map(x => x.inst).filter(i => i.info().type === type); }
   drain(id, raw, headers) {
     const x = this.list.get(id);

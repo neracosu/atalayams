@@ -14,6 +14,11 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.84.2] - 2026-09-28
+
+### Corregido
+- En modo público, varias cuentas de Cloudflare (o de Supabase, o de Vercel) se llamaban todas igual y no había cómo distinguirlas. Ahora se numeran: «Cloudflare 1», «Cloudflare 2». En modo privado siguen con el nombre que usted les puso.
+
 ## [0.84.1] - 2026-09-28
 
 ### Corregido
@@ -1552,7 +1557,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.1...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.2...HEAD
+[0.84.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.1...v0.84.2
 [0.84.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.0...v0.84.1
 [0.84.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.83.1...v0.84.0
 [0.83.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.83.0...v0.83.1
