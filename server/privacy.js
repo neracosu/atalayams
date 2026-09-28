@@ -245,7 +245,7 @@ function makePrivacy(cfg) {
       case 'http':
         Object.assign(out, { account: acct, app: e.app ? alias(account + '/' + e.app) : null, site: e.site ? alias('site:' + e.site) : null,
           status: e.status, bot: e.bot, method: e.method, cc: e.cc, country: e.country, ua: e.ua ? e.ua.name : '' });
-        if (e.via) Object.assign(out, { via: e.via, region: e.region, cache: e.cache });
+        if (e.via) Object.assign(out, { via: e.via, region: e.region, cache: e.cache, n: e.n, origin: e.origin });
         if (priv) Object.assign(out, { domain: e.domain, path: scrub(e.path), ip: e.ip, appName: e.app, refHost: e.refHost });
         else out.label = accLabel(account, false);
         break;
@@ -398,6 +398,9 @@ function makePrivacy(cfg) {
         deployments: (a.deployments || []).map(d => ({ state: d.state, target: d.target, created: d.created, ready: d.ready,
           ...(priv ? { url: d.url, branch: d.branch, commit: scrub(String(d.commit || '').split('\n')[0].slice(0, 120)), creator: d.creator } : {}) })),
         traffic: a.traffic ? { day: a.traffic.day, hours: a.traffic.hours, days: a.traffic.days, countries: a.traffic.countries, at: a.traffic.at, ...(priv ? { zone: a.zone } : {}) } : null,
+        // errores del servidor: cuantos y de que codigo se ve siempre; el dominio y la ruta que fallo, solo en privado
+        errors: a.errors ? { hour: a.errors.hour, total: a.errors.total, last: a.errors.last, codes: a.errors.codes,
+          list: a.errors.list.map(x => ({ t: x.t, status: x.status, origin: x.origin, n: x.n, method: x.method, ...(priv ? { host: x.host, path: scrub(x.path) } : {}) })) } : null,
         ...(a.cfKind === 'worker' ? { runs: a.runs, runErrors: a.runErrors, lastRun: a.lastRun, silent: a.silent, every: a.every, hasCron: !!(a.crons && a.crons.length), ...(priv ? { crons: a.crons } : {}) } : {}),
         ...(priv ? { domains: a.domains, repoHost: a.repoHost } : {}) });
       // latido: cada cuanto debe llegar, cuando llego el ultimo y como le fue; el nombre y la nota solo en privado

@@ -441,7 +441,7 @@ export class World {
         it.ic.alpha = on ? 1 : 0.55;
         it.name.alpha = on ? 1 : 0.6;
         it.name.style.fill = on ? (wait ? 0xfbbf24 : 0xf1f5f9) : 0x8a9ab3;
-        it.name.text = wait ? 'Espera su respuesta' : STATION_NAME[s];
+        it.name.text = wait ? 'Lo espera' : STATION_NAME[s];
         it.ring.clear().ellipse(0, 0, 32, 14).stroke({ width: 3, color: wait ? 0xfbbf24 : on ? hex(this.colorOf(acc === 'root' ? 'root' : acc)) : 0x22d3ee });
         it.ring.alpha = on ? 0.9 : 0;
       }
@@ -668,6 +668,9 @@ export class World {
     for (const d of this.districts.values()) { d.plate.destroy({ children: true }); d.st.cont.destroy({ children: true }); d.name.destroy(); d.sub.destroy(); if (d.quotaLabel) d.quotaLabel.destroy(); }
     for (const b of this.buildings.values()) { b.sign.destroy({ children: true }); b.destroy({ children: true }); }
     this.districts.clear(); this.buildings.clear();
+    // las estaciones de un distrito que ya no esta (se quito una cuenta, un conector o un equipo) se van con el:
+    // si quedaban, el mundo intentaba encender rotulos ya destruidos y fallaba en cada actualizacion
+    for (const k of [...this.stations.keys()]) if (k !== 'root') this.stations.delete(k);
     for (const o of this.silos.values()) o.c.destroy({ children: true });
     this.silos.clear();
 
@@ -1319,7 +1322,9 @@ export class World {
     this.navT = (this.navT || 0) + dt;
     if (this.navT > 1) { this.navT = 0; this.navChanged(); }
     for (let i = this.fx.length - 1; i >= 0; i--) {
-      const f = this.fx[i]; f.age += dt;
+      const f = this.fx[i];
+      if (!f.obj || f.obj.destroyed) { this.fx.splice(i, 1); continue; } // su sala se rearmo y se lo llevo: no se toca
+      f.age += dt;
       if (!f.tick(f, dt)) { f.obj.destroy(); this.fx.splice(i, 1); }
     }
   }

@@ -57,6 +57,13 @@ const fake = async (url, o = {}) => {
       for (const [n, list] of Object.entries(world.runs)) for (const r of list) rows.push({ sum: { requests: r.requests, errors: r.errors }, dimensions: { scriptName: n, datetimeHour: iso(hour - r.h * H) } });
       return { status: 200, json: async () => ({ data: { viewer: { accounts: [{ runs: rows }] } }, errors: null }) };
     }
+    if (q.includes('errores: httpRequestsAdaptiveGroups')) {
+      if (denied.has('traffic') || world.sinDetalle) return { status: 200, json: async () => ({ data: null, errors: [{ message: 'not authorized' }] }) };
+      const from = Date.parse(/datetime_geq: "([^"]+)"/.exec(q)[1]), to = Date.parse(/datetime_lt: "([^"]+)"/.exec(q)[1]), top = Math.floor((now - 90000) / 60000) * 60000;
+      const rows = !q.includes('zoneTag: "z1"') ? [] : world.live.filter(r => r.status >= 500).map(r => ({ t: top - r.m * 60000, r })).filter(x => x.t >= from && x.t < to)
+        .map(({ t, r }) => ({ count: r.count, dimensions: { datetimeMinute: iso(t), clientRequestHTTPHost: r.host, clientRequestPath: r.path || '/api/pagar', clientRequestHTTPMethodName: 'POST', edgeResponseStatus: r.status, originResponseStatus: r.origin || 0 } }));
+      return { status: 200, json: async () => ({ data: { viewer: { zones: [{ errores: rows }] } }, errors: null }) };
+    }
     if (q.includes('httpRequestsAdaptiveGroups')) {
       if (denied.has('traffic')) return { status: 200, json: async () => ({ data: null, errors: [{ message: 'not authorized' }] }) };
       const from = Date.parse(/datetime_geq: "([^"]+)"/.exec(q)[1]), to = Date.parse(/datetime_lt: "([^"]+)"/.exec(q)[1]), top = Math.floor((now - 90000) / 60000) * 60000;
@@ -184,8 +191,13 @@ const round = async c => { for (const [n, fn] of [['account', () => c.pollAccoun
   assert.ok(L.out.every(e => e.kind === 'http' && e.via === 'cloudflare' && e.live && e.account === '_cf-empresa' && e.ip === null), 'son visitas que se dibujan y se cuentan, sin IP y fuera de la analítica');
   const perApp = list => list.reduce((m, e) => (m[e.app || '-'] = (m[e.app || '-'] || 0) + e.n, m), {});
   assert.deepStrictEqual(perApp(L.out), { tienda: 8, 'api-roto': 3, 'torre-sondas': 1, '-': 4 }, 'cada dominio va a su proyecto de Pages, al Worker de ese dominio o al de la ruta; el que no es de nadie no se dibuja');
-  assert.strictEqual(L.out.length, 16, 'con poco tráfico, una visita dibujada por cada pedido; el minuto viejo no entra');
-  assert.strictEqual(L.out.filter(e => e.status === 502).length, 2); assert.strictEqual(L.out.filter(e => e.cc === 'US').length, 2);
+  assert.strictEqual(L.out.length, 15, 'con poco tráfico, una visita dibujada por cada pedido; los dos errores van juntos en un aviso; el minuto viejo no entra');
+  // el error dice donde fue: la ruta, el metodo, el codigo y si el origen llego a responder
+  const bad = L.out.filter(e => e.status >= 500);
+  assert.deepStrictEqual(bad.map(e => [e.app, e.domain, e.method, e.path, e.status, e.origin, e.n]), [['tienda', 'pedir.tienda.com', 'POST', '/api/pagar', 502, 0, 2]]);
+  assert.deepStrictEqual(L.c.apps.find(a => a.name === 'tienda').errors.codes, [{ status: 502, origin: 0, n: 2 }]);
+  assert.strictEqual(L.c.apps.find(a => a.name === 'tienda').errors.list[0].path, '/api/pagar');
+  assert.strictEqual(L.c.apps.find(a => a.name === 'panel').errors, null, 'un proyecto sin errores no muestra la sección');
   assert.strictEqual(L.c.apps.find(a => a.name === 'tienda').cfReqMin, 8, 'las visitas por minuto son las de ese proyecto, no las de toda la zona');
   assert.strictEqual(L.c.apps.find(a => a.name === 'panel').cfReqMin, 0);
   assert.strictEqual(L.c.info().live, true);
@@ -201,7 +213,21 @@ const round = async c => { for (const [n, fn] of [['account', () => c.pollAccoun
   L.out.length = 0; await L.c.part('live', () => L.c.pollLive());
   assert.ok(L.out.length <= 48, 'a lo sumo unas 45 visitas dibujadas por zona y minuto: ' + L.out.length);
   assert.deepStrictEqual(perApp(L.out), { tienda: 4400, 'api-roto': 100 });
-  const bad = L.out.filter(e => e.status === 503).length; assert.ok(bad >= 3 && bad <= 5, 'los errores salen en proporción: ' + bad);
+  assert.deepStrictEqual(L.out.filter(e => e.status === 503).map(e => e.n), [400], 'los errores de una misma ruta, en un solo aviso con su cuenta');
+  assert.deepStrictEqual(L.c.apps.find(a => a.name === 'tienda').errors.codes, [{ status: 503, origin: 0, n: 400 }, { status: 502, origin: 0, n: 2 }], 'se acumulan, lo más frecuente primero');
+  assert.strictEqual(L.c.apps.find(a => a.name === 'tienda').errors.total, 402);
+  // el mismo minuto leído dos veces no cuenta doble
+  assert.strictEqual(await L.c.pollErrors({ id: 'z1' }, now - 10 * 60000, now, false), 0);
+  // al conectar se leen las últimas horas para que la ficha tenga qué mostrar, sin avisar de cada error viejo
+  world.live = [{ m: 0, host: 'pedir.tienda.com', count: 3 }, { m: 90, host: 'pedir.tienda.com', count: 5, status: 504, path: '/api/pedidos' }];
+  const B = await liveOf({});
+  assert.strictEqual(B.out.filter(e => e.status >= 500).length, 0); assert.strictEqual(B.c.apps.find(a => a.name === 'tienda').errors.total, 5);
+  assert.strictEqual(B.c.apps.find(a => a.name === 'tienda').errors.hour, 0, 'fue hace hora y media: no es de ahora');
+  // si Cloudflare no entrega el detalle, el error igual se ve, como una visita en rojo
+  world.sinDetalle = true; world.live = [{ m: 0, host: 'pedir.tienda.com', count: 2, status: 500 }];
+  const D = await liveOf({});
+  assert.deepStrictEqual(D.out.map(e => [e.status, e.path]), [[500, ''], [500, '']]); world.sinDetalle = false;
+  world.live = [{ m: 0, host: 'pedir.tienda.com', count: 4000, cc: 'VE' }, { m: 0, host: 'pedir.tienda.com', count: 400, status: 503, cc: 'CO' }, { m: 0, host: 'api.tienda.com', count: 100 }];
   // sin el permiso de visitas no hay movimiento y queda un solo aviso
   world.denied = new Set(['traffic']);
   const S = await liveOf({});

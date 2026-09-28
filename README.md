@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.86.1-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.87.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -604,6 +604,11 @@ con hasta una hora de atraso. Para páginas, origen y conversiones use además e
 
 **Un token nuevo para la misma cuenta.** Si crea otro token para sumar un permiso que faltaba, puede conectarlo
 con otro nombre: Atalaya reconoce que es la misma cuenta, usa los dos y muestra un solo distrito.
+
+**Errores del servidor.** Cuando un sitio responde con un error (500, 502, 504, 52x), el aviso de la cinta dice
+en qué sitio y con qué código, y su ficha muestra cuántos hubo, qué significa cada uno, si el origen llegó a
+responder y por dónde empezar a arreglarlo. En modo privado, además, qué dirección falló cada vez. Las
+explicaciones son un punto de partida: la causa exacta está en el registro del proyecto en Cloudflare.
 
 **En modo público** no se dice el nombre de cada cuenta. Si conectó varias, se numeran por orden de conexión
 («Cloudflare 1», «Cloudflare 2») para poder distinguirlas; lo mismo con Supabase y Vercel.

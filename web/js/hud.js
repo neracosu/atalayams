@@ -218,7 +218,7 @@ function renderMini(state) {
 }
 
 // ---------------------------------------------------------------- ticker
-const pending = { attack: 0, http5: 0, probe: 0, probeFam: {} };
+const pending = { attack: 0, http5: new Map(), probe: 0, probeFam: {} }; // http5: edificio o sitio -> { n, codes, name, go }
 const FAM_TXT = { secrets: 'secretos (.env, .git, respaldos)', shells: 'webshells', panels: 'paneles de administración', exploits: 'exploits', wordpress: 'el login de WordPress' };
 export function tickerEvent(e, accounts, priv) {
   const acc = accounts.find(a => a.id === e.account);
@@ -238,7 +238,16 @@ export function tickerEvent(e, accounts, priv) {
       if (!text) return;
       break;
     case 'pm2': ic = e.action === 'down' ? 'fire' : 'refresh'; text = `${e.appName} ${e.action === 'down' ? 'se detuvo' : 'se reinició'}`; break;
-    case 'http': if (e.status < 500) return; pending.http5++; pending.http5App = e.app; return;
+    case 'http': {
+      if (e.status < 500) return;
+      // se juntan por sitio: el aviso dice cual fue, con que codigo, y lleva a su ficha
+      const it = e.app ? st && st.apps.find(x => x.id === e.app) : e.site ? st && st.sites.find(x => x.id === e.site) : null;
+      const k = e.app ? 'app:' + e.app : e.site ? 'site:' + e.site : '';
+      const x = pending.http5.get(k) || { n: 0, codes: new Set(), name: (priv && e.appName) || (it && it.name) || '', go: k || 'system:root', path: '' };
+      x.n += e.n > 0 ? e.n : 1; x.codes.add(e.status); if (priv && e.path && !x.path) x.path = e.path;
+      pending.http5.set(k, x);
+      return;
+    }
     case 'attack': pending.attack++; return;
     // sondeos web: se agrupan cada 10 s; un archivo expuesto sale solo y en rojo
     case 'probe':
@@ -342,7 +351,11 @@ setInterval(() => {
     addTicker('invader', '', `${pending.probe} sondeo${pending.probe > 1 ? 's' : ''} de robots buscando rutas vulnerables${top ? ` (sobre todo ${FAM_TXT[top[0]] || top[0]})` : ''}`, '#fb923c', 'webdef:all');
     pending.probe = 0; pending.probeFam = {};
   }
-  if (pending.http5) { addTicker('boom', '', `${pending.http5} error${pending.http5 > 1 ? 'es' : ''} 5xx en los sitios`, '#ef4444', pending.http5App ? 'app:' + pending.http5App : 'system:root'); pending.http5 = 0; pending.http5App = null; }
+  for (const x of pending.http5.values()) {
+    const cod = [...x.codes].sort().slice(0, 3).join(', ');
+    addTicker('boom', '', `${x.n} error${x.n > 1 ? 'es' : ''} ${cod}${x.name ? ' en ' + x.name : ' del servidor'}${x.path ? ` · ${x.path}` : ''} · toque para ver qué falló`, '#ef4444', x.go);
+  }
+  pending.http5.clear();
 }, 10000);
 // historial de la cinta (se vacia al cambiar de modo: puede contener texto privado)
 const events = [];

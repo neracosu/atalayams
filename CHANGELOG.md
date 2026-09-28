@@ -14,6 +14,17 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.87.0] - 2026-09-28
+
+### Agregado
+- **Cloudflare: los errores del servidor dicen dónde, qué y por dónde empezar.** Antes el aviso era «2 errores 5xx en los sitios» y nada más. Ahora nombra el sitio y el código, y al tocarlo abre su ficha con una sección nueva: cuántos hubo en la última hora y en el día, qué significa cada código (504, 502, 521…), si el origen llegó a responder y cómo empezar a arreglarlo.
+- En modo privado, la ficha muestra **qué dirección falló** cada vez y cuáles fallan más. Si es siempre la misma, lo dice.
+- Al conectar, Atalaya lee los errores del último día para que la ficha tenga contexto desde el primer momento.
+
+### Corregido
+- Al quitar una cuenta, un conector o una computadora con un agente trabajando, la pantalla podía fallar en los temas Ciudad clásica y Oficina y dejar de actualizar el mapa.
+- En la Ciudad clásica, la estación de un agente que espera decía «Espera su respuesta» aunque solo hubiera terminado. Ahora dice «Lo espera».
+
 ## [0.86.1] - 2026-09-28
 
 ### Agregado
@@ -1605,7 +1616,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.86.1...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.87.0...HEAD
+[0.87.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.86.1...v0.87.0
 [0.86.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.86.0...v0.86.1
 [0.86.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.2...v0.86.0
 [0.85.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.1...v0.85.2

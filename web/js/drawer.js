@@ -1221,7 +1221,45 @@ function cfTraffic(t, title) {
     ${t.countries && t.countries.length ? `<h5 class="anasub">Países de hoy</h5><ul class="dlist">${bars(t.countries, k => `${flag(k)} ${esc(countryName(k))}`, total)}</ul>` : ''}
     <p class="hint">Son las cifras de Cloudflare para todo el dominio${t.zone ? ` <span class="mono">${esc(t.zone)}</span>` : ''}: incluyen robots y llegan con hasta una hora de atraso. Para páginas, origen y conversiones pegue el script de un <a data-go="district:_sitios">sitio vigilado</a>.</p></section>`;
 }
-function cfHtml(d, DEP) {
+// Que significa cada error del servidor visto desde Cloudflare y por donde empezar. Es un punto de partida, no un
+// diagnostico: el registro del proyecto en Cloudflare es el que dice la causa exacta
+const CF_ERR = {
+  500: ['Error interno', 'Lo que atiende esa ruta falló mientras armaba la respuesta.', 'Abra en Cloudflare › Workers y Pages › este proyecto › Logs y busque el error a esa hora: suele ser un dato que no llegó como se esperaba o una variable de entorno que falta.'],
+  502: ['Respuesta inválida', 'Cloudflare pidió la página y recibió algo que no pudo entender.', 'Revise que el servicio al que se conecta esa ruta (una API, la base de datos, un servidor propio) esté en línea y respondiendo bien.'],
+  503: ['No disponible', 'El servicio no pudo atender en ese momento.', 'Puede ser un límite alcanzado: en Cloudflare revise el uso del plan (pedidos por día y tiempo de cómputo) y, si usa una base de datos, que no esté pausada.'],
+  504: ['Se agotó el tiempo', 'Cloudflare esperó la respuesta y no llegó a tiempo.', 'Casi siempre es una llamada a otro servicio (la base de datos, una API de terceros) que tarda demasiado. Mire si es siempre la misma ruta y revise en Cloudflare › Workers y Pages › este proyecto › Logs qué estaba esperando.'],
+  520: ['Respuesta vacía o inesperada', 'El origen contestó algo que Cloudflare no esperaba, o cortó la conexión.', 'Revise el registro de errores del servidor de origen a esa hora.'],
+  521: ['El origen está caído', 'El servidor de origen rechazó la conexión.', 'Compruebe que el servidor esté encendido, que el servicio web esté corriendo y que su firewall no bloquee a Cloudflare.'],
+  522: ['El origen no contestó', 'Cloudflare intentó conectarse al servidor de origen y no obtuvo respuesta.', 'Revise que el servidor esté en línea y que el firewall deje pasar las IPs de Cloudflare.'],
+  523: ['No se pudo llegar al origen', 'Cloudflare no encontró el camino hasta el servidor de origen.', 'Revise que el registro DNS del dominio apunte a la IP correcta.'],
+  524: ['El origen tardó demasiado', 'La conexión se hizo, pero la respuesta tardó más de lo que Cloudflare espera.', 'Busque qué proceso largo corre en esa ruta (un reporte, una exportación) y páselo a segundo plano.'],
+  525: ['Falló la conexión segura', 'Cloudflare y el servidor de origen no lograron acordar el cifrado.', 'Revise el certificado del servidor de origen y el modo SSL/TLS de la zona en Cloudflare.'],
+  526: ['Certificado inválido en el origen', 'El certificado del servidor de origen está vencido o no corresponde al dominio.', 'Renueve el certificado del origen, o revise el modo SSL/TLS de la zona.'],
+  530: ['Cloudflare no pudo resolver el pedido', 'Viene acompañado de un código 1xxx que dice el motivo exacto.', 'Revise en Cloudflare el estado del dominio y de sus registros DNS.'],
+};
+function cfErrors(d) {
+  const E = d.errors; if (!E || !E.total) return '';
+  const priv = !!d.domains, hace = Date.now() - E.last;
+  const rec = hace < 3600000; // si ya paso, se dice: no es una alarma de ahora
+  const cards = (E.codes || []).map(c => {
+    const K = CF_ERR[c.status] || ['Error del servidor', 'El sitio respondió con un error al visitante.', 'Revise el registro del proyecto en Cloudflare a la hora del error.'];
+    const sin = c.origin === 0 && c.status !== 500 ? ' El origen <b>no llegó a responder</b>: el pedido se quedó esperando.' : c.origin >= 500 ? ` El origen respondió <b>${c.origin}</b>: el error viene de allí, no de Cloudflare.` : '';
+    return `<div class="afind ${rec ? 'bad' : 'warn'}"><h5>${px(rec ? 'siren' : 'warn')} ${c.status} · ${esc(K[0])} <span class="dmuted">· ${fmtNum(c.n)} ${c.n === 1 ? 'vez' : 'veces'}</span></h5>
+      <p class="dmuted">${esc(K[1])}${sin}</p><p class="fix">${esc(K[2])}</p></div>`;
+  }).join('');
+  // las rutas que mas fallan, juntas: si es siempre la misma, ahi esta el problema
+  const by = new Map();
+  for (const x of E.list || []) { const k = priv ? `${x.method} ${x.host}${x.path}` : ''; const y = by.get(k) || { ...x, n: 0, t: 0 }; y.n += x.n; y.t = Math.max(y.t, x.t); by.set(k, y); }
+  const rutas = priv ? [...by.values()].sort((a, b) => b.n - a.n).slice(0, 8).map(x => `<li><span class="pill down">${x.status}</span><span class="grow mono">${esc(x.method || 'GET')} ${esc(x.host)}${esc(x.path)}</span><span class="dmuted">${fmtNum(x.n)} · ${hhmm(x.t)}</span></li>`).join('') : '';
+  const una = priv && by.size === 1;
+  return `<section class="dsec"><h4>${px('boom')} Errores del servidor</h4>
+    <div class="dstats">${stat('En la última hora', fmtNum(E.hour), E.hour ? 'bad' : '')}${stat('En 24 horas', fmtNum(E.total), 'warn')}${stat('El último', 'hace ' + ago(hace))}</div>
+    ${cards}
+    ${rutas ? `<h5 class="anasub">${una ? 'Siempre falla la misma ruta' : 'Las rutas que fallaron'}</h5><ul class="dlist">${rutas}</ul>` : `<p class="hint">${px('lock')} En modo privado verá qué dirección falló cada vez.</p>`}
+    <p class="hint">Es lo que vio el visitante según Cloudflare, con un par de minutos de atraso. Las explicaciones son un punto de partida: la causa exacta está en el registro del proyecto.</p></section>`;
+}
+function cfHtml(d, DEP) { return cfErrors(d) + cfBody(d, DEP); }
+function cfBody(d, DEP) {
   const priv = !!d.domains;
   if (d.cfKind === 'worker') {
     const every = d.every ? (d.every < 3600000 ? `cada ${Math.round(d.every / 60000)} min` : d.every < 86400000 ? `cada ${Math.round(d.every / 3600000)} h` : 'una vez al día o menos') : '';

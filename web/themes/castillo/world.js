@@ -984,7 +984,9 @@ export default class CastilloWorld {
     this.navT = (this.navT || 0) + dt;
     if (this.navT > 1) { this.navT = 0; this.navChanged(); }
     for (let i = this.fx.length - 1; i >= 0; i--) {
-      const f = this.fx[i]; f.age += dt;
+      const f = this.fx[i];
+      if (!f.obj || f.obj.destroyed) { this.fx.splice(i, 1); continue; } // su sala se rearmo y se lo llevo: no se toca
+      f.age += dt;
       if (!f.tick(f, dt)) { f.obj.destroy({ children: true }); this.fx.splice(i, 1); }
     }
   }

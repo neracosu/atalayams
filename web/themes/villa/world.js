@@ -918,7 +918,9 @@ export default class VillaWorld {
     this.drawCanals();
     // efectos
     for (let i = this.fx.length - 1; i >= 0; i--) {
-      const f = this.fx[i]; f.age += dt;
+      const f = this.fx[i];
+      if (!f.obj || f.obj.destroyed) { this.fx.splice(i, 1); continue; } // su sala se rearmo y se lo llevo: no se toca
+      f.age += dt;
       if (f.obj.destroyed || !f.tick(f, dt)) { if (!f.obj.destroyed) f.obj.destroy(); this.fx.splice(i, 1); }
     }
     this.drawSelection();

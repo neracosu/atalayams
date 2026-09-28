@@ -604,7 +604,9 @@ export default class RaidWorld {
       p.castPos = { x: p.x, y: p.y + 12 };
     }
     for (let i = this.torches ? this.torches.length - 1 : -1; i >= 0; i--) this.torches[i].texture = this.T('torch' + frame, () => rowsTex(TORCH[frame], P));
-    for (let i = this.fx.length - 1; i >= 0; i--) { const f = this.fx[i]; f.age += dt; if (!f.tick(f, dt)) { f.obj.destroy(); this.fx.splice(i, 1); } }
+    for (let i = this.fx.length - 1; i >= 0; i--) { const f = this.fx[i];
+      if (!f.obj || f.obj.destroyed) { this.fx.splice(i, 1); continue; } // su sala se rearmo y se lo llevo: no se toca
+      f.age += dt; if (!f.tick(f, dt)) { f.obj.destroy(); this.fx.splice(i, 1); } }
     this.drawSelection();
     this.director(dt);
     if (this.camTarget) { const k = 1 - Math.pow(0.02, dt); this.cam.s += (this.camTarget.s - this.cam.s) * k; this.cam.x += (this.camTarget.x - this.cam.x) * k; this.cam.y += (this.camTarget.y - this.cam.y) * k; }

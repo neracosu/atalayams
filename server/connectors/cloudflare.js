@@ -12,6 +12,8 @@
 // La misma cuenta puede traer varios tokens (conn.more): para cada parte se usa el que tenga el permiso.
 const API = () => process.env.ATALAYA_CF_API || 'https://api.cloudflare.com/client/v4';
 const HOUR = 3600000, MIN = 60000;
+const ERR_MAX = 12; // avisos de error que se dibujan por zona en cada minuto
+const ERR_KEEP = 60; // errores recientes que se recuerdan de cada edificio (un dia como mucho)
 const LIVE_MAX = 45; // visitas que se dibujan por zona en cada minuto; si hubo mas, cada una vale por varias
 
 // cada cuanto deberia correr un cron de Cloudflare ("*/5 * * * *", "0 */6 * * *", "10 4 * * *"), en ms
@@ -67,6 +69,7 @@ class CloudflareConnector {
     this.liveAt = new Map(); // zona -> ultimo minuto ya repartido
     this.liveMin = new Map(); // edificio -> pedidos del ultimo minuto
     this.liveOk = false;
+    this.errs = new Map(); // edificio -> errores recientes del servidor: que ruta fallo, con que codigo y cuando
     this.warn = {}; // parte -> por que no se pudo leer (permiso que falta)
     this.error = null; this.lastOk = 0;
     this.timers = [];
@@ -299,13 +302,21 @@ class CloudflareConnector {
             count dimensions { datetimeMinute clientRequestHTTPHost edgeResponseStatus clientCountryName } } } } }`, 'live:' + z.id);
         const rows = ((((d.viewer || {}).zones || [])[0] || {}).vivo || []).filter(r => r && r.count > 0 && r.dimensions);
         this.liveAt.set(z.id, top); read++;
+        // los errores del servidor se piden aparte, con su ruta: «hubo un error» sin decir cual no le sirve a nadie.
+        // Al conectar se lee el ultimo dia (sin avisar de cada uno) para que la ficha tenga que mostrar
+        let conDetalle = false;
+        try {
+          if (!seen) await this.pollErrors(z, now - 24 * HOUR, from + MIN, false);
+          if (rows.some(r => r.dimensions.edgeResponseStatus >= 500)) { await this.pollErrors(z, from + MIN, top + MIN, true); conDetalle = true; }
+        } catch { /* sin ese detalle, los errores salen como una visita mas en rojo */ }
         const by = new Map(); // edificio (o ninguno) -> sus filas
         for (const r of rows) {
           const app = this.appOf(r.dimensions.clientRequestHTTPHost), k = app || '';
-          by.set(k, [...(by.get(k) || []), r]);
           if (app && Date.parse(r.dimensions.datetimeMinute) === top) lastMin.set(app, (lastMin.get(app) || 0) + r.count);
+          if (conDetalle && r.dimensions.edgeResponseStatus >= 500) continue; // ya salieron con su ruta
+          by.set(k, [...(by.get(k) || []), r]);
         }
-        const total = rows.reduce((s, r) => s + r.count, 0);
+        const total = [...by.values()].flat().reduce((s, r) => s + r.count, 0);
         for (const [k, list] of by) {
           const sum = list.reduce((s, r) => s + r.count, 0), n = total > LIVE_MAX ? Math.max(1, Math.round(sum * LIVE_MAX / total)) : sum;
           list.sort((a, b) => b.count - a.count);
@@ -323,6 +334,45 @@ class CloudflareConnector {
     }
     if (!read && lastErr) throw lastErr;
     this.liveMin = lastMin; this.liveOk = true;
+  }
+
+  // Errores del servidor (5xx) de una zona en un tramo: la ruta, el metodo, el codigo que vio el visitante y el que
+  // dio el origen (0 = el origen no llego a responder). Se guardan por edificio y, si `avisar`, salen a la pantalla
+  async pollErrors(z, from, to, avisar) {
+    const iso = t => new Date(t).toISOString().slice(0, 19) + 'Z';
+    const d = await this.gql(`{ viewer { zones(filter: {zoneTag: "${z.id}"}) {
+      errores: httpRequestsAdaptiveGroups(limit: 300, filter: {datetime_geq: "${iso(from)}", datetime_lt: "${iso(to)}", edgeResponseStatus_geq: 500}, orderBy: [datetimeMinute_DESC]) {
+        count dimensions { datetimeMinute clientRequestHTTPHost clientRequestPath clientRequestHTTPMethodName edgeResponseStatus originResponseStatus } } } } }`, 'errors:' + z.id);
+    // se piden los mas nuevos primero (si hay mas de 300, se pierden los viejos) y se guardan en orden
+    const rows = ((((d.viewer || {}).zones || [])[0] || {}).errores || []).filter(r => r && r.count > 0 && r.dimensions).reverse();
+    const now = this.now(), out = [];
+    for (const r of rows) {
+      const D = r.dimensions, app = this.appOf(D.clientRequestHTTPHost) || '';
+      const x = { t: Date.parse(D.datetimeMinute) || now, host: String(D.clientRequestHTTPHost || ''), path: String(D.clientRequestPath || '').slice(0, 160), method: String(D.clientRequestHTTPMethodName || '').slice(0, 8),
+        status: Number(D.edgeResponseStatus) || 0, origin: Number(D.originResponseStatus) || 0, n: r.count, app };
+      const list = this.errs.get(app) || [];
+      const same = list.find(y => y.t === x.t && y.host === x.host && y.path === x.path && y.status === x.status && y.method === x.method);
+      if (same) continue; // ese minuto ya se habia leido
+      list.push(x); this.errs.set(app, list.filter(y => now - y.t < 24 * HOUR).slice(-ERR_KEEP));
+      out.push(x);
+    }
+    if (!avisar || !out.length) return out.length;
+    out.sort((a, b) => b.n - a.n).slice(0, ERR_MAX).forEach((x, i, l) => {
+      const ev = { kind: 'http', live: true, via: 'cloudflare', at: now, account: this.account, app: x.app || null, site: null, domain: x.host, status: x.status, origin: x.origin,
+        method: x.method, path: x.path, ip: null, bot: false, ua: null, cc: null, country: null, n: x.n };
+      this.defer(() => this.bus.emit('ev', ev), Math.round((i + Math.random()) / l.length * 40000));
+    });
+    return out.length;
+  }
+  // lo que la ficha de un edificio muestra de sus errores: cuantos, de que codigo y en que rutas
+  errorsOf(app) {
+    const now = this.now(), list = (this.errs.get(app) || []).filter(x => now - x.t < 24 * HOUR);
+    if (!list.length) return null;
+    const codes = {};
+    for (const x of list) { const k = x.status + '/' + x.origin; codes[k] = (codes[k] || 0) + x.n; }
+    return { hour: list.filter(x => now - x.t < HOUR).reduce((s, x) => s + x.n, 0), total: list.reduce((s, x) => s + x.n, 0), last: list[list.length - 1].t,
+      codes: Object.entries(codes).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k, n]) => ({ status: Number(k.split('/')[0]), origin: Number(k.split('/')[1]), n })),
+      list: list.slice(-25).reverse() };
   }
 
   // visitas de cada zona: hoy por hora y los ultimos 7 dias. Son totales de Cloudflare: no hay paginas ni IPs
@@ -375,7 +425,7 @@ class CloudflareConnector {
         instances: 1, online: status === 'down' ? 0 : 1, cpu: 0, mem: 0, uptime: prod && prod.ready ? (this.now() - prod.ready) / 1000 : 0,
         framework: '', deployments: deps, domains,
         repo: src && src.type === 'github' && src.config.owner && src.config.repo_name ? `${src.config.owner}/${src.config.repo_name}` : null,
-        repoHost: src ? src.type : null, zone, traffic: tr || null, cfReqMin: reqMin, restartsTotal: 0,
+        repoHost: src ? src.type : null, zone, traffic: tr || null, cfReqMin: reqMin, restartsTotal: 0, errors: this.errorsOf(p.name),
       });
     }
     // los Workers que son la parte de funciones de un proyecto de Pages no se repiten
@@ -388,7 +438,7 @@ class CloudflareConnector {
         substate: w.silent ? 'sus relojes no corren' : bad ? 'falla más de la mitad de las veces' : w.crons.length ? 'con reloj' : 'activo',
         instances: 1, online: status === 'down' ? 0 : 1, cpu: 0, mem: 0, uptime: w.modified ? (this.now() - w.modified) / 1000 : 0,
         deployments: [], domains: [], repo: null, crons: w.crons.slice(0, 6), every: w.every || 0, runs: w.runs, runErrors: w.errors, lastRun: w.last || 0, silent: !!w.silent,
-        cfReqMin: this.liveOk ? this.liveMin.get(name) || 0 : 0, restartsTotal: 0,
+        cfReqMin: this.liveOk ? this.liveMin.get(name) || 0 : 0, restartsTotal: 0, errors: this.errorsOf(name),
       });
     }
     this.apps = apps.sort((a, b) => a.name.localeCompare(b.name));
