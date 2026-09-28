@@ -14,6 +14,11 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.80.1] - 2026-09-28
+
+### Corregido
+- **Nombre de los conectores**: ya puede escribirlo como quiera, con espacios y mayúsculas («Mi Tienda»). Antes solo aceptaba minúsculas, números y guiones, y rechazaba lo demás.
+
 ## [0.80.0] - 2026-09-28
 
 ### Agregado
@@ -1451,7 +1456,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.1...HEAD
+[0.80.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.0...v0.80.1
 [0.80.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.1...v0.80.0
 [0.79.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.79.0...v0.79.1
 [0.79.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.78.0...v0.79.0

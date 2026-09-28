@@ -894,17 +894,20 @@ async function handleSetup(req, res, p, url, session, ip) {
     }
     if (p === '/api/setup/result') return json(res, 200, setup.result(url.searchParams.get('id')) || { pending: true });
     if (p === '/api/setup/connector' && req.method === 'POST') {
-      const id = String(body.id || '').toLowerCase();
-      res.atalayaNote = `${String(body.type || '').slice(0, 20)} ${id.slice(0, 31)}`;
-      if (body.type === 'vercel') secrets.addConnector(id, { type: 'vercel', name: id, token: String(body.token || ''), teamId: body.teamId || undefined, drainSecret: body.drainSecret || undefined });
-      else if (body.type === 'supabase') secrets.addConnector(id, { type: 'supabase', name: id, mgmtToken: body.mgmtToken || undefined,
+      // la persona escribe el nombre como quiera («Gustito Xpress»): se guarda tal cual para mostrarlo y de ahi sale el nombre interno
+      const shown = String(body.id || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+      const id = shown.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 31).replace(/-+$/, '');
+      if (!id) return json(res, 400, { error: 'Escriba un nombre para el conector, por ejemplo el de su empresa' });
+      res.atalayaNote = `${String(body.type || '').slice(0, 20)} ${id}`;
+      if (body.type === 'vercel') secrets.addConnector(id, { type: 'vercel', name: shown, token: String(body.token || ''), teamId: body.teamId || undefined, drainSecret: body.drainSecret || undefined });
+      else if (body.type === 'supabase') secrets.addConnector(id, { type: 'supabase', name: shown, mgmtToken: body.mgmtToken || undefined,
         projects: (body.projects || []).filter(x => x && /^[a-z0-9]{8,40}$/.test(String(x.ref || '')) && x.serviceKey).map(x => ({ ref: String(x.ref), name: String(x.name || x.ref), serviceKey: String(x.serviceKey) })) });
-      else if (body.type === 'github') secrets.addConnector(id, { type: 'github', name: id, token: String(body.token || '') });
+      else if (body.type === 'github') secrets.addConnector(id, { type: 'github', name: shown, token: String(body.token || '') });
       else if (body.type === 'cloudflare') {
         // el token se prueba antes de guardarlo: debe ver la cuenta
         const accountId = /^[0-9a-f]{32}$/.test(String(body.accountId || '').trim()) ? String(body.accountId).trim() : undefined;
         let v; try { v = await require('./connectors/cloudflare').verify(body.token, accountId); } catch (e) { return json(res, 400, { error: e.message }); }
-        secrets.addConnector(id, { type: 'cloudflare', name: id, token: String(body.token).trim(), accountId: v.accountId });
+        secrets.addConnector(id, { type: 'cloudflare', name: shown, token: String(body.token).trim(), accountId: v.accountId });
         return json(res, 200, { ok: true, account: v.accountName, accounts: v.accounts });
       }
       else if (body.type === 'leakix') { secrets.addConnector('leakix', { type: 'leakix', name: 'leakix', apiKey: String(body.apiKey || '').trim() }); ctx.leakix.check().catch(() => { }); }

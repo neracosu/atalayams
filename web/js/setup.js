@@ -247,12 +247,12 @@ async function renderExtras() {
       <details><summary>Conectar una cuenta de GitHub</summary>
         <p class="hint">Cree un token <b>fine-grained</b> en github.com › Settings › Developer settings › Personal access tokens, con acceso a sus repos y permisos
           <b>solo de lectura</b>: Metadata, Contents y (opcional) Dependabot alerts.</p>
-        <div class="grid2"><div class="field"><label>Nombre corto</label><input type="text" id="gid" placeholder="personal"></div>
+        <div class="grid2"><div class="field"><label>Nombre</label><input type="text" id="gid" placeholder="Mi cuenta" maxlength="40"></div>
         <div class="field"><label>Token</label><input type="password" id="gtok" autocomplete="off" placeholder="github_pat_..."></div></div>
         <div class="row"><button class="btn" id="ggo">Guardar conector</button></div><div id="gout"></div></details></div>
     <div class="extra"><h3>${px('triangle')} Vercel<span class="st ${st.connectors.some(c => c.type === 'vercel') ? 'ok' : 'off'}">${st.connectors.filter(c => c.type === 'vercel').length || 'sin'} conector(es)</span></h3>
       <details><summary>Conectar una cuenta de Vercel</summary>
-        <div class="grid2"><div class="field"><label>Nombre corto</label><input type="text" id="vid" placeholder="personal"></div>
+        <div class="grid2"><div class="field"><label>Nombre</label><input type="text" id="vid" placeholder="Mi empresa" maxlength="40"></div>
         <div class="field"><label>ID de equipo (opcional)</label><input type="text" id="vteam" placeholder="team_..."></div></div>
         <div class="field"><label>Token (vercel.com/account/tokens)</label><input type="password" id="vtok" autocomplete="off"></div>
         <div class="field"><label>Secreto del Drain (opcional, plan Pro)</label><input type="password" id="vsec" autocomplete="off"></div>
@@ -263,13 +263,13 @@ async function renderExtras() {
         <p class="hint">En dash.cloudflare.com › su perfil › <b>API Tokens</b> › Create Token › <b>Create Custom Token</b>, con estos permisos, todos <b>de solo lectura</b>:</p>
         <ul class="hint"><li>Account › <b>Cloudflare Pages</b>: Read</li><li>Account › <b>Workers Scripts</b>: Read</li><li>Account › <b>Account Analytics</b>: Read</li><li>Zone › <b>Zone</b>: Read</li><li>Zone › <b>Analytics</b>: Read</li></ul>
         <p class="hint">Si omite alguno, esa parte queda apagada y el resto funciona. Atalaya no puede cambiar nada en su cuenta con este token.</p>
-        <div class="grid2"><div class="field"><label>Nombre corto</label><input type="text" id="cfid" placeholder="empresa"></div>
+        <div class="grid2"><div class="field"><label>Nombre</label><input type="text" id="cfid" placeholder="Mi empresa" maxlength="40"></div>
         <div class="field"><label>ID de la cuenta (opcional)</label><input type="text" id="cfacc" placeholder="32 caracteres, en Workers y Pages › Account ID"></div></div>
         <div class="field"><label>Token</label><input type="password" id="cftok" autocomplete="off"></div>
         <div class="row"><button class="btn" id="cfgo">Guardar conector</button></div><div id="cfout"></div></details></div>
     <div class="extra"><h3>${px('bolt')} Supabase<span class="st ${st.connectors.some(c => c.type === 'supabase') ? 'ok' : 'off'}">${st.connectors.filter(c => c.type === 'supabase').length || 'sin'} conector(es)</span></h3>
       <details><summary>Conectar un proyecto de Supabase</summary>
-        <div class="grid2"><div class="field"><label>Nombre corto</label><input type="text" id="sid" placeholder="produccion"></div>
+        <div class="grid2"><div class="field"><label>Nombre</label><input type="text" id="sid" placeholder="Base de la tienda" maxlength="40"></div>
         <div class="field"><label>Project ref</label><input type="text" id="sref" placeholder="abcdefghijklmnop"></div></div>
         <div class="grid2"><div class="field"><label>Nombre para mostrar</label><input type="text" id="sname" placeholder="Base de la tienda"></div>
         <div class="field"><label>Secret key (sb_secret_...)</label><input type="password" id="skey" autocomplete="off"></div></div>
