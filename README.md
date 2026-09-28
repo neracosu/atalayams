@@ -159,6 +159,9 @@ gárgolas y espectros en el Castillo, tortugas y tiburones en el Acuario, montac
 Terminal no hay vehículos: todo es una línea de texto. Y cada tema dibuja a su manera la cárcel, el correo, las bases de datos, el servidor al
 límite y la cuota de cada cuenta:
 
+La cárcel y la oficina de correos aparecen donde hay qué mostrar: en un servidor (edición VPS). En Atalaya Cloud,
+Equipo y Hosting no se dibujan, porque ahí no hay firewall que bloquee ni servidor de correo que leer.
+
 | Tema | Cárcel y cuarentena | Correo | Bases de datos | Al límite |
 |---|---|---|---|---|
 | Ciudad clásica y 3D | cárcel con autos presos, cápsulas | oficina de correos | silos con tuberías | torre roja y fila |
@@ -602,6 +605,9 @@ con hasta una hora de atraso. Para páginas, origen y conversiones use además e
 **Un token nuevo para la misma cuenta.** Si crea otro token para sumar un permiso que faltaba, puede conectarlo
 con otro nombre: Atalaya reconoce que es la misma cuenta, usa los dos y muestra un solo distrito.
 
+**En modo público** no se dice el nombre de cada cuenta. Si conectó varias, se numeran por orden de conexión
+(«Cloudflare 1», «Cloudflare 2») para poder distinguirlas; lo mismo con Supabase y Vercel.
+
 Este conector es distinto del token de **Defensa web › Cloudflare**, que sí escribe (bloquea IPs) y es opcional.
 
 </details>
@@ -688,6 +694,21 @@ Para una laptop, lo más simple es el asistente › Extras › **Claude Code en 
 | Solo si lo enciende, aparte: instrucciones | El comienzo de lo que usted le escribe a Claude (200 caracteres). Es texto libre: puede llevar datos de su trabajo |
 | Nunca | El contenido de sus archivos, las respuestas de Claude, el resultado de los comandos, rutas completas ni variables de entorno |
 
+El servidor guarda la elección de cada equipo y descarta lo que ese equipo no pidió enviar, aunque llegue. Lo que
+se envía se ve solo en modo privado y no se guarda: queda en memoria mientras la sesión está abierta.
+
+**Cuando Atalaya se actualiza**, las sesiones de esa computadora siguen en la pantalla; no hay que volver a
+conectar nada. Para eso se guarda en disco lo mínimo (equipo, carpeta del proyecto y estado), nunca el detalle ni
+las instrucciones.
+
+**Qué avisa cada sesión.** Tres cosas distintas, cada una con su nombre:
+
+| Aviso | Qué significa |
+|---|---|
+| Espera su permiso | Claude quedó frenado a mitad de tarea hasta que usted apruebe |
+| Tiene una pregunta | Claude necesita una respuesta para seguir |
+| Terminó y lo espera | Claude acabó y la sesión quedó abierta, lista para la próxima instrucción. No es urgente |
+
 Más fácil desde la pantalla: menú › **Asistente de configuración** › paso *Extras* (ahí está también LeakIX). Los secretos quedan en un archivo 600 y
 se toman en caliente.
 
@@ -744,7 +765,7 @@ se toman en caliente.
 | Distrito «Sitios vigilados» | Los sitios que Atalaya visita desde afuera por su dominio; el que no responde se ve caído |
 | Luz del techo | Verde en línea, ámbar parcial o desplegando, roja caído |
 | Robot | Una sesión de Claude Code; camina a la estación de lo que hace |
-| Halo ámbar | El agente espera su permiso o su respuesta |
+| Halo ámbar | El agente espera su permiso, le hizo una pregunta o terminó y espera su próxima instrucción |
 | Autopista y peaje | Por la autopista llegan las visitas desde Internet; el peaje es el firewall |
 | Autos que viajan | Visitas reales: autos pixel del color de la visita (cian personas, gris robots, ámbar error del visitante, rojo error del servidor) |
 | Invasores | Intentos fallidos de acceso que revientan contra la barrera del peaje |

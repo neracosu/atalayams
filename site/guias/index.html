@@ -199,10 +199,11 @@
       <p class="meta">2 minutos · Windows, macOS o Linux</p>
       <ol class="steps">
         <li><b>En Atalaya:</b><p>menú › Asistente de configuración › Extras › <b>Claude Code en una laptop</b>. Escriba un nombre para el equipo (por ejemplo <code>laptop-ana</code>) y pulse <b>Generar comando</b>.</p></li>
-        <li><b>En esa computadora,</b><p>abra una terminal y pegue el comando de su sistema: en Windows, el de <b>PowerShell</b>; en macOS, Linux o WSL, el otro. Sale solo <b>qué está haciendo</b> Claude (herramienta y proyecto): nunca el contenido de sus archivos ni las respuestas. El filtro corre en su computadora y puede leerlo. Instala unos hooks de Claude Code que avisan a su pantalla qué está haciendo cada sesión.</p></li>
-        <li><b>Abra Claude Code como siempre.</b><p>Cada sesión aparece como un robot; cuando pide permiso o le hace una pregunta, se le enciende un halo ámbar.</p></li>
+        <li><b>En esa computadora,</b><p>abra una terminal y pegue el comando de su sistema: en Windows, el de <b>PowerShell</b>; en macOS, Linux o WSL, el otro. Sale solo <b>qué está haciendo</b> Claude (herramienta y proyecto): nunca el contenido de sus archivos ni las respuestas. Si quiere ver más, hay dos casillas aparte, las dos apagadas: el archivo o comando de cada paso, y el comienzo de lo que usted escribe. El filtro corre en su computadora y puede leerlo. Instala unos hooks de Claude Code que avisan a su pantalla qué está haciendo cada sesión.</p></li>
+        <li><b>Abra Claude Code como siempre.</b><p>Cada sesión aparece como un robot. Se le enciende un halo ámbar cuando pide permiso, cuando le hace una pregunta o cuando terminó y espera su próxima instrucción.</p></li>
       </ol>
       <div class="tip"><span data-px="info"></span><span>Los hooks solo agregan avisos: nunca bloquean a Claude ni cambian lo que hace. El token del comando se muestra una sola vez.</span></div>
+      <div class="tip"><span data-px="refresh"></span><span><b>Cuando Atalaya se actualiza,</b> sus sesiones siguen en la pantalla. No hay que volver a conectar nada.</span></div>
     </section>
 
     <section class="guide" id="alertas">
@@ -347,7 +348,7 @@ node cli.js sessions revoke          # cerrar todas las sesiones</code></pre>
         <tr><th>Cárcel</th><td>Las IPs bloqueadas, cada una como un auto oscuro tras las rejas. En el patio, las cápsulas verdes de los archivos en cuarentena</td></tr>
         <tr><th>Bichos rojos</th><td>Un archivo PHP sospechoso en ese sitio; si se agitan con sirena, alguien lo buscó</td></tr>
         <tr><th>Silo</th><td>Las bases de datos de una cuenta; las tuberías llevan a los sitios que las usan</td></tr>
-        <tr><th>Oficina de correos</th><td>Por ahí pasa el correo del servidor: el que sale, el que entra y el que rebota</td></tr>
+        <tr><th>Oficina de correos</th><td>Por ahí pasa el correo del servidor: el que sale, el que entra y el que rebota. Solo en un servidor propio</td></tr>
       </table>
       <p class="note">Cada tema tiene su propia leyenda: dentro de la pantalla, pulse <kbd>?</kbd>.</p>
     </section>
