@@ -122,7 +122,7 @@ class Accounts {
         : { label: c.label || a.label || id, publicLabel: c.publicLabel || s.publicLabel, color: c.color || s.color };
     }
     if (!initial) {
-      for (const id of Object.keys(next)) if (!this.cfg.accounts[id]) this.bus.emit('ev', { kind: 'account', action: 'added', account: id });
+      for (const id of Object.keys(next)) if (!this.cfg.accounts[id]) this.bus.emit('ev', { kind: 'account', action: 'added', account: id, privLabel: next[id].label, publicLabel: next[id].publicLabel });
       for (const id of Object.keys(this.cfg.accounts)) if (!next[id]) {
         const old = this.cfg.accounts[id];
         this.bus.emit('ev', { kind: 'account', action: 'removed', account: id, privLabel: old.label, publicLabel: old.publicLabel });

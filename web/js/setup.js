@@ -310,9 +310,13 @@ async function renderExtras() {
     try { await api(remote ? 'api/setup/remote-remove' : 'api/setup/connector-remove', { id: remote ? btn.dataset.unplugRemote : btn.dataset.unplug }); btn.closest('li').remove(); }
     catch (ex) { btn.disabled = false; btn.textContent = ex.message; }
   }));
+  // tras guardar, el contador y la lista de lo conectado de ese bloque se actualizan sin salir del paso
+  const refresh = async btnId => { try { st = await api('api/setup/state'); } catch { return; } const box = $(btnId).closest('.extra'), type = { vgo: 'vercel', ggo: 'github', cfgo: 'cloudflare', sgo: 'supabase' }[btnId]; if (!box || !type) return;
+    const n = st.connectors.filter(c => c.type === type).length, tag = box.querySelector('h3 .st'); if (tag) { tag.className = 'st ' + (n ? 'ok' : 'off'); tag.textContent = `${n || 'sin'} conector(es)`; }
+    const old = box.querySelector('.havelist'); if (old) old.remove(); const d = box.querySelector('details'); if (d) d.insertAdjacentHTML('beforebegin', have(type)); };
   act('vgo', async () => {
     const r = await api('api/setup/connector', { type: 'vercel', id: $('vid').value.trim(), token: $('vtok').value, teamId: $('vteam').value.trim(), drainSecret: $('vsec').value });
-    $('vout').innerHTML = `<p class="msg ok">Conector guardado.${r.drainUrl ? ' Para ver las visitas en vivo, en Vercel › Team Settings › Drains › Add Drain › Logs › Custom Endpoint use:' : ''}</p>${r.drainUrl ? copyBlock(r.drainUrl) : ''}`;
+    refresh('vgo'); $('vout').innerHTML = `<p class="msg ok">Conector guardado.${r.drainUrl ? ' Para ver las visitas en vivo, en Vercel › Team Settings › Drains › Add Drain › Logs › Custom Endpoint use:' : ''}</p>${r.drainUrl ? copyBlock(r.drainUrl) : ''}`;
   });
   act('lkgo', async () => {
     await api('api/setup/connector', { type: 'leakix', id: 'leakix', apiKey: $('lkkey').value.trim() });
@@ -320,11 +324,11 @@ async function renderExtras() {
   });
   act('cfgo', async () => {
     const r = await api('api/setup/connector', { type: 'cloudflare', id: $('cfid').value.trim(), token: $('cftok').value.trim(), accountId: $('cfacc').value.trim() });
-    $('cfout').innerHTML = `<p class="msg ok">Conector guardado${r.account ? ': cuenta «' + esc(r.account) + '»' : ''}. Sus proyectos aparecen en un minuto; las visitas y las corridas, en unos cinco.${r.accounts > 1 ? ' El token ve varias cuentas: se usa la primera. Para otra, agregue un conector con su ID de cuenta.' : ''}</p>`;
+    refresh('cfgo'); $('cfout').innerHTML = `<p class="msg ok">Conector guardado${r.account ? ': cuenta «' + esc(r.account) + '»' : ''}. Sus proyectos aparecen en un minuto; las visitas y las corridas, en unos cinco.${r.accounts > 1 ? ' El token ve varias cuentas: se usa la primera. Para otra, agregue un conector con su ID de cuenta.' : ''}</p>`;
   });
   act('ggo', async () => {
     await api('api/setup/connector', { type: 'github', id: $('gid').value.trim(), token: $('gtok').value.trim() });
-    $('gout').innerHTML = '<p class="msg ok">Conector guardado. Los proyectos aparecen en un minuto en el panel «Proyectos».</p>';
+    refresh('ggo'); $('gout').innerHTML = '<p class="msg ok">Conector guardado. Los proyectos aparecen en un minuto en el panel «Proyectos».</p>';
   });
   // Supabase: tantas filas como proyectos; cada una con su resultado. Las que conectan quedan en verde y se
   // bloquean; las que fallan dicen el motivo y se pueden corregir y volver a probar sin recargar
@@ -352,6 +356,7 @@ async function renderExtras() {
       else { el.classList.add('bad'); out.className = 'sb-out bad'; out.textContent = x.error; }
     });
     const ok = res.filter(x => x.ok).length, bad = filled.length - ok;
+    if (ok) refresh('sgo');
     $('sout').innerHTML = `<p class="msg ${bad ? (ok ? 'info' : 'bad') : 'ok'}">${ok ? `${ok} proyecto(s) conectado(s): aparecen en el mapa en un minuto.` : 'Ninguno se conectó.'}${bad ? ` ${bad} con problemas: corrija lo marcado en rojo y pulse otra vez. Lo que ya conectó no se pierde.` : ''}${r.projects ? ` Este grupo tiene ahora ${r.projects.length} proyecto(s).` : ''}</p>`;
   });
   act('rgo', async () => {

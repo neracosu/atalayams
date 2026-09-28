@@ -84,7 +84,7 @@ class Projects {
     for (const g of logs.sites) {
       const url = !g.remote && g.docroot ? this.remote(g.docroot, roots) : null;
       out.push({ key: `site:${g.id}`, kind: g.remote ? 'hosting' : 'site', name: g.domain, repo: githubRepo(url), remote: url, site: g, domains: g.domainList,
-        status: 'online', activity: g.lastSeen || 0, where: g.account, type: g.type });
+        status: this.ctx.websites && this.ctx.websites.isDown(g.id) ? 'down' : 'online', activity: g.lastSeen || 0, where: g.account, type: g.type });
     }
     // repos de GitHub sin nada desplegado que se sepa: tambien son proyectos (quizas abandonados)
     for (const gh of this.github()) for (const [full, r] of gh.repos) if (!r.fork) out.push({ key: `repo:${full}`, kind: 'repo', name: r.fullName.split('/')[1], repo: full, domains: [], activity: r.pushedAt });

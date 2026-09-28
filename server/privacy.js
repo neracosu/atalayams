@@ -338,7 +338,8 @@ function makePrivacy(cfg) {
       case 'account':
         // una cuenta dada de baja ya no esta en cfg.accounts: las etiquetas vienen en el evento
         Object.assign(out, { action: e.action, account: acct,
-          label: e.action === 'removed' ? (priv ? e.privLabel : e.publicLabel) : accLabel(account, priv) });
+          // al aparecer o irse la cuenta puede no estar en la configuracion: las etiquetas vienen en el evento
+          label: e.privLabel || e.publicLabel ? (priv ? e.privLabel : e.publicLabel || 'Distrito') : accLabel(account, priv) });
         break;
       default: return null;
     }
@@ -362,7 +363,7 @@ function makePrivacy(cfg) {
     const { host, claude, logs, history } = ctx;
     const tilde = p => p ? p.replace(/^\/home\/[^/]+\/?/, '~/').replace(/^\/root\/?/, '/root/') : '';
     const fw = a => a.source === 'vercel' ? a.framework || '' : undefined;
-    const appSummary = a => ({ id: alias(a.account + '/' + a.name), name: (priv && a.source === 'beat' && a.beat && a.beat.label) || appName(a.account, a.name, priv, a.image, fw(a)), category: appInfo(a.account, a.name, a.image, fw(a)).label || '',
+    const appSummary = a => ({ id: alias(a.account + '/' + a.name), name: (priv && a.source === 'beat' && a.beat && a.beat.label) || appName(a.account, a.name, priv, a.image, fw(a)), category: a.source === 'beat' ? '' : appInfo(a.account, a.name, a.image, fw(a)).label || '',
       icon: appInfo(a.account, a.name, a.image, fw(a)).icon || pickIcon(alias(a.account + '/' + a.name)), favicon: priv && ctx.favicons ? ctx.favicons.ready(appDomain(ctx, a)) || undefined : undefined, source: a.source, status: a.status, cpu: Math.round(a.cpu * 10) / 10, mem: a.mem,
       reqMin: logs.lastMinute.perApp[a.account + '/' + a.name] || a.cfReqMin || 0 });
     const sessSummary = x => ({ id: priv ? x.id : alias(x.id), title: priv ? scrub(x.title) : '', state: x.state,
@@ -423,7 +424,8 @@ function makePrivacy(cfg) {
       if (!g) return null;
       const k = 'site:' + g.id;
       const out = {
-        ...siteSummary(ctx, g, priv), kind, category: logs.siteLabel(g), // kind despues: siteSummary trae su etiqueta en kind accountLabel: accLabel(g.account, priv), color: acc(g.account).color,
+        // kind va despues: siteSummary trae su etiqueta en kind
+        ...siteSummary(ctx, g, priv), kind, category: logs.siteLabel(g), accountLabel: accLabel(g.account, priv), color: acc(g.account).color,
         req: history.appReq.get(k)?.toArray() || [],
         recent: (history.appRecent.get(k)?.toArray() || []).slice(-30).reverse().map(r => visit(r, priv)),
         stats: hourStats(history.rolls.get(k), priv),

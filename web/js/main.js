@@ -188,9 +188,9 @@ $('menu').addEventListener('click', async e => {
   if (act === 'lock') goPublic();
   if (act === 'setup') location.href = 'setup';
   if (act === 'connect') location.href = 'setup#conectar';
-  if (act === 'hosting2') openInstall('hosting');
+  if (act === 'hosting2') { if (!needPrivate('conectar un hosting')) openInstall('hosting'); }
   if (act === 'install') openInstall('vps');
-  if (act === 'hosting') openInstall('hosting');
+  if (act === 'hosting') { if (!needPrivate('ver sus sitios, latidos y hostings')) openInstall('hosting'); }
   if (act === 'equipo') openInstall('equipo');
   if (act === 'director') document.dispatchEvent(new KeyboardEvent('keydown', { key: 'd' }));
   if (act === 'lockall') { await post('api/public-all').catch(() => { }); flash('Todas las pantallas pasaron a modo público'); }

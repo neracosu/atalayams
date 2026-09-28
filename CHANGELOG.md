@@ -14,6 +14,20 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.81.2] - 2026-09-28
+
+### Seguridad
+- **Modo público**: el diálogo de sitios vigilados, latidos y hostings mostraba los dominios y nombres sin pedir el PIN. Ahora exige el modo privado, en la pantalla y en el servidor.
+- La ficha pública de un sitio vigilado ya no lleva su dominio oculto en los datos.
+
+### Corregido
+- La ficha de un sitio no decía a qué distrito pertenece.
+- El panel Proyectos cuenta como problema un sitio vigilado que no responde.
+- Torre de control: el aviso de un conector se leía cortado («le falta el permiso…»). Ahora va completo.
+- En celular, los despliegues de un proyecto de Cloudflare se cortaban.
+- El asistente actualiza la lista y el contador de conectores al guardar, sin recargar.
+- Un proyecto de Cloudflare Pages con el despliegue fallido ahora dice cómo empezar a arreglarlo.
+
 ## [0.81.1] - 2026-09-28
 
 ### Cambiado
@@ -1486,7 +1500,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.1...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.2...HEAD
+[0.81.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.1...v0.81.2
 [0.81.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.81.0...v0.81.1
 [0.81.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.2...v0.81.0
 [0.80.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.80.1...v0.80.2

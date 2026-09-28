@@ -160,10 +160,10 @@ class WebSites {
     const id = this.idOfGroup(gid); if (!id) return null;
     const s = this.sites[id], st = this.state[id] || { log: [] }, log = st.log || [];
     const good = log.filter(x => x[2]), ms = good.map(x => x[1]);
-    const out = { id, ok: st.ok, since: st.since || null, last: st.last || null, status: st.status || null, ms: st.ms || null, why: st.ok === false ? st.why : null,
+    const out = { ok: st.ok, since: st.since || null, last: st.last || null, status: st.status || null, ms: st.ms || null, why: st.ok === false ? st.why : null,
       note: st.note || null, expect: s.expect || 0, checks: log.length, pct: log.length ? Math.round(good.length / log.length * 1000) / 10 : null,
       avgMs: ms.length ? Math.round(ms.reduce((a, b) => a + b, 0) / ms.length) : null, series: log.slice(-96).map(x => ({ t: x[0], ms: x[1], ok: !!x[2] })), hasPhrase: !!s.phrase };
-    if (priv) Object.assign(out, { url: 'https://' + s.domain + (s.path || '/'), phrase: s.phrase || '', path: s.path || '/', label: s.label });
+    if (priv) Object.assign(out, { id, url: 'https://' + s.domain + (s.path || '/'), phrase: s.phrase || '', path: s.path || '/', label: s.label });
     return out;
   }
   list() { return this.ids().map(id => { const st = this.state[id] || {}; return { id, ...this.sites[id], ok: st.ok, since: st.since || null, last: st.last || null, why: st.ok === false ? st.why : null, note: st.note || null, ms: st.ms || null }; }); }

@@ -754,6 +754,8 @@ async function handle(req, res) {
     // hostings compartidos: alta (devuelve el comando con el codigo), nuevo codigo, baja y pedidos
     if (p.startsWith('/api/agents/')) {
       if (session.role !== 'owner') return json(res, 403, { error: 'Solo un dueño puede administrar hostings' });
+      // nombres de hostings, dominios vigilados y latidos: solo con el modo privado activo (la pantalla puede estar en un TV)
+      if (!auth.isPrivate(session)) return json(res, 403, { error: 'Active el modo privado' });
       try {
         const base = cfg.publicUrl || `https://${req.headers.host}`;
         const cmd = r => ({ ...r, url: base, command: `curl -fsSL ${base}/install/agent.sh | sh -s -- ${base} ${r.code}`, cron: `curl -fsSL ${base}/install/agent.sh | sh -s -- ${base} ${r.code}` });
@@ -775,6 +777,7 @@ async function handle(req, res) {
     // latidos: alta, cambio, direccion nueva y baja
     if (p.startsWith('/api/beats/')) {
       if (session.role !== 'owner') return json(res, 403, { error: 'Solo un dueño puede administrar los latidos' });
+      if (!auth.isPrivate(session)) return json(res, 403, { error: 'Active el modo privado' });
       try {
         const base = (cfg.publicUrl || `https://${req.headers.host}`).replace(/\/+$/, ''), withUrl = r => { const u = `${base}/latido/${r.token}`; return { id: r.id, url: u, snippets: beatSnippets(u) }; };
         if (p === '/api/beats/list') return json(res, 200, { beats: beats.list(true), max: cfg.limits && cfg.limits.beats != null ? cfg.limits.beats : null });
@@ -788,6 +791,7 @@ async function handle(req, res) {
     // sitios vigilados por su dominio: alta, cambio, baja y medir ahora
     if (p.startsWith('/api/websites/')) {
       if (session.role !== 'owner') return json(res, 403, { error: 'Solo un dueño puede administrar los sitios vigilados' });
+      if (!auth.isPrivate(session)) return json(res, 403, { error: 'Active el modo privado' });
       try {
         const W = ctx.websites, withToken = x => ({ ...x, siteToken: ctx.analytics.siteToken('site:' + W.groupId(x.id)) });
         if (p === '/api/websites/list') return json(res, 200, { sites: W.list().map(withToken), script: new URL('a.js', (cfg.publicUrl || `https://${req.headers.host}`).replace(/\/?$/, '/')).href, max: cfg.limits && cfg.limits.sites != null ? cfg.limits.sites : null });

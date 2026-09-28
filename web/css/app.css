@@ -684,3 +684,7 @@ small.down { color: var(--bad); font-weight: 700; margin-left: .3rem; }
 .inst .sitebox .dlist li .grow { min-width: 9rem; overflow-wrap: anywhere; }
 /* la ficha tiene un solo scroll (el de .dbody): el contenido no se recorta ni desplaza por dentro; el desborde lateral lo corta .dbody */
 .drawer .dcontent, .drawer .dcontent2 { overflow: visible; }
+/* filas que deben leerse completas (avisos de permisos, despliegues en celular): bajan de linea en vez de cortarse */
+.dlist li.wrap, .dlist li.wrap span { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+.dlist li.dep { flex-wrap: wrap; row-gap: .2rem; }
+.dlist li.dep .grow { flex: 1 1 12rem; white-space: normal; overflow-wrap: anywhere; }

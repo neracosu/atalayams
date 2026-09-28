@@ -1,6 +1,6 @@
 {
   "name": "atalaya-monitor",
-  "version": "0.81.1",
+  "version": "0.81.2",
   "description": "Atalaya Monitor Server: monitor visual en vivo de servidores, hostings, WordPress, Vercel, Supabase, GitHub y Claude Code, con temas de pixel art.",
   "license": "AGPL-3.0-only",
   "engines": {

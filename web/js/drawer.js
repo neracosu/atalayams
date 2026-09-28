@@ -741,8 +741,8 @@ export class Drawer {
         ${stat('Servicios', `${d.apps}${d.appsDown ? ` (${d.appsDown} con problemas)` : ''}`, d.appsDown ? 'bad' : '')}${stat('Agentes Claude', d.sessions)}
       </div>
       ${d.connectors && d.connectors.length ? `<section class="dsec"><h4>Conectores de nube</h4>${d.connectors.some(c => !c.ok || (c.warn || []).length) ? '<p class="dmuted">Hay conectores con problemas. Se arreglan en menú › <a href="setup#conectar"><b>Conectar o arreglar proyectos</b></a>.</p>' : ''}<ul class="dlist">${d.connectors.map(c => `<li>
-        <span class="pill ${c.ok ? 'ok' : 'bad'}">${c.ok ? 'conectado' : 'error'}</span><span class="grow"><b>${esc(c.label)}</b> · ${c.projects} proyecto${c.projects === 1 ? '' : 's'}${c.error ? `<br><span class="dmuted">${esc(c.error)}</span>` : ''}${(c.warn || []).map(w => `<br><span class="dmuted">${px('warn')} ${esc(w)}</span>`).join('')}</span>
-        <span class="dmuted">${c.lastOk ? 'leído hace ' + ago(Date.now() - c.lastOk) : 'sin lectura'}${c.type === 'vercel' ? (c.drainAt ? ` · visitas hace ${ago(Date.now() - c.drainAt)}` : ' · sin Drain') : ''}</span></li>`).join('')}</ul></section>` : ''}
+        <span class="pill ${c.ok ? 'ok' : 'bad'}">${c.ok ? 'conectado' : 'error'}</span><span class="grow"><b>${esc(c.label)}</b> · ${c.projects} proyecto${c.projects === 1 ? '' : 's'}</span>
+        <span class="dmuted">${c.lastOk ? 'leído hace ' + ago(Date.now() - c.lastOk) : 'sin lectura'}${c.type === 'vercel' ? (c.drainAt ? ` · visitas hace ${ago(Date.now() - c.drainAt)}` : ' · sin Drain') : ''}</span></li>${c.error || (c.warn || []).length ? `<li class="sub wrap"><span class="dmuted">${[c.error, ...(c.warn || [])].filter(Boolean).map(w => px('warn') + ' ' + esc(w)).join('<br>')}</span></li>` : ''}`).join('')}</ul></section>` : ''}
       ${d.keys && d.keys.length ? `<section class="dsec"><h4>Servicios clave</h4><div class="keys">${d.keys.map(k => `<span class="keysvc ${k.state === 'active' ? 'ok' : k.state === 'failed' ? 'bad' : 'off'}" title="${esc(k.unit)} · ${esc(k.substate || k.state)}">${esc(k.label)}<b>${k.state === 'active' ? 'activo' : k.state === 'failed' ? 'FALLÓ' : k.state === 'inactive' ? 'detenido' : esc(k.state)}</b></span>`).join('')}</div></section>` : ''}`, `<section class="dsec"><h4>Visitantes por país · última hora</h4><ul class="dlist">${bars(d.countries, k => `${flag(k)} ${esc(countryName(k))}`, d.countries.reduce((n, x) => n + x.n, 0))}</ul></section>
       <section class="dsec"><h4>Procesos que más consumen</h4><ul class="dlist">${top}</ul></section>
       <p class="dlinks"><a data-go="security:all">${px('shield')} Ver defensa</a> · <a data-go="webdef:all">${px('invader')} Defensa web</a> · <a data-go="mail:all">${px('mail')} Ver correo</a> · <a data-go="databases:all">${px('db')} Bases de datos</a></p>`);
@@ -1232,11 +1232,11 @@ function cfHtml(d, DEP) {
       ${priv && d.crons && d.crons.length ? `<p class="dmuted">Relojes: ${d.crons.map(c => `<span class="chip mono">${esc(c)}</span>`).join(' ')}</p>` : ''}
       <p class="hint">Las corridas se leen de Cloudflare cada 5 minutos y se conocen por hora.</p>`;
   }
-  return `<section class="dsec"><h4>Despliegues recientes</h4><ul class="dlist">${(d.deployments || []).map(x => `<li>
+  return `<section class="dsec"><h4>Despliegues recientes</h4><ul class="dlist">${(d.deployments || []).map(x => `<li class="dep">
       <time>${hhmm(x.created)}</time><span class="pill ${(DEP[x.state] || ['off'])[0]}">${(DEP[x.state] || ['', x.state])[1]}</span><span class="chip">${x.target === 'production' ? 'producción' : 'preview'}</span>
       <span class="grow">${x.commit ? esc(x.commit) : ''}${x.branch ? ` <span class="dmuted mono">${esc(x.branch)}</span>` : ''}${x.creator ? ` <span class="dmuted">· ${esc(x.creator)}</span>` : ''}</span></li>`).join('') || '<li class="dmuted">Sin despliegues todavía.</li>'}</ul></section>
     ${priv && d.domains.length ? `<p class="dmuted">${d.domains.map(x => `<span class="chip">${esc(x)}</span>`).join(' ')}${d.repoHost ? ` · código en ${esc(d.repoHost === 'gitlab' ? 'GitLab' : d.repoHost === 'github' ? 'GitHub' : d.repoHost)}` : ''}</p>` : ''}
-    ${cfTraffic(d.traffic, 'Visitas según Cloudflare')}`;
+    ${cfTraffic(d.traffic, 'Visitas según Cloudflare')}`.replace(/^/, d.status === 'down' ? `<section class="dsec"><div class="afind bad"><h5>${px('siren')} Falló el último despliegue a producción</h5><p class="fix">El sitio sigue sirviendo la versión anterior. En Cloudflare abra Workers y Pages › este proyecto › Deployments y mire el registro del despliegue fallido: casi siempre es un error al compilar. Corríjalo y vuelva a desplegar.</p></div></section>` : '');
 }
 function cfDistrict(c) {
   return `<section class="dsec"><h4>${px('cloud')} Cuenta de Cloudflare</h4>
