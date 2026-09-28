@@ -252,7 +252,7 @@ const round = async c => { for (const [n, fn] of [['account', () => c.pollAccoun
     { id: 'otra', type: 'cloudflare', name: 'Otra', token: TOKEN, accountId: 'b'.repeat(32), added: '2026-09-28T01:00:00Z' }, { id: 'gh', type: 'github', name: 'gh', token: 'x' }];
   const K = new Connectors({}, bus, { connectors: () => saved, sync() { } });
   const W = K.wanted ? (K.mergedInto = new Map(), K.wanted()) : null;
-  assert.deepStrictEqual([...W.keys()].sort(), ['gh', 'tienda', 'otra']);
+  assert.deepStrictEqual([...W.keys()].sort(), ['gh', 'otra', 'tienda']);
   assert.deepStrictEqual(W.get('tienda').more, [TOKEN2]); assert.deepStrictEqual(W.get('tienda').merged, ['Tráfico']);
   assert.deepStrictEqual(W.get('otra').more, []);
   assert.strictEqual(saved[1].more, undefined, 'lo guardado no se toca');
