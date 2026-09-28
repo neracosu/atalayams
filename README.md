@@ -482,6 +482,16 @@ El plugin **no registra rutas públicas**: solo envía. WordPress 5.6+ y PHP 7.4
 
 <br>
 
+<p align="center">
+  <img src="docs/latidos.webp" alt="Distrito de latidos con la ficha de un respaldo atrasado: no dio señal a tiempo, porcentaje a tiempo e historial en barras" width="100%">
+</p>
+<p align="center"><sub>Un respaldo que <b>no dio señal a tiempo</b>: cuándo fue la última, qué porcentaje llegó a tiempo y su historial. Datos de ejemplo.</sub></p>
+
+<p align="center">
+  <img src="docs/latidos-crear.webp" alt="Diálogo para crear un latido con su dirección secreta y el ejemplo para una tarea cron" width="100%">
+</p>
+<p align="center"><sub>Al crear un latido, su <b>dirección secreta</b> y los ejemplos listos para pegar. Datos de ejemplo.</sub></p>
+
 1. En su Atalaya: menú › **Vigilar sitios y latidos** › **Latidos**. Escriba un nombre y cada cuánto debe avisar.
 2. Atalaya le da una **dirección secreta**. Se muestra una sola vez.
 3. Haga que su tarea la toque al terminar bien:
@@ -511,6 +521,16 @@ genere una nueva. En modo público no se muestran los nombres de los latidos.
 <summary><b>Conectar Cloudflare</b> (Pages, Workers y visitas)</summary>
 
 <br>
+
+<p align="center">
+  <img src="docs/cloudflare.webp" alt="Distrito de Cloudflare con la ficha de un proyecto de Pages: despliegues recientes y visitas por país" width="100%">
+</p>
+<p align="center"><sub>Un proyecto de <b>Pages</b>: sus despliegues y las visitas del dominio según Cloudflare. Datos de ejemplo.</sub></p>
+
+<p align="center">
+  <img src="docs/cloudflare-reloj.webp" alt="Ficha de un Worker cuyo reloj dejó de correr hace 31 horas" width="100%">
+</p>
+<p align="center"><sub>Un Worker cuyo <b>reloj dejó de correr</b>: Cloudflare no da error; Atalaya lo nota. Datos de ejemplo.</sub></p>
 
 1. En dash.cloudflare.com: su perfil › **API Tokens** › Create Token › **Create Custom Token**.
 2. Dele estos permisos, todos de **solo lectura**:
@@ -543,6 +563,16 @@ Este conector es distinto del token de **Defensa web › Cloudflare**, que sí e
 <summary><b>Vigilar un sitio por su dominio</b> (sin instalar nada)</summary>
 
 <br>
+
+<p align="center">
+  <img src="docs/sitios-vigilados.webp" alt="Distrito de sitios vigilados con la ficha de un sitio que responde bien: disponibilidad en 24 horas y tiempo de respuesta" width="100%">
+</p>
+<p align="center"><sub>El distrito <b>Sitios vigilados</b> y la ficha de un sitio: disponibilidad en 24 horas y tiempo de respuesta. Datos de ejemplo.</sub></p>
+
+<p align="center">
+  <img src="docs/sitio-caido.webp" alt="Ficha de un sitio que no responde bien y la revisión web con un robots.txt que bloquea a las IA" width="100%">
+</p>
+<p align="center"><sub>Un sitio publicado <b>sin su frase</b> y la revisión web avisando que su <code>robots.txt</code> <b>bloquea a las IA</b>. Datos de ejemplo.</sub></p>
 
 Para sitios en Cloudflare Pages, Netlify, Vercel o cualquier otro lugar donde no puede instalar un agente.
 
