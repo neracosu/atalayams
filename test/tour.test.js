@@ -57,6 +57,9 @@ const WEB = path.join(__dirname, '../web');
 
   // la visita se puede lanzar desde el menu, y el motor nunca usa los cuadros del navegador
   assert.ok(html.includes('data-act="tour"'), 'botón «Visita guiada» en el menú');
+  assert.ok(/class="brand"[\s\S]{0,700}data-tour-abrir/.test(html), 'enlace «Visita guiada» arriba, bajo la versión');
+  assert.ok(/id="legend"[\s\S]{0,200}data-tour-abrir/.test(html), 'botón «Visita guiada» en la leyenda');
+  assert.ok(/k === 'v'\) tour\.abrir/.test(fs.readFileSync(path.join(WEB, 'js/main.js'), 'utf8')), 'tecla V');
   assert.ok(!/\b(alert|confirm|prompt)\(/.test(motor));
   assert.ok(!EMOJI.test(motor));
   console.log(`tour.test.js OK (${PASOS.length} pasos, versión ${VERSION})`);

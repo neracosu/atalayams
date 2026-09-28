@@ -751,3 +751,9 @@ html body.compact .tour-oferta { bottom: calc(var(--tabs-h, 3.6rem) + 1rem); }
   .tour-foco, .tour-carta, .tour-progreso i, .tour-velo, .tour-oferta { transition: none; }
   .tour-carta.centrada { animation: none; }
 }
+/* el acceso a la visita desde la leyenda */
+dialog.legend header .ltour { margin-left: auto; margin-right: .5rem; padding: .35rem .8rem; border-radius: 8px; border: 1px solid var(--accent, #22d3ee); background: transparent; color: var(--accent, #22d3ee); font: inherit; font-size: .8rem; font-weight: 600; white-space: nowrap; }
+dialog.legend header .ltour:hover { background: var(--accent, #22d3ee); color: #03161b; }
+/* y arriba, debajo de la version */
+.brand .tourlink { margin-left: .5rem; padding: 0 0 0 .55rem; border: 0; border-left: 1px solid var(--line-strong); background: none; color: var(--accent, #22d3ee); font: inherit; font-size: inherit; cursor: pointer; }
+.brand .tourlink:hover { text-decoration: underline; }

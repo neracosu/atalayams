@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.86.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.86.1-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -813,7 +813,7 @@ de cPanel sin privilegios; el plugin de WordPress, en un WordPress simulado.
 
 <br>
 
-- **Visita guiada**: menú › **Visita guiada**. Un recorrido de un minuto que señala cada parte de la pantalla y
+- **Visita guiada**: tecla `V`, el enlace bajo el nombre, menú › **Visita guiada** o el botón de la leyenda. Un recorrido de un minuto que señala cada parte de la pantalla y
   dice para qué sirve; la cámara se acerca sola a lo que explica. La primera vez se ofrece con un aviso que no
   tapa nada. Flechas para avanzar y volver, `Esc` para salir. Se salta lo que usted no tiene (sin agentes
   trabajando, ese paso no aparece) y no muestra ningún nombre, así que sirve igual en modo público.
@@ -823,7 +823,7 @@ de cPanel sin privilegios; el plugin de WordPress, en un WordPress simulado.
 - **Navegar**: arrastrar para mover (o girar, en los temas 3D), rueda o pellizco para acercar, doble
   clic para volver a la vista general.
 - **Teclas**: `T` tema · `D` director · `P` modo privado · `L` modo público · `F` pantalla completa ·
-  `?` o `H` leyenda · `Esc` cierra la ficha abierta (sin nada abierto, pasa a modo público).
+  `?` o `H` leyenda · `V` visita guiada · `Esc` cierra la ficha abierta (sin nada abierto, pasa a modo público).
 - **Teléfono y tablet**: pestañas abajo (Mundo, Agentes, Métricas, Novedades); con el teléfono
   acostado, a la derecha.
 - **Novedades**: junto al nombre; al actualizarse, la pantalla se recarga sola y muestra qué cambió.

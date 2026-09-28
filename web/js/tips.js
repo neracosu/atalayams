@@ -84,7 +84,7 @@ function dot(color, glow = true) { return `<span class="ldot" style="background:
 // leyenda: la del tema activo (theme.json > legend) o la de la Ciudad
 const USO = `<section><h4>Cómo usarlo</h4>
         <p class="lhelp"><b>Arrastre</b> para moverse · <b>rueda</b> o pellizco para acercar · <b>clic</b> en cualquier cosa para ver su detalle · <b>doble clic</b> vuelve a la vista general.<br>
-        Teclas: <kbd>D</kbd> director · <kbd>T</kbd> tema · <kbd>P</kbd> modo privado · <kbd>L</kbd> modo público · <kbd>F</kbd> pantalla completa · <kbd>?</kbd> esta leyenda · <kbd>Esc</kbd> cerrar.</p>
+        Teclas: <kbd>D</kbd> director · <kbd>T</kbd> tema · <kbd>P</kbd> modo privado · <kbd>L</kbd> modo público · <kbd>F</kbd> pantalla completa · <kbd>?</kbd> esta leyenda · <kbd>V</kbd> visita guiada · <kbd>Esc</kbd> cerrar.</p>
       </section>`;
 // arte del tema para la leyenda: dibujos de su propio mundo (legendart.js) o su elenco (fxskins.js)
 const norm = f => { const w = Math.max(...f.map(r => r.length)); return f.map(r => r.padEnd(w, '.')); };

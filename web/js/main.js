@@ -37,6 +37,8 @@ const tour = new Tour({
   world: () => world, state: () => state, hello: () => hello,
   antes: () => { drawer.close(); hideTip(); openSheet(''); $('menu').hidden = true; },
 });
+// tambien se lanza desde la leyenda, que es donde se busca ayuda
+document.addEventListener('click', e => { if (e.target.closest('[data-tour-abrir]')) { const d = e.target.closest('dialog'); if (d && d.open) d.close(); tour.abrir(0); } });
 let tourListo = false;
 // con la primera foto del servidor: sigue la visita que quedo a medias o, la primera vez, la ofrece
 function tourAlEntrar() {
@@ -230,6 +232,7 @@ document.addEventListener('keydown', e => {
   else if (k === 'f') toggleFs();
   else if (k === 't') cycleTheme();
   else if (k === '?' || k === 'h') openLegend(tm.manifest);
+  else if (k === 'v') tour.abrir(0);
   else if (k === 'd') { world.setDirector(!world.directorOn); world.navChanged(); try { localStorage.setItem('atalaya_director', world.directorOn ? '1' : '0'); } catch { } flash(world.directorOn ? 'Modo director: la cámara sigue lo que pasa en el servidor' : 'Cámara fija en la vista general'); }
 });
 

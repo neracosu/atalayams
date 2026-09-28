@@ -21,7 +21,7 @@
     <svg viewBox="0 0 64 64" aria-hidden="true"><use href="favicon.svg#mark"/></svg>
     <div>
       <h1 id="title">Atalaya <button id="verChip" class="verchip" data-tip="Versión instalada|Toque para ver las novedades de cada versión."></button></h1>
-      <p id="subtitle"></p>
+      <p><span id="subtitle"></span><button class="tourlink" data-tour-abrir data-tip="Visita guiada|Un recorrido de un minuto que le señala cada parte de la pantalla. Tecla V">Visita guiada</button></p>
     </div>
   </div>
   <div class="kpis" id="kpis" data-tour="cifras"></div>
@@ -32,7 +32,7 @@
     <div class="clock"><span id="time">--:--</span><span id="date"></span></div>
     <button id="menuBtn" class="icon-btn" data-tour="menu" aria-label="Menú" aria-haspopup="true">⋮</button>
     <div id="menu" class="menu" hidden>
-      <button data-act="tour">Visita guiada</button>
+      <button data-act="tour">Visita guiada <kbd>V</kbd></button>
       <button data-act="theme">Tema <kbd>T</kbd></button>
       <button data-act="fullscreen">Pantalla completa <kbd>F</kbd></button>
       <button data-act="director">Modo director <kbd>D</kbd></button>
@@ -149,7 +149,7 @@
 </dialog>
 
 <dialog id="legend" class="legend">
-  <header><h3>Leyenda de Atalaya</h3><button class="lclose icon-btn" aria-label="Cerrar leyenda">✕</button></header>
+  <header><h3>Leyenda de Atalaya</h3><button class="ltour" data-tour-abrir data-tip="Visita guiada|Un recorrido de un minuto que le señala cada parte de la pantalla. Tecla V">Visita guiada</button><button class="lclose icon-btn" aria-label="Cerrar leyenda">✕</button></header>
   <div class="lbody"></div>
 </dialog>
 

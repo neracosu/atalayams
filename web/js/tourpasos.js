@@ -94,6 +94,6 @@ export const PASOS = [
     id: 'cierre',
     titulo: 'Eso es todo. Su día a día son tres cosas',
     texto: '<b>1.</b> Mire el mapa: lo rojo pide atención. <b>2.</b> Toque lo que le llame la atención y lea su ficha. <b>3.</b> Active las alertas, para enterarse aunque no esté mirando.',
-    nota: 'Puede repetir esta visita cuando quiera, con «Visita guiada» en el menú.',
+    nota: 'Puede repetir esta visita cuando quiera: con la tecla <b>V</b>, arriba junto al nombre, desde el menú o desde la leyenda.',
   },
 ];
