@@ -184,6 +184,11 @@ class Alerts {
     if (e.kind === 'pm2' && e.action === 'down') return { cat: 'down', key: 'down:' + e.app, text: `[CAÍDA] <b>Se detuvo ${esc(e.appName || e.app)}</b>`, go };
     if (e.kind === 'keysvc' && e.action === 'down') return { cat: 'down', key: 'key:' + e.label, text: `[CAÍDA] <b>Falló ${esc(e.label)}</b> en el servidor`, go: 'system:root' };
     if (e.kind === 'keysvc' && e.action === 'up') return { cat: 'down', key: 'keyup:' + e.label, text: `[BIEN] ${esc(e.label)} volvió a funcionar`, go: 'system:root' };
+    if (e.kind === 'uptime') {
+      const mins = Math.max(1, Math.round((e.downFor || 0) / 60000));
+      return e.action === 'down' ? { cat: 'down', key: 'uptime:' + e.domain, text: `[CAÍDA] <b>${esc(e.domain)}</b> no responde bien: ${esc(e.why || 'sin respuesta')}`, go: 'site-by-domain' }
+        : { cat: 'down', key: 'uptimeok:' + e.domain, text: `[BIEN] <b>${esc(e.domain)}</b> volvió a responder${e.downFor ? ` (estuvo caído ${mins >= 120 ? Math.round(mins / 60) + ' h' : mins + ' min'})` : ''}`, go: 'site-by-domain' };
+    }
     if (e.kind === 'deploy' && e.action === 'error') return { cat: 'down', key: 'deploy:' + e.app, text: `[CAÍDA] <b>Falló el despliegue</b> de ${esc(e.appName || e.app)}`, go };
     if (e.kind === 'login') {
       const who = `<b>${esc(e.user || '?')}</b> entró a ${esc(e.service || 'el panel')} desde una IP nueva (${esc(e.ip || '?')})`;
@@ -202,7 +207,7 @@ class Alerts {
 
   onEvent(e) {
     // todo suma al resumen de la manana
-    if (['watch', 'defense', 'phpfile', 'pm2', 'deploy', 'saturation', 'keysvc', 'mail', 'db'].includes(e.kind) && !e.late) {
+    if (['watch', 'defense', 'phpfile', 'pm2', 'deploy', 'saturation', 'keysvc', 'mail', 'db', 'uptime'].includes(e.kind) && !e.late) {
       this.log.push({ t: this.now(), kind: e.kind, action: e.action, reason: e.reason, by: e.by, dir: e.dir, domain: e.domain });
       if (this.log.length > 5000) this.log.shift();
     }
@@ -262,7 +267,7 @@ class Alerts {
     const L = this.log.filter(x => now - x.t < 86400000), n = f => L.filter(f).length;
     const lines = [];
     const jail = n(x => x.kind === 'defense' && x.action === 'block'), watch = n(x => x.kind === 'watch' && x.action === 'start');
-    const php = n(x => x.kind === 'phpfile' && x.action === 'suspect'), down = n(x => (x.kind === 'pm2' || x.kind === 'keysvc') && x.action === 'down');
+    const php = n(x => x.kind === 'phpfile' && x.action === 'suspect'), down = n(x => (x.kind === 'pm2' || x.kind === 'keysvc' || x.kind === 'uptime') && x.action === 'down');
     const bounce = n(x => x.kind === 'mail' && x.dir === 'bounce'), sat = n(x => x.kind === 'saturation' && x.action === 'start');
     if (php) lines.push(`- ${php} posible(s) puerta(s) trasera(s)`);
     if (down) lines.push(`- ${down} caída(s) de servicios`);

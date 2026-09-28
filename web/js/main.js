@@ -274,7 +274,42 @@ async function renderVps() {
     <p class="lhelp">¿Su cliente solo tiene un hosting compartido (sin root)? Use la pestaña <a href="#" data-itab-go="hosting">Hosting compartido</a>.</p>`;
   $('instBody').querySelector('[data-itab-go]').addEventListener('click', ev => { ev.preventDefault(); openInstall('hosting'); });
 }
-async function renderHosting(created) {
+// sitios vigilados por su dominio: no se instala nada, Atalaya los visita desde afuera
+function sitesSection(W, made) {
+  const rows = (W.sites || []).map(x => `<li><span class="pill ${x.ok === false ? 'bad' : x.ok ? 'ok' : 'waiting'}">${x.ok === false ? 'no responde' : x.ok ? 'responde' : 'midiendo'}</span>
+      <span class="grow"><b>${ie(x.domain)}</b>${x.path && x.path !== '/' ? `<span class="dmuted mono">${ie(x.path)}</span>` : ''}${x.ok === false && x.why ? `<br><span class="dmuted">${ie(x.why)}</span>` : x.note ? `<br><span class="dmuted">sin medir: ${ie(x.note)}</span>` : ''}</span>
+      <span class="dmuted">${x.ok && x.ms ? x.ms + ' ms' : ''}</span>
+      <button class="btn small ghost" data-site-line="${ie(x.siteToken)}">Línea de visitas</button><button class="btn small ghost" data-site-remove="${ie(x.id)}" data-site-name="${ie(x.domain)}">Quitar</button></li>`).join('');
+  const line = t => `<script defer src="${W.script}" data-site="${t}"></script>`;
+  return `<section class="sitebox"><h4>${px('antenna')} Vigilar un sitio por su dominio (sin instalar nada)</h4>
+      <p class="lhelp">Para proyectos en <b>Cloudflare Pages, Netlify, Vercel</b> o cualquier sitio que quiera mirar desde afuera. Atalaya lo visita cada 5 minutos y le avisa <b>una vez al caer y una vez al volver</b>.</p>
+      ${made ? `<div class="newagent"><h4>${px('ok')} Listo: ya vigila ${ie(made.domain)}</h4><p class="lhelp">En unos segundos aparece en el mapa, en el distrito «Sitios vigilados». Para ver además sus <b>visitas</b>, pegue esta línea en el sitio antes de &lt;/head&gt; (sin cookies):</p>${copyBox('siteline', line(made.siteToken))}</div>` : ''}
+      <form id="siteForm" class="agform"><input name="domain" placeholder="mitienda.com  o  mitienda.com/api/salud" required>
+        <select name="expect" aria-label="Qué respuesta es la correcta"><option value="0">Correcto: que abra bien</option><option value="401">Correcto: 401, puerta que exige llave</option><option value="403">Correcto: 403, prohibido</option><option value="204">Correcto: 204, sin contenido</option><option value="404">Correcto: 404, no debe existir</option></select>
+        <input name="phrase" placeholder="Frase que debe aparecer (opcional)" maxlength="120"><button class="btn small">Vigilar</button></form>
+      <p class="dmuted" id="siteErr"></p>
+      <p class="lhelp">La frase detecta un sitio <b>publicado en blanco o roto</b>, que igual responde «todo bien»: escriba unas palabras que siempre estén en la página, como su lema.${W.max != null ? ` Su plan permite ${W.max} sitios.` : ''}</p>
+      ${rows ? `<ul class="dlist">${rows}</ul><div id="siteLine"></div>` : ''}</section>`;
+}
+function bindSites(W, again) {
+  $('siteForm').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const f = new FormData(ev.target);
+    const r = await ipost('api/websites/add', { domain: f.get('domain'), expect: Number(f.get('expect')), phrase: f.get('phrase') });
+    if (r.error) { $('siteErr').textContent = r.error; return; }
+    again(r.site);
+  });
+  $('instBody').querySelectorAll('[data-site-line]').forEach(b => b.addEventListener('click', () => {
+    $('siteLine').innerHTML = `<p class="lhelp">Pegue esta línea en el sitio, antes de &lt;/head&gt;:</p>${copyBox('siteline2', `<script defer src="${W.script}" data-site="${b.dataset.siteLine}"></script>`)}`;
+  }));
+  $('instBody').querySelectorAll('[data-site-remove]').forEach(b => b.addEventListener('click', async () => {
+    if (!(await ask({ title: `Dejar de vigilar ${b.dataset.siteName}`, danger: true, icon: 'antenna', ok: 'Quitar', body: 'Atalaya deja de visitarlo y de avisarle. Las visitas ya contadas se conservan.' }))) return;
+    const r = await ipost('api/websites/remove', { id: b.dataset.siteRemove });
+    if (r.error) flash(r.error); else again();
+  }));
+}
+async function renderHosting(created, madeSite) {
+  const W = await ipost('api/websites/list');
   const list = await ipost('api/agents/list');
   const rows = (list.agents || []).map(a => `<li><span class="pill ${a.pending ? 'waiting' : a.stale ? 'bad' : 'ok'}">${a.pending ? 'sin vincular' : a.stale ? 'sin señal' : 'conectado'}</span>
       <span class="grow"><b>${ie(a.label || a.id)}</b>${a.user ? ` <span class="dmuted mono">${ie(a.user)}@${ie(a.host)}</span>` : ''}</span>
@@ -297,6 +332,7 @@ async function renderHosting(created) {
     <p class="lead"><b>Atalaya Hosting</b>: para cuentas de hosting compartido (cPanel, Hostinger, GoDaddy, Namecheap…) donde no hay root.
       Un agente pequeño corre por cron cada minuto, <b>lee solo esa cuenta</b> y envía los datos a esta pantalla. No se instala nada en <code>public_html</code>, no usa base de datos y no abre puertos.</p>
     ${got}
+    ${W.error ? '' : sitesSection(W, madeSite)}
     <section class="wpbox"><h4>${px('wp')} Conectar un sitio WordPress (sin terminal ni cron)</h4>
       <p class="lhelp">Descargue el plugin <b>ya configurado</b> para este Atalaya, súbalo en <b>wp-admin › Plugins › Añadir nuevo › Subir plugin</b> y actívelo: se conecta solo.
         Además de lo del hosting, ve lo que solo se sabe desde adentro: versión de WordPress, plugins y temas por actualizar, PHP sin soporte, errores visibles, usuario «admin» y más.</p>
@@ -315,6 +351,7 @@ async function renderHosting(created) {
     <section><h4>Qué verá de cada hosting</h4><p class="lhelp">Sus dominios y subdominios como edificios, las visitas en vivo con país, errores de PHP, cuota de disco, bases de datos, certificados SSL por vencer,
       buzones de correo, uso de recursos y tareas cron (con los secretos tapados). Con <b>Analizar ahora</b> puede pedirle qué carpetas ocupan más espacio.
       Necesita <code>curl</code> y cron, que traen todos los hostings; con cPanel se aprovecha además <code>uapi</code>.</p></section>`;
+  if (!W.error) bindSites(W, made => renderHosting(null, made));
   $('hcmd').addEventListener('click', async () => {
     const r = await ipost('api/setup/install-command');
     $('hcmdOut').innerHTML = r.hostingCommand ? `${copyBox('hosting', r.hostingCommand)}<p class="lhelp">Vale 24 horas y para 5 instalaciones. Sin Node en el hosting, conéctelo arriba como hosting de esta pantalla.</p>` : `<p class="dmuted">${ie(r.error || 'No se pudo generar')}</p>`;

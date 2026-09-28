@@ -14,6 +14,16 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.78.0] - 2026-09-28
+
+### Agregado
+- **Sitios vigilados por su dominio**: para proyectos que viven en Cloudflare Pages, Netlify, Vercel o cualquier sitio que quiera mirar desde afuera, sin instalar nada. En menú › Conectar un hosting compartido escriba el dominio y Atalaya lo visita cada 5 minutos. Aparece en el mapa, en el distrito «Sitios vigilados», y se ve caído como cualquier otro edificio.
+- **Usted decide qué respuesta es la correcta**: una página normal, o una puerta que debe exigir llave (401), estar prohibida (403) o no existir (404). Si la puerta abre sin llave, avisa.
+- **Frase que debe aparecer**: detecta el sitio publicado en blanco o roto, que igual responde «todo bien».
+- **Avisa una vez al caer y una vez al volver**, por Telegram o correo, con el tiempo que estuvo caído. Antes de avisar lo prueba dos veces; y si es Atalaya la que se quedó sin salida a Internet, lo dice y no acusa al sitio.
+- **Visitas de esos sitios**: como de ellos no hay registros del servidor, se cuentan con la línea del script sin cookies. Con solo pegarla ya ve visitantes, países, páginas y de dónde llegan.
+- Disponibilidad en 24 horas y tiempo de respuesta en la ficha de cada sitio vigilado.
+
 ## [0.77.1] - 2026-09-28
 
 ### Corregido
@@ -1411,7 +1421,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.1...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.78.0...HEAD
+[0.78.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.1...v0.78.0
 [0.77.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.77.0...v0.77.1
 [0.77.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.76.0...v0.77.0
 [0.76.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.75.0...v0.76.0

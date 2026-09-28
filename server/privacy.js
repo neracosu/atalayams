@@ -171,7 +171,7 @@ function makePrivacy(cfg) {
       phpbad: ctx.phpFiles ? ctx.phpFiles.siteState(g.id) || undefined : undefined,
       // favicon real del sitio: solo en privado (delata la marca)
       favicon: priv && ctx.favicons ? ctx.favicons.ready(g.domain) || undefined : undefined,
-      reqMin: logs.lastMinute.perSite[g.id] || 0, status: 'online', lastSeen: g.lastSeen,
+      reqMin: logs.lastMinute.perSite[g.id] || 0, status: ctx.websites && ctx.websites.isDown(g.id) ? 'down' : 'online', lastSeen: g.lastSeen,
     };
   }
   // estadisticas de la ultima hora de una entidad (app o sitio)
@@ -318,6 +318,10 @@ function makePrivacy(cfg) {
       case 'keysvc':
         Object.assign(out, { action: e.action, label: e.label });
         break;
+      case 'uptime':
+        // un sitio vigilado deja de responder o vuelve: en publico el alias y el motivo; el dominio solo en privado
+        Object.assign(out, { action: e.action, account: acct, label: accLabel(account, priv), site: alias('site:' + e.site), why: e.why || null, downFor: e.downFor || 0, name: priv ? e.domain : null });
+        break;
       case 'account':
         // una cuenta dada de baja ya no esta en cfg.accounts: las etiquetas vienen en el evento
         Object.assign(out, { action: e.action, account: acct,
@@ -405,6 +409,9 @@ function makePrivacy(cfg) {
       };
       if (priv) Object.assign(out, { domains: g.domainList, docroot: tilde(g.docroot), wpVersion: g.wpVersion || '', proxyPort: g.proxyPort || null });
       out.probes = probesOf(ctx, 'site:' + g.id);
+      // sitio vigilado por su dominio: como responde ahora y en 24 horas, y la linea del script para contar sus visitas
+      const up = ctx.websites && ctx.websites.info(g.id, priv);
+      if (up) { out.uptime = up; if (priv && ctx.analytics) out.siteToken = ctx.analytics.siteToken('site:' + g.id); }
       if (ctx.analytics) { out.analytics = ctx.analytics.summary('site:' + g.id); out.cfOnly = ctx.analytics.cfOnly('site:' + g.id); }
       out.watch = watchOf(ctx, 'site:' + g.id, priv);
       // certificado SSL: el mas proximo a vencer de sus dominios (el nombre del dominio solo en privado)

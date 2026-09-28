@@ -593,13 +593,13 @@ export class Drawer {
     const priv = !!d.domains;
     this.setHead('site:' + d.id + d.icon, signCanvas(d.icon, 4), d.name || d.category,
       `${esc(d.category)} · <a data-go="district:${esc(d.account)}">${esc(d.accountLabel)}</a>`,
-      `<span class="pill ok">${esc(TYPE_LABEL[d.type] || d.type)}</span>`);
+      d.uptime ? `<span class="pill ${d.uptime.ok === false ? 'bad' : d.uptime.ok ? 'ok' : 'waiting'}">${d.uptime.ok === false ? 'no responde' : d.uptime.ok ? 'responde' : 'midiendo'}</span>` : `<span class="pill ok">${esc(TYPE_LABEL[d.type] || d.type)}</span>`);
     this.frame([{ title: 'Visitas cada 10 s', series: [{ stroke: '#67e8f9', width: 2, points: { show: false } }, { stroke: '#ef4444', width: 2, points: { show: false } }], min: 2 }]);
     this.setChart(0, d.req, [r => r.req, r => r.err]);
     const tr = this.trafficHtml(d);
     const ficha = priv ? `<section class="dsec"><h4>Ficha técnica</h4><dl class="dkv">
         <dt>Tipo</dt><dd>${esc(TYPE_LABEL[d.type] || d.type)}${d.wpVersion ? ` · WordPress ${esc(d.wpVersion)}` : ''}${d.proxyPort ? ` · puerto ${esc(d.proxyPort)}` : ''}</dd>
-        <dt>Carpeta</dt><dd class="mono">${esc(d.docroot)}</dd>
+        ${d.docroot ? `<dt>Carpeta</dt><dd class="mono">${esc(d.docroot)}</dd>` : ''}${d.uptime ? `<dt>Se visita</dt><dd class="mono">${esc(d.uptime.url)}</dd>` : ''}
         <dt>Dominios</dt><dd>${d.domains.map(x => `<span class="chip">${esc(x)}</span>`).join(' ')}</dd>
         <dt>Última visita</dt><dd>${d.lastSeen ? new Date(d.lastSeen).toLocaleString('es-VE', { hour12: false }) : '–'}</dd>
       </dl></section>` : `<p class="dmuted">Active el modo privado para ver sus dominios, carpeta y las IPs y páginas de cada visita.</p>`;
@@ -784,6 +784,22 @@ export class Drawer {
           : 'La renovación automática suele hacerse unos 30 días antes: está fallando. En WHM › SSL/TLS › Manage AutoSSL › Logs vea el motivo (lo usual: el dominio ya no apunta aquí o Cloudflare bloquea la validación) y pulse «Run AutoSSL» para la cuenta.';
         body.insertAdjacentHTML('afterbegin', `<section class="dsec"><div class="afind ${c.level}"><h5>${px(c.level)} ${title}</h5><p class="dmuted">Emitido por ${esc(c.issuer)} · vence el ${when}</p><p class="fix">${fix}</p></div></section>`);
       } else body.insertAdjacentHTML('beforeend', `<section class="dsec"><h4>Certificado SSL</h4><p class="dmuted">${esc(c.issuer)} · vence el ${when} (en ${c.days} días)${c.n > 1 ? ` · el más próximo de sus ${c.n} dominios` : ''}. Se renueva solo.</p></section>`);
+    }
+    // sitio vigilado por su dominio: como responde ahora, como le fue en 24 horas y la linea para contar sus visitas
+    if (d.uptime) {
+      const u = d.uptime, EXP = { 0: 'que abra bien (2xx)', 200: '200 (página normal)', 204: '204 (sin contenido)', 401: '401 (puerta que exige llave)', 403: '403 (prohibido)', 404: '404 (no existe)' };
+      const maxMs = Math.max(1, ...u.series.map(x => x.ms));
+      const bars = u.series.length ? `<div class="anahours upbars">${u.series.map(x => `<i class="${x.ok ? '' : 'bad'}" style="height:${x.ok ? Math.max(6, Math.round(x.ms / maxMs * 100)) : 100}%" title="${new Date(x.t).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', hour12: false })} · ${x.ok ? x.ms + ' ms' : 'falló'}"></i>`).join('')}</div>` : '';
+      const head = u.ok === false ? `<div class="afind bad"><h5>${px('siren')} No responde bien: ${esc(u.why || 'sin respuesta')}</h5><p class="dmuted">Desde hace ${ago(Date.now() - u.since)}. Atalaya lo probó dos veces antes de avisar.</p>
+          <p class="fix">Ábralo en su navegador. Si tampoco le abre, revise el último despliegue y el estado de su proveedor. Si a usted sí le abre, puede que la frase o la respuesta esperada ya no correspondan: quite el sitio y agréguelo de nuevo desde menú › Instalar.</p></div>`
+        : u.ok ? `<p>${px('ok')} <b>Responde bien</b>${u.ms ? ` en ${fmtNum(u.ms)} ms` : ''}${u.since ? ` · sin caídas desde hace ${ago(Date.now() - u.since)}` : ''}</p>` : `<p class="dmuted">${px('clock')} Todavía no se midió: la primera visita sale en unos segundos.</p>`;
+      const snippet = d.siteToken ? `<script defer src="${new URL('a.js', location.href).href}" data-site="${d.siteToken}"></script>` : '';
+      body.insertAdjacentHTML('afterbegin', `<section class="dsec"><h4>Disponibilidad</h4>${head}
+        ${u.note ? `<p class="dmuted">${px('warn')} La última medida no se pudo hacer: ${esc(u.note)}. Eso no dice nada del sitio.</p>` : ''}
+        ${u.checks ? `<div class="anakpi"><div><span>Disponible en 24 h</span><b>${u.pct == null ? '–' : String(u.pct).replace('.', ',') + '%'}</b></div><div><span>Tiempo de respuesta</span><b>${u.avgMs == null ? '–' : fmtNum(u.avgMs) + ' ms'}</b></div><div><span>Medidas</span><b>${fmtNum(u.checks)}</b></div></div>${bars}` : ''}
+        <p class="hint">Atalaya lo visita cada 5 minutos desde afuera, como un visitante. Espera ${esc(EXP[u.expect] || u.expect)}${u.hasPhrase ? (u.phrase ? ` y la frase «${esc(u.phrase)}»` : ' y una frase en la página') : ''}. Avisa una vez al caer y una vez al volver.</p>
+        ${snippet && !(d.analytics && d.analytics.pv) ? `<h5 class="anasub">${px('bolt')} Para ver sus visitas</h5><p class="hint">De este sitio Atalaya no tiene los registros del servidor. Pegue esta línea antes de &lt;/head&gt; y empezará a ver visitantes, países, páginas y de dónde llegan. Sin cookies.</p>
+          <div class="copy"><pre class="cmd">${esc(snippet)}</pre><button class="btn small" data-copy="${esc(snippet)}">Copiar</button></div>` : ''}</section>`);
     }
     if (d.secHistory && d.secHistory.length) {
       const EV = { watch: { start: 'Vigilancia', end: 'Fin de la vigilancia' }, defense: { block: 'IP a la cárcel', unblock: 'IP liberada', expire: 'Venció un bloqueo' }, phpfile: { hit: 'Buscaron la puerta trasera', suspect: 'Puerta trasera detectada', quarantine: 'Puerta trasera en cuarentena' }, probe: { undefined: 'Ruta expuesta' } };

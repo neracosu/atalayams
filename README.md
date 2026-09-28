@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.77.1-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.78.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -62,6 +62,9 @@ revisar y cómo arreglarlo**.
 <p align="center"><sub>Un escaneo con dos <b>patrullas voladoras</b> junto al edificio, un <b>pico de visitas</b> con reflectores y el <b>director</b> contando qué pasa. Datos del simulador, en modo público.</sub></p>
 
 <table>
+  <tr>
+    <td colspan="3" valign="top"><img src="docs/icons/antenna.svg" width="40"><br><b>Sitios vigilados por su dominio</b><br><sub>Para proyectos que viven en <b>Cloudflare Pages, Netlify o Vercel</b>, o cualquier sitio que quiera mirar desde afuera: escribe el dominio y Atalaya lo visita cada 5 minutos, sin instalar nada. Usted decide qué respuesta es la correcta (una puerta que exige llave responde 401 y está sana) y una <b>frase que debe aparecer</b>, que detecta el sitio publicado en blanco. Avisa <b>una vez al caer y una vez al volver</b>; antes lo prueba dos veces, y si es Atalaya la que se quedó sin Internet lo dice y no acusa al sitio. Las visitas llegan con una línea de script sin cookies.</sub></td>
+  </tr>
   <tr>
     <td width="33%" valign="top"><img src="docs/icons/siren.svg" width="40"><br><b>Vigilancia con patrullas voladoras</b><br><sub>Si un sitio recibe un <b>escaneo</b> (cientos de sondeos a .env, phpinfo, paneles) o <b>scraping</b> (una sola IP que lo recorre entero), dos patrullas despegan de la torre de control, vuelan hasta el edificio y lo custodian con las luces encendidas. Cuando la amenaza pasa, vuelven a la torre.</sub></td>
     <td width="33%" valign="top"><img src="docs/icons/fire.svg" width="40"><br><b>Picos de visitas</b><br><sub>Cuando un sitio recibe varias veces lo normal desde muchas IPs, se encienden <b>reflectores</b>: puede que se hizo viral o que es un ataque distribuido. Su ficha muestra países, referer y páginas para distinguirlo.</sub></td>
@@ -191,7 +194,7 @@ pasan a una barra vertical.
   <tr>
     <td valign="top"><img src="docs/icons/house.svg" width="40"><br><b>Hostings compartidos</b><br><sub>Un agente por cron para cPanel, Hostinger, GoDaddy o Namecheap. No toca <code>public_html</code> ni abre puertos.</sub></td>
     <td valign="top"><img src="docs/icons/wp.svg" width="40"><br><b>Sitios WordPress</b><br><sub>Un plugin que se conecta solo: versión, plugins por actualizar, PHP sin soporte y errores visibles.</sub></td>
-    <td valign="top"><img src="docs/icons/cloud.svg" width="40"><br><b>Nube</b><br><sub>Vercel (proyectos, despliegues y visitas), Supabase (salud de cada base) y GitHub (revisión de repos).</sub></td>
+    <td valign="top"><img src="docs/icons/cloud.svg" width="40"><br><b>Nube</b><br><sub>Vercel (proyectos, despliegues y visitas), Supabase (salud de cada base), GitHub (revisión de repos) y <b>cualquier sitio por su dominio</b>, visitado cada 5 minutos desde afuera.</sub></td>
   </tr>
   <tr>
     <td valign="top"><img src="docs/icons/lock.svg" width="40"><br><b>Público o privado</b><br><sub>En la TV, sin nombres, IPs ni rutas. Con el PIN, todo el detalle por un rato.</sub></td>
@@ -270,7 +273,7 @@ y en los proyectos que no tienen favicon, cada uno recibe un cartel pixel propio
     <th width="20%"><img src="docs/icons/plug.svg" width="32"><br>Agentes</th>
   </tr>
   <tr>
-    <td valign="top">Para quien no tiene servidor: una pantalla alojada en <code>nube.neracosu.com/&lt;cliente&gt;</code>, con registro por invitación. Ve lo que el cliente conecta: nube, hostings, WordPress y laptops.</td>
+    <td valign="top">Para quien no tiene servidor: una pantalla alojada en <code>nube.neracosu.com/&lt;cliente&gt;</code>, con registro por invitación. Ve lo que el cliente conecta: nube, sitios por su dominio, hostings, WordPress y laptops.</td>
     <td valign="top">Servidores con root: cPanel/WHM, Plesk, DirectAdmin, CyberPanel o sin panel. Ve <b>todo el servidor</b>. Corre como servicio de systemd de solo lectura.</td>
     <td valign="top">La pantalla completa dentro de una cuenta de hosting con Node (cPanel › <i>Setup Node.js App</i>). Ve <b>esa cuenta</b> y recibe otras.</td>
     <td valign="top">Un <b>ejecutable único</b> para Windows, macOS o Linux: esa computadora, sus sesiones de Claude Code y los conectores de nube. Solo en 127.0.0.1.</td>
@@ -468,6 +471,35 @@ El plugin **no registra rutas públicas**: solo envía. WordPress 5.6+ y PHP 7.4
 </details>
 
 <details>
+<summary><b>Vigilar un sitio por su dominio</b> (sin instalar nada)</summary>
+
+<br>
+
+Para sitios en Cloudflare Pages, Netlify, Vercel o cualquier otro lugar donde no puede instalar un agente.
+
+1. En su Atalaya: menú › **Conectar un hosting compartido** › **Vigilar un sitio por su dominio**.
+2. Escriba el dominio (`mitienda.com`) o una dirección dentro de él (`mitienda.com/api/salud`).
+3. Elija qué respuesta es la correcta y, si quiere, una frase que siempre esté en la página.
+
+| Respuesta correcta | Para qué sirve |
+|---|---|
+| Que abra bien (2xx) | Una página o una dirección de salud |
+| 401 o 403 | Una puerta que **debe** exigir llave: si abre sin ella, avisa |
+| 404 | Algo que **no debe** existir en público |
+| 204 | Una dirección que responde sin contenido |
+
+Atalaya lo visita cada 5 minutos desde donde corre, así que ve lo mismo que un visitante. Un fallo se
+prueba otra vez a los 30 segundos antes de darlo por caído. Si tampoco responde una dirección de control,
+el problema es de la conexión de Atalaya: la ficha dice «sin medir» y no se envía ningún aviso.
+Guarda las medidas de las últimas 24 horas (disponibilidad y tiempo de respuesta).
+
+**Visitas**: de estos sitios no hay registros del servidor. La ficha del sitio le da una línea para pegar
+antes de `</head>`; con ella ve visitantes, países, páginas, de dónde llegan, tiempo en la página y
+conversiones. Sin cookies: la dirección IP no se guarda, solo se usa para el país.
+
+</details>
+
+<details>
 <summary><b>Conectar la nube y Claude Code</b></summary>
 
 <br>
@@ -533,6 +565,7 @@ se toman en caliente.
 | Distrito | Una cuenta de cPanel, un usuario, un hosting, un WordPress o una cuenta de nube |
 | Edificio | Un proceso de PM2, un servicio de systemd, un contenedor o un proyecto de Vercel. Altura = memoria, techo naranja = CPU, ventanas = visitas |
 | Edificio bajo | Un sitio servido directo (WordPress, PHP, estático, en construcción) |
+| Distrito «Sitios vigilados» | Los sitios que Atalaya visita desde afuera por su dominio; el que no responde se ve caído |
 | Luz del techo | Verde en línea, ámbar parcial o desplegando, roja caído |
 | Robot | Una sesión de Claude Code; camina a la estación de lo que hace |
 | Halo ámbar | El agente espera su permiso o su respuesta |

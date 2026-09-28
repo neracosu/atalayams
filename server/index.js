@@ -48,6 +48,7 @@ const virtualAccounts = () => [
   ...(typeof connectors !== 'undefined' ? connectors.virtual() : []),
   ...(typeof secrets !== 'undefined' ? secrets.remotes().map(m => ({ id: '_dev-' + m, label: 'Equipo ' + m, publicLabel: 'Equipo remoto' })) : []),
   ...(typeof agents !== 'undefined' ? agents.virtual() : []),
+  ...(typeof websites !== 'undefined' ? websites.virtual() : []),
 ];
 accounts.virtual = virtualAccounts;
 let virtualKey = '';
@@ -92,9 +93,16 @@ const connectors = new Connectors(cfg, bus, secrets, logs.geo);
 // hostings compartidos que envian sus datos con el agente por cron
 const { Agents } = require('./agents');
 const agents = new Agents(cfg, bus, secrets, logs);
-logs.extra = agents;
+// sitios vigilados por su dominio (sin instalar nada): se visitan cada 5 minutos desde aqui
+const crypto = require('crypto');
+const { parseUA } = require('./ua');
+const { WebSites } = require('./websites');
+const websites = new WebSites(cfg, bus);
+websites.onChange = () => { logs.loadDomains(true); accounts.sync(); };
+logs.extra = { vhosts: () => [...agents.vhosts(), ...websites.vhosts()], mains: () => [...agents.mains(), ...websites.mains()] };
 host.extra.push(connectors);
-const ctx = { host, claude, logs, history, services, docker, connectors, metrics, diskmap, dbAudit, jobs, agents };
+const ctx = { host, claude, logs, history, services, docker, connectors, metrics, diskmap, dbAudit, jobs, agents, websites };
+websites.start();
 // revisiones del servidor: respaldos, actualizaciones, cola de correo, cron y puertos (solo lectura)
 const { HostAudit } = require('./audits/host');
 ctx.hostAudit = new HostAudit(cfg);
@@ -250,6 +258,18 @@ function beacon(req, text) {
   const doms = ctx.analytics.doms(t.key).map(d => String(d).toLowerCase().replace(/^www\./, ''));
   if (!from || !doms.some(d => from === d || from.endsWith('.' + d))) throw new Error('origen');
   ctx.analytics.beacon(t.key, b);
+  // de un sitio vigilado no hay registros del servidor: la primera senal de cada pagina cuenta como su visita.
+  // La IP no se guarda ni se muestra: se usa para el pais y queda como una huella corta que cambia cada dia
+  const gid = t.key.startsWith('site:') ? t.key.slice(5) : null;
+  if (gid && websites.idOfGroup(gid) && b.t === 'pv' && b.f) {
+    const uaRaw = String(req.headers['user-agent'] || '').slice(0, 200), geo = logs.geo ? logs.geo.country(ip) : null;
+    let ref = String(b.r || '').slice(0, 200), refHost = '';
+    if (ref) { try { refHost = new URL(ref).hostname.replace(/^www\./, ''); } catch { ref = ''; } }
+    const mark = 'v-' + crypto.createHash('sha1').update(ctx.analytics.salt + new Date().toISOString().slice(0, 10) + ip).digest('hex').slice(0, 8);
+    logs.count(websites.account, null, gid, 200, false);
+    bus.emit('ev', { kind: 'http', at: Date.now(), account: websites.account, app: null, site: gid, domain: from, status: 200, method: 'GET', path: String(b.p || '/').slice(0, 160),
+      ip: mark, bot: false, ua: parseUA(uaRaw), uaRaw, cc: geo ? geo.cc : null, country: geo ? geo.name : null, ref, refHost, bytes: 0, script: true });
+  }
 }
 function send(res, status, body, headers = {}) {
   res.writeHead(status, { ...SEC_HEADERS, 'Cache-Control': 'no-store', ...headers });
@@ -705,6 +725,18 @@ async function handle(req, res) {
           return send(res, 200, wpPluginZip({ url: base, code: r.code }), { 'Content-Type': 'application/zip', 'Content-Disposition': `attachment; filename="atalaya-agent-${r.id}.zip"` });
         }
         if (p === '/api/agents/list') return json(res, 200, { agents: agents.ids().map(id => ({ id, ...agents.info(agents.account(id), true), pending: !agents.reg()[id].sha })) });
+      } catch (e) { return json(res, 400, { error: e.message }); }
+      return json(res, 404, { error: 'No encontrado' });
+    }
+    // sitios vigilados por su dominio: alta, cambio, baja y medir ahora
+    if (p.startsWith('/api/websites/')) {
+      if (session.role !== 'owner') return json(res, 403, { error: 'Solo un dueño puede administrar los sitios vigilados' });
+      try {
+        const W = ctx.websites, withToken = x => ({ ...x, siteToken: ctx.analytics.siteToken('site:' + W.groupId(x.id)) });
+        if (p === '/api/websites/list') return json(res, 200, { sites: W.list().map(withToken), script: new URL('a.js', (cfg.publicUrl || `https://${req.headers.host}`).replace(/\/?$/, '/')).href, max: cfg.limits && cfg.limits.sites != null ? cfg.limits.sites : null });
+        if (p === '/api/websites/add') { const r = W.add(body || {}); console.log(`[sitios] ${session.user} ${body.edit ? 'cambió' : 'agregó'} ${r.domain}`); return json(res, 200, { ok: true, site: withToken(r) }); }
+        if (p === '/api/websites/remove') { W.remove(String(body.id || '')); console.log(`[sitios] ${session.user} quitó ${body.id}`); return json(res, 200, { ok: true }); }
+        if (p === '/api/websites/check') { const st = await W.check(String(body.id || '')); if (!st) throw new Error('No vigila ese sitio'); return json(res, 200, { ok: true, site: W.list().find(x => x.id === body.id) }); }
       } catch (e) { return json(res, 400, { error: e.message }); }
       return json(res, 404, { error: 'No encontrado' });
     }

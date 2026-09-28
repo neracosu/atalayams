@@ -37,6 +37,7 @@
     <a href="#vercel"><span data-px="triangle"></span> Vercel</a>
     <a href="#supabase"><span data-px="bolt"></span> Supabase</a>
     <a href="#github"><span data-px="branch"></span> GitHub</a>
+    <a href="#sitios"><span data-px="antenna"></span> Un sitio por su dominio</a>
     <a href="#agente"><span data-px="house"></span> Un hosting compartido</a>
     <a href="#wordpress"><span data-px="wp"></span> Un sitio WordPress</a>
     <a href="#laptop"><span data-px="laptop"></span> Claude Code en una laptop</a>
@@ -137,6 +138,19 @@
         <li><b>Espere uno o dos minutos.</b><p>Aparece un distrito nuevo con sus dominios como edificios, visitas en vivo con país, errores de PHP, cuota de disco, bases, certificados, correo y tareas cron (con los secretos tapados).</p></li>
       </ol>
       <div class="tip"><span data-px="trash"></span><span>Para quitarlo del hosting: <code>curl -fsSL https://nube.neracosu.com/su-pantalla/install/agent.sh | sh -s -- --uninstall</code>. En la pantalla, el mismo menú tiene <b>Quitar</b>.</span></div>
+    </section>
+
+    <section class="guide" id="sitios">
+      <h2><span data-px="antenna"></span> Vigilar un sitio por su dominio</h2>
+      <p class="meta">1 minuto · Sin instalar nada · Cloudflare Pages, Netlify, Vercel o cualquier sitio</p>
+      <ol class="steps">
+        <li><b>En Atalaya:</b><p>menú › Conectar un hosting compartido › <b>Vigilar un sitio por su dominio</b>. Escriba el dominio, por ejemplo <code>mitienda.com</code>, o una dirección dentro de él, como <code>mitienda.com/api/salud</code>.</p></li>
+        <li><b>Diga qué respuesta es la correcta.</b><p>Casi siempre es «que abra bien». Para una puerta que debe exigir llave elija <b>401</b>: si un día abre sin llave, Atalaya le avisa.</p></li>
+        <li><b>Escriba una frase que siempre esté en la página</b><p>(opcional), como su lema. Así detecta el sitio que se publicó en blanco o roto, que igual responde «todo bien».</p></li>
+        <li><b>Listo.</b><p>Atalaya lo visita cada 5 minutos y aparece en el mapa, en el distrito «Sitios vigilados». Con las <a href="#alertas">alertas</a> conectadas, avisa una vez al caer y una vez al volver.</p></li>
+      </ol>
+      <div class="tip"><span data-px="chart"></span><span><b>Para ver sus visitas</b>, abra la ficha del sitio y copie la línea del script. Péguela antes de <code>&lt;/head&gt;</code>: verá visitantes, países, páginas y de dónde llegan. Sin cookies.</span></div>
+      <div class="tip"><span data-px="shield"></span><span>Antes de avisar, Atalaya prueba dos veces. Y si es ella la que se quedó sin Internet, dice «sin medir» y no acusa a su sitio.</span></div>
     </section>
 
     <section class="guide" id="wordpress">

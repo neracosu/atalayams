@@ -264,6 +264,14 @@ export function tickerEvent(e, accounts, priv) {
     case 'keysvc':
       addTicker(e.action === 'down' ? 'siren' : 'ok', forEdition('Torre de control'), e.action === 'down' ? `${e.label} FALLÓ` : `${e.label} volvió a funcionar`, e.action === 'down' ? '#ef4444' : '#4ade80', 'system:root');
       return;
+    case 'uptime': {
+      const st = window.atalaya && window.atalaya.state;
+      const nm = e.name || (st && (st.sites.find(x => x.id === e.site) || {}).name) || 'Un sitio';
+      const mins = Math.max(1, Math.round((e.downFor || 0) / 60000));
+      addTicker(e.action === 'down' ? 'siren' : 'ok', e.label || '', e.action === 'down' ? `${nm} NO RESPONDE BIEN${e.why ? ': ' + e.why : ''}` : `${nm} volvió a responder${e.downFor ? ` · estuvo caído ${mins >= 120 ? Math.round(mins / 60) + ' h' : mins + ' min'}` : ''}`,
+        e.action === 'down' ? '#ef4444' : '#4ade80', 'site:' + e.site);
+      return;
+    }
     case 'watch': {
       if (e.action !== 'start') return;
       const st = window.atalaya && window.atalaya.state;

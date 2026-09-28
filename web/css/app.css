@@ -673,3 +673,12 @@ small.down { color: var(--bad); font-weight: 700; margin-left: .3rem; }
 .cfbox input[type=password] { padding: .45rem .6rem; border: 1px solid var(--line-strong); border-radius: var(--radius, 8px); background: rgba(0, 0, 0, .25); color: var(--ink); font: inherit; }
 .cfbox .cfwarn { color: var(--warn, #fbbf24); font-size: .9em; margin: .3rem 0; }
 .cf-out.bad { color: var(--bad, #f87171); }
+
+/* sitios vigilados: barras de tiempo de respuesta (rojas las medidas que fallaron) */
+.upbars { height: 3.2rem; }
+.upbars i { max-width: 10px; }
+.upbars i.bad { background: var(--crit, #ef4444); opacity: .9; }
+.inst .sitebox { border: 1px solid rgba(103, 232, 249, .35); background: rgba(103, 232, 249, .05); border-radius: 12px; padding: .8rem 1rem; }
+.inst .sitebox select { background: #050912; border: 1px solid var(--line-strong); border-radius: 8px; color: var(--ink); padding: .5rem .7rem; font: inherit; font-size: .88rem; flex: 1 1 200px; }
+.inst .sitebox .dlist li { flex-wrap: wrap; }
+.inst .sitebox .dlist li .grow { min-width: 9rem; overflow-wrap: anywhere; }

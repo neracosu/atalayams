@@ -1,7 +1,7 @@
 /* Atalaya · analítica sin cookies (opcional). Mide lo que los registros del servidor no ven: el tiempo que la
    página estuvo a la vista, cuánto se leyó, si el visitante rebotó de verdad y las conversiones (WhatsApp,
    llamadas, correos, formularios, descargas y enlaces externos). No usa cookies ni guarda nada en el navegador,
-   no envía la dirección IP ni datos del visitante: solo la ruta de la página y esas cifras.
+   no envía datos del visitante: solo la ruta de la página, de qué sitio llegó y esas cifras.
    Uso: <script defer src="https://SU-ATALAYA/a.js" data-site="a1b2c3d4e5f6"></script>
    Eventos propios: atalaya('event', 'compra') */
 (function () {
@@ -23,7 +23,9 @@
     if (since) { vis += Date.now() - since; since = d.visibilityState === 'visible' ? Date.now() : 0; }
     var sec = Math.round(vis / 1000); vis = 0;
     if (!first && !sec) return;
-    post({ t: 'pv', f: first, sec: sec, sc: Math.round(maxS * 100), e: entry, n: next });
+    var o = { t: 'pv', f: first, sec: sec, sc: Math.round(maxS * 100), e: entry, n: next };
+    if (first && entry && d.referrer) o.r = d.referrer.split('?')[0].slice(0, 200);
+    post(o);
     first = 0;
   }
   function ev(k, l) { post({ t: 'ev', k: k, l: String(l || '').slice(0, 80) }); }
