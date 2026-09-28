@@ -14,6 +14,12 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.84.4] - 2026-09-28
+
+### Corregido
+- **Atalaya Cloud**: los temas dibujaban una oficina de correos y su ficha hablaba de Exim, aunque en la nube no hay servidor de correo que leer. Ya no aparece. El correo de cada proyecto de Supabase sigue en la ficha de su base.
+- **Ciudad clásica** en Atalaya Equipo: tampoco dibuja la oficina de correos, igual que los demás temas.
+
 ## [0.84.3] - 2026-09-28
 
 ### Corregido
@@ -1562,7 +1568,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.3...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.4...HEAD
+[0.84.4]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.3...v0.84.4
 [0.84.3]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.2...v0.84.3
 [0.84.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.1...v0.84.2
 [0.84.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.84.0...v0.84.1

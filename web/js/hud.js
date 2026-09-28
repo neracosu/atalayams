@@ -208,7 +208,7 @@ function renderHealth(list) {
 }
 function renderMini(state) {
   renderHealth(state.health);
-  const s = state.security, m = state.mail;
+  const s = state.security, m = state.mail || { out: 0, in: 0, bounce: 0 };
   const w = state.webdef;
   $('sec').innerHTML = `<div><span>Intentos SSH</span><b>${fmtNum(s.failed)}</b></div><div><span>IPs bloqueadas</span><b>${fmtNum(s.blocked)}</b></div><div><span>Accesos OK</span><b>${fmtNum(s.logins)}</b></div>`
     + (w ? `<div class="link" data-go="webdef:all" data-tip="Defensa web|Robots que buscan rutas vulnerables en sus sitios (/.env, wp-login.php, phpmyadmin, webshells) en la última hora."><span>Sondeos web / h</span><b>${fmtNum(w.hour)}</b></div>`

@@ -227,7 +227,8 @@ function makePrivacy(cfg) {
       security: logs.security,
       webdef: ctx.webdef ? ctx.webdef.summary() : null,
       defs: ctx.defs ? ctx.defs.info() : null,
-      mail: logs.mail,
+      // en la nube no hay servidor de correo que leer: sin esto los temas dibujaban una oficina de correos vacia
+      mail: cfg.edition === 'cloud' ? null : logs.mail,
       // correos esperando en la cola (de la revision de la cola): la oficina de correos muestra la pila
       mailQueue: (() => { const sec = ctx.hostAudit && ctx.hostAudit.result && ctx.hostAudit.result.sections.find(x => x.id === 'mail'); const it = sec && sec.items.find(i => /en cola/.test(i.label)); return it ? Number(it.value) || 0 : null; })(),
       // salud del servidor: estado de cada revision (sin detalles: esos van en la ficha)

@@ -976,6 +976,8 @@ export class World {
     // sin defensa (Cloud, Equipo, Hosting) no hay a quien encerrar: la carcel no se dibuja
     if (this.jail) this.jail.c.visible = !!state.jail;
     if (state.jail) { this.drawJail(state.jail.n); this.drawQuarantine(state.jail.quarantine || 0); }
+    // sin correo de servidor (Cloud, Equipo) la oficina de correos no se dibuja
+    if (this.post) this.post.c.visible = !!state.mail && forEdition('TORRE DE CONTROL') === 'TORRE DE CONTROL';
     this.lastQueue = state.mailQueue; this.drawPost(state.mailQueue);
     if (this.hqName) { const n = forEdition('TORRE DE CONTROL'); if (this.hqName.text !== n) this.hqName.text = n; }
     this.updateSilos(state.silos);
