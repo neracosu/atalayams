@@ -7,7 +7,9 @@
 //   titulo   una frase, no una etiqueta.
 //   texto    dos o tres lineas. Admite <b>. De usted, y diciendo que gana la persona.
 //   nota     opcional: lo que tranquiliza o avisa.
-//   solo     opcional: { ediciones: ['vps', ...], rol: 'owner', modo: 'compacto' | 'amplio' }. Fuera de eso se salta.
+//   solo     opcional: { ediciones: ['vps', ...], rol: 'owner', modo: 'compacto' | 'amplio', plan: 'completo' | 'sitios' }.
+//            Fuera de eso se salta. plan 'sitios': los planes de la nube que solo vigilan sitios por su dominio (sin
+//            conectores, hostings ni laptops); 'completo': todos los demas. No se le senala a nadie lo que su plan no tiene.
 //
 // Reglas:
 //  - Un paso cuyo elemento no esta en pantalla se salta en silencio: por eso se puede senalar algo que depende de
@@ -34,13 +36,19 @@ export const PASOS = [
     texto: 'Desde aquí se vigila lo demás. <b>Tóquelo</b> y verá el resumen: qué está bien, qué pide atención y qué conviene revisar.',
   },
   {
-    id: 'proyecto', en: { mundo: 'proyecto' },
+    id: 'proyecto', en: { mundo: 'proyecto' }, solo: { plan: 'completo' },
     titulo: 'Cada construcción es uno de sus proyectos',
     texto: 'Su luz dice cómo está: <b>verde</b> en línea, <b>ámbar</b> a medias, <b>roja</b> caído. Tóquelo y se abre su ficha, con las visitas, los errores y lo que le pasó últimamente.',
     nota: 'Lo que se mueve hacia él son visitas que están llegando ahora.',
   },
   {
-    id: 'agente', en: { mundo: 'agente' },
+    id: 'sitio', en: { mundo: 'proyecto' }, solo: { plan: 'sitios' },
+    titulo: 'Esta construcción es su sitio',
+    texto: 'Atalaya lo visita cada 5 minutos. Su luz dice cómo está: <b>verde</b> responde, <b>ámbar</b> a medias, <b>roja</b> caído. Tóquelo y se abre su ficha, con su historial.',
+    nota: 'Si se cae, lo verá aquí aunque nadie más lo note.',
+  },
+  {
+    id: 'agente', en: { mundo: 'agente' }, solo: { plan: 'completo' },
     titulo: 'Este es un agente de Claude Code trabajando',
     texto: 'Camina hacia lo que está haciendo: leer, editar, correr un comando. Si se detiene con un aviso ámbar, <b>lo está esperando a usted</b>.',
   },
@@ -52,7 +60,7 @@ export const PASOS = [
     texto: 'Lo que está pasando ahora, de un vistazo. <b>Toque cualquiera</b> para ver su historia de las últimas horas.',
   },
   {
-    id: 'agentes', en: { dom: '[data-tour="agentes"]' }, compacto: { dom: '#tabs [data-sheet="left"]' },
+    id: 'agentes', en: { dom: '[data-tour="agentes"]' }, compacto: { dom: '#tabs [data-sheet="left"]' }, solo: { plan: 'completo' },
     titulo: 'Quién está trabajando',
     texto: 'Cada sesión de Claude Code, con lo que hace y hace cuánto. La que <b>pide permiso o tiene una pregunta</b> sube al principio.',
   },
@@ -79,9 +87,15 @@ export const PASOS = [
     nota: 'También puede arrastrar el mapa y usar la rueda del mouse.',
   },
   {
-    id: 'menu-dueno', en: { dom: '[data-tour="menu"]' }, solo: { rol: 'owner' },
+    id: 'menu-dueno', en: { dom: '[data-tour="menu"]' }, solo: { rol: 'owner', plan: 'completo' },
     titulo: 'Aquí se conecta y se configura',
     texto: 'Sus proyectos, las <b>alertas</b> por Telegram y correo, los usuarios y el tema de la pantalla. Es lo que se toca una vez y casi no se vuelve a tocar.',
+  },
+  {
+    id: 'menu-sitio', en: { dom: '[data-tour="menu"]' }, solo: { rol: 'owner', plan: 'sitios' },
+    titulo: 'Aquí se configura su pantalla',
+    texto: 'Su sitio vigilado, las <b>alertas</b> por Telegram y correo, los usuarios y el tema. Es lo que se toca una vez y casi no se vuelve a tocar.',
+    nota: 'Si un día quiere sumar GitHub, Vercel, sus hostings o sus laptops, eso viene con un plan mayor.',
   },
   {
     id: 'menu-visor', en: { dom: '[data-tour="menu"]' }, solo: { rol: 'viewer' },

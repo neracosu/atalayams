@@ -44,7 +44,8 @@ const WEB = path.join(__dirname, '../web');
       }
     }
     if (p.solo) {
-      assert.ok(Object.keys(p.solo).every(k => ['ediciones', 'rol', 'modo'].includes(k)), donde);
+      assert.ok(Object.keys(p.solo).every(k => ['ediciones', 'rol', 'modo', 'plan'].includes(k)), donde);
+      if (p.solo.plan) assert.ok(['completo', 'sitios'].includes(p.solo.plan), donde);
       if (p.solo.ediciones) assert.ok(p.solo.ediciones.every(e => ['vps', 'hosting', 'cloud', 'equipo'].includes(e)), donde);
       if (p.solo.rol) assert.ok(['owner', 'viewer'].includes(p.solo.rol), donde);
     }
@@ -53,7 +54,14 @@ const WEB = path.join(__dirname, '../web');
   const puestas = [...html.matchAll(/data-tour="([a-z-]+)"/g)].map(m => m[1]);
   assert.deepStrictEqual(puestas.filter(a => !usados.has(a)), [], 'anclas sin paso');
   // cada rol termina el recorrido con su paso del menu
-  for (const rol of ['owner', 'viewer']) assert.ok(PASOS.some(p => (p.en || {}).dom === '[data-tour="menu"]' && (!p.solo || !p.solo.rol || p.solo.rol === rol)), 'paso del menú para ' + rol);
+  for (const rol of ['owner', 'viewer']) for (const plan of ['completo', 'sitios']) {
+    assert.ok(PASOS.some(p => (p.en || {}).dom === '[data-tour="menu"]' && (!p.solo || ((!p.solo.rol || p.solo.rol === rol) && (!p.solo.plan || p.solo.plan === plan)))), `paso del menú para ${rol} (plan ${plan})`);
+  }
+  // un plan que solo vigila sitios no ve pasos de agentes ni de conectar proyectos
+  const deSitios = PASOS.filter(p => !p.solo || !p.solo.plan || p.solo.plan === 'sitios');
+  assert.ok(!deSitios.some(p => ((p.en || {}).dom || '').includes('agentes')), 'sin el panel de agentes en un plan de sitios');
+  assert.ok(!deSitios.some(p => /GitHub|Vercel|Claude Code/.test(p.titulo + p.texto)), 'sin ofrecer conectores en un plan de sitios');
+  assert.ok(/s\.plan && s\.plan !== \(soloSitios\(h\)/.test(motor), 'el motor filtra por plan');
 
   // la visita se puede lanzar desde el menu, y el motor nunca usa los cuadros del navegador
   assert.ok(html.includes('data-act="tour"'), 'botón «Visita guiada» en el menú');
@@ -62,5 +70,16 @@ const WEB = path.join(__dirname, '../web');
   assert.ok(/k === 'v'\) tour\.abrir/.test(fs.readFileSync(path.join(WEB, 'js/main.js'), 'utf8')), 'tecla V');
   assert.ok(!/\b(alert|confirm|prompt)\(/.test(motor));
   assert.ok(!EMOJI.test(motor));
+  // lo que permite el plan: solo la nube manda limites; un plan sin conectores, hostings ni laptops es «de sitios»
+  const planSrc = fs.readFileSync(path.join(WEB, 'js/plan.js'), 'utf8');
+  const { permite, soloSitios } = await import('data:text/javascript;base64,' + Buffer.from(planSrc).toString('base64'));
+  const sitios = { limits: { connectors: 0, remotes: 0, agents: 0, sites: 1, beats: 0 } }, gratis = { limits: { connectors: 2, remotes: 1, agents: 2, sites: 3, beats: 3 } };
+  assert.ok(soloSitios(sitios) && !soloSitios(gratis) && !soloSitios({ limits: null }) && !soloSitios(null) && !soloSitios({ limits: {} }));
+  assert.ok(!permite(sitios, 'connectors') && permite(sitios, 'sites') && permite(gratis, 'connectors') && permite({}, 'connectors'));
+  assert.ok(!soloSitios({ limits: { connectors: 0, agents: 0, remotes: 1 } }), 'con laptops no es solo de sitios');
+  // un plan de sitios no muestra el panel ni la pestana de agentes, y su hoja no se abre
+  const css = fs.readFileSync(path.join(WEB, 'css/app.css'), 'utf8'), mainJs = fs.readFileSync(path.join(WEB, 'js/main.js'), 'utf8');
+  assert.ok(/body\.solo-sitios\.solo-sitios #left, html body\.solo-sitios #tabs \[data-sheet="left"\] \{ display: none !important; \}/.test(css), 'app.css esconde agentes en planes de sitios');
+  assert.ok(/classList\.toggle\('solo-sitios', sitios\)/.test(mainJs) && /id === 'left' && document\.body\.classList\.contains\('solo-sitios'\)/.test(mainJs), 'main.js marca el plan y no abre la hoja de agentes');
   console.log(`tour.test.js OK (${PASOS.length} pasos, versión ${VERSION})`);
 })().catch(e => { console.error(e); process.exit(1); });

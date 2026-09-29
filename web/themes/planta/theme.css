@@ -88,3 +88,6 @@ body[data-theme="planta"] .w3-float { background: #15151b; }
 body[data-theme="planta"] #log { align-items: stretch; width: 100%; min-width: 0; white-space: normal; }
 body[data-theme="planta"] #log .ev, body[data-theme="planta"] #log .ev.link { display: block; width: 100%; max-width: none; text-align: left; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; }
 body[data-theme="planta"] #log .ev .ic { display: inline-block; vertical-align: -2px; }
+
+/* plan que solo vigila sitios: sin la columna de los agentes (body.solo-sitios, ver app.css) */
+body[data-theme="planta"].solo-sitios #worldArea { left: 1.6rem; }

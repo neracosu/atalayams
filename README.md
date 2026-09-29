@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.87.0-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.88.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -283,7 +283,7 @@ y en los proyectos que no tienen favicon, cada uno recibe un cartel pixel propio
     <th width="20%"><img src="docs/icons/plug.svg" width="32"><br>Agentes</th>
   </tr>
   <tr>
-    <td valign="top">Para quien no tiene servidor: una pantalla alojada en <code>nube.neracosu.com/&lt;cliente&gt;</code>, con registro por invitación. Ve lo que el cliente conecta: nube, sitios por su dominio, hostings, WordPress y laptops.</td>
+    <td valign="top">Para quien no tiene servidor: una pantalla alojada en <code>nube.neracosu.com/&lt;cliente&gt;</code>, con registro por invitación o, para vigilar un solo sitio, alta gratis automática (plan Un sitio). Ve lo que el cliente conecta: nube, sitios por su dominio, hostings, WordPress y laptops.</td>
     <td valign="top">Servidores con root: cPanel/WHM, Plesk, DirectAdmin, CyberPanel o sin panel. Ve <b>todo el servidor</b>. Corre como servicio de systemd de solo lectura.</td>
     <td valign="top">La pantalla completa dentro de una cuenta de hosting con Node (cPanel › <i>Setup Node.js App</i>). Ve <b>esa cuenta</b> y recibe otras.</td>
     <td valign="top">Un <b>ejecutable único</b> para Windows, macOS o Linux: esa computadora, sus sesiones de Claude Code y los conectores de nube. Solo en 127.0.0.1.</td>
@@ -300,7 +300,13 @@ Para quien no tiene servidor, o no quiere mantener uno: una pantalla alojada en
 Supabase, GitHub, hostings por agente, sitios WordPress y laptops con Claude Code) y nunca mira la máquina
 que la aloja.
 
-Durante la beta es por invitación y no se cobra: [pida acceso](https://nube.neracosu.com/solicitud?paquete=cloud).
+Para vigilar **un solo sitio** no hace falta invitación: el plan **Un sitio** es gratis y se abre solo en
+[nube.neracosu.com/vigilar](https://nube.neracosu.com/vigilar). Escriba el dominio de su sitio y su correo, confirme
+con el enlace que le llega y en un minuto tiene una pantalla que lo visita cada 5 minutos. Como son pocas, la
+pantalla en la que nadie entra en 45 días se pone en pausa para dejarle el lugar a otra persona (le avisamos por
+correo una semana antes; sus datos quedan y se puede reactivar). Para conectar más
+(Vercel, Supabase, GitHub, hostings, WordPress, laptops), durante la beta es por invitación y no se cobra:
+[pida acceso](https://nube.neracosu.com/solicitud?paquete=cloud).
 
 > Atalaya Cloud es un servicio de NERACOSU. Este repositorio trae la edición `cloud` del servidor, la misma
 > que usa cada pantalla alojada; el portal del servicio no forma parte de esta distribución.
@@ -1002,7 +1008,7 @@ Atalaya es nuevo y crece con lo que piden quienes lo usan. Si algo le falta,
 - [x] **Kit de temas para la comunidad**: repositorio aparte con simulador de datos reales (en modo público), para crear temas sin acceso a un servidor
 - [x] Versión para teléfonos y tablets, y pantallas ultra anchas
 - [x] Ícono real de cada proyecto (favicon) sin IA ni servicios externos
-- [x] **Atalaya Cloud**: una pantalla alojada para quien no tiene servidor, con registro por invitación y planes
+- [x] **Atalaya Cloud**: una pantalla alojada para quien no tiene servidor, con registro por invitación y planes, y el plan **Un sitio** gratis con alta automática
 - [x] **Sitio del proyecto** con guías paso a paso ([neracosu.com/atalaya](https://neracosu.com/atalaya/))
 - [x] **Ejecutable único** para Windows, macOS y Linux (edición Equipo)
 - [x] **Comunicación entre agentes a la vista**: encargo y resultado, mensajes y el haz al proyecto que se lee o edita

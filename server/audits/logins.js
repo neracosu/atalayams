@@ -22,6 +22,11 @@ function tail(file, bytes) {
     const txt = buf.toString('utf8'); return len < size ? txt.slice(txt.indexOf('\n') + 1) : txt;
   } catch { return null; }
 }
+// hora de la primera linea con fecha de un trozo de registro (para saber desde cuando cubre lo leido)
+function firstTime(txt) {
+  for (const l of String(txt || '').split('\n')) { const m = TS.exec(l); if (m) return ts(m); }
+  return null;
+}
 // [fecha] info [whostmgrd] 1.2.3.4 - root "POST /login/..." FAILED LOGIN whostmgrd: user password incorrect
 function parseFailed(txt, since) {
   const out = [];
@@ -153,4 +158,4 @@ class LoginAudit {
   }
 }
 
-module.exports = { LoginAudit, parseFailed, parseSessions };
+module.exports = { LoginAudit, parseFailed, parseSessions, tail, firstTime };

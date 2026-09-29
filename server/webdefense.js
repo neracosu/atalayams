@@ -33,6 +33,7 @@ class WebDefense {
     this.checks = new Map(); // domain+path -> ultima verificacion (una por dia)
     this.total = { hour: [] };
     this.lastEmit = 0;
+    this.onRefused = null; // (ip, momento) de cada sondeo rechazado; lo asigna quien lo necesite
     bus.on('ev', e => { if (e.kind === 'http' && e.path) this.onHttp(e); });
     setInterval(() => this.prune(), 60000).unref();
   }
@@ -76,6 +77,8 @@ class WebDefense {
     if (e.cc) s.cc.set(e.cc, (s.cc.get(e.cc) || 0) + 1);
     this.total.hour.push(now);
     const blocked = e.status === 403 || e.status === 404 || e.status === 410 || e.status === 444 || e.status === 401;
+    // el sondeo se quedo sin nada: lo cuentan los totales publicos de anoche (server/publictotals.js), si estan encendidos
+    if (blocked && this.onRefused) this.onRefused(e.ip, now);
     const hit = this.rules.sensitive.has(fam) && e.status === 200 && (e.bytes || 0) > 0;
     if (hit) this.suspect(s, path, fam, e);
     // a la pantalla: un sondeo cada tanto (los escaneos llegan de a cientos)

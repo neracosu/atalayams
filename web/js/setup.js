@@ -1,6 +1,7 @@
 // Asistente de configuracion: primera instalacion (con codigo de un solo uso) o reconfiguracion de un dueno
 import { animate } from '../vendor/anime.esm.min.js';
 import { px } from './pixicons.js';
+import { soloSitios } from './plan.js';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -99,6 +100,17 @@ async function renderWelcome() {
 async function renderCloud() {
   const L = st.limits || {};
   const lim = (n, what) => n == null ? `${what} sin tope` : `hasta ${n} ${what}`;
+  // un plan que solo vigila sitios por su dominio: no hay nada que conectar, y no se le ofrece
+  if (soloSitios(st)) {
+    card.innerHTML = `<h2>Su pantalla en Atalaya Cloud</h2>
+      <p class="lead">Su pantalla vigila su sitio por su dominio: lo visita cada 5 minutos y le muestra si responde, cuánto tarda y lo que le pasó últimamente.</p>
+      <div class="detect"><div class="det ok"><span>${px('house')} Sitios vigilados</span><b>${L.sites == null ? 'sin tope' : `hasta ${L.sites}`}</b></div></div>
+      <p class="msg info">Su plan no incluye conectores de nube, hostings ni laptops. Si un día los necesita, <a href="/solicitud" target="_blank" rel="noopener">pida un plan mayor</a>.</p>
+      <p class="hint">Dirección de su pantalla: <b>${esc(st.settings.publicUrl)}</b></p>
+      ${nav('Empezar')}`;
+    bindNav();
+    return;
+  }
   card.innerHTML = `<h2>Su pantalla en Atalaya Cloud</h2>
     <p class="lead">Aquí no hay un servidor que vigilar: su pantalla muestra lo que usted le conecte. Todo es de solo lectura.</p>
     <div class="detect">
@@ -406,7 +418,8 @@ async function renderDone() {
   try { st = await api('api/setup/state'); } catch { st = null; }
   // edicion Hosting: la direccion es la de la app Node del panel; en vez de publicar, se conecta la cuenta
   const pub = mode.edition === 'hosting' ? 'account' : 'publish';
-  if (mode.edition === 'cloud') steps = ['cloud', 'identity', 'extras', 'done'];
+  // un plan que solo vigila sitios no tiene conectores: se salta ese paso
+  if (mode.edition === 'cloud') steps = soloSitios(st) ? ['cloud', 'identity', 'done'] : ['cloud', 'identity', 'extras', 'done'];
   else if (mode.edition === 'equipo') steps = mode.setupMode ? [...(st ? [] : ['code']), 'equipo', 'owner', 'identity', 'extras', 'done'] : ['equipo', 'identity', 'extras', 'done'];
   else steps = mode.setupMode ? [...(st ? [] : ['code']), 'welcome', 'owner', 'identity', pub, 'extras', 'done'] : ['welcome', 'identity', pub, 'extras', 'done'];
   if (!mode.setupMode && !mode.owner) { location.href = 'login'; return; }

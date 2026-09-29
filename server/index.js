@@ -197,7 +197,7 @@ ctx.analytics = new Analytics(cfg, bus, { domainsOf: key => {
 } });
 ctx.analytics.start();
 // al detenerse, se guarda lo ultimo de la analitica (si no, se recupera releyendo los logs al arrancar)
-process.once('SIGTERM', () => { try { ctx.analytics.flush(); } catch { } try { claude.saveRemote(true); } catch { } try { beats.stop(); } catch { } process.exit(0); });
+process.once('SIGTERM', () => { try { ctx.analytics.flush(); } catch { } try { if (ctx.publicTotals) ctx.publicTotals.flush(); } catch { } try { claude.saveRemote(true); } catch { } try { beats.stop(); } catch { } process.exit(0); });
 // informe mensual de la analitica por correo, para el cliente final de cada sitio (sale del correo de las alertas)
 const { Reports } = require('./reports');
 ctx.reports = new Reports(cfg, ctx);
@@ -226,6 +226,11 @@ if (!fs.existsSync(ctx.seclog.file)) {
 // mapa de proyectos: une repos, despliegues, sitios, hostings y bases en fichas con puntaje de buenas practicas
 const { Projects } = require('./projects');
 ctx.projects = new Projects(cfg, ctx);
+// totales publicos de anoche (intentos, robots, visitas) para el juego web: un archivo estatico al dia, solo si
+// publicTotals.on en config.json y solo en la edicion VPS
+const { PublicTotals } = require('./publictotals');
+ctx.publicTotals = new PublicTotals(cfg, bus, { analytics: ctx.analytics, logins: ctx.logins, webdef: ctx.webdef, sshLog: platform.auth });
+ctx.publicTotals.start();
 
 const HOOK_EVENTS = new Set(['SessionStart', 'SessionEnd', 'UserPromptSubmit', 'PermissionRequest', 'Notification', 'PreToolUse',
   'PostToolUse', 'PostToolUseFailure', 'PermissionDenied', 'Stop', 'SubagentStart', 'SubagentStop']);
@@ -383,6 +388,8 @@ function helloFor(c) {
     title: cfg.title, subtitle: priv ? cfg.subtitle : '', edition: cfg.edition, user: c.session.user, role: c.session.role, version: VERSION, theme: cfg.theme || 'ciudad',
     priv, privateUntil: c.session.privateUntil, privateOptions: cfg.privateOptions,
     maestro: c.session.role === 'owner' && maestroPass.available(cfg),
+    // Atalaya Cloud: lo que permite el plan (solo cifras), para no ofrecer lo que el plan no incluye
+    limits: cfg.edition === 'cloud' && cfg.limits && Object.keys(cfg.limits).length ? cfg.limits : null,
     history: { system: host.history.toArray(), traffic: logs.history.toArray() },
   };
 }

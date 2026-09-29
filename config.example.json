@@ -61,5 +61,8 @@
     "panel": "auto"
   },
   "sites": {},
-  "publicUrl": "https://atalaya.su-dominio.com"
+  "publicUrl": "https://atalaya.su-dominio.com",
+  "publicTotals": {
+    "on": false
+  }
 }

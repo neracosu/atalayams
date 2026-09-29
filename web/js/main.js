@@ -14,6 +14,7 @@ import { ask } from './ask.js';
 import { Director } from './director.js';
 import { forEdition } from './accounts.js';
 import { Tour } from './tour.js';
+import { permite, soloSitios } from './plan.js';
 
 const $ = id => document.getElementById(id);
 const post = (url, body = {}) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Atalaya': '1' }, body: JSON.stringify(body) })
@@ -146,6 +147,19 @@ function applyMode(h) {
   document.body.classList.toggle('ed-equipo', h.edition === 'equipo');
   document.querySelectorAll('.nocloud').forEach(b => { b.hidden = b.hidden || h.edition === 'cloud' || h.edition === 'equipo'; });
   document.querySelectorAll('.noequipo').forEach(b => { b.hidden = b.hidden || h.edition === 'equipo'; });
+  // lo que el plan de la nube no incluye no se ofrece: conectar proyectos, hostings o latidos
+  const menu = a => document.querySelector(`#menu [data-act="${a}"]`);
+  if (menu('connect')) menu('connect').hidden = menu('connect').hidden || !(permite(h, 'connectors') || permite(h, 'remotes'));
+  if (menu('hosting2')) menu('hosting2').hidden = menu('hosting2').hidden || !permite(h, 'agents');
+  if (menu('hosting')) menu('hosting').textContent = permite(h, 'beats') ? 'Vigilar sitios y latidos' : 'Vigilar sitios';
+  if (!$('proj').querySelector('.projsum')) $('proj').innerHTML = projVacio();
+  // sin agentes en el plan: ni su panel ni su pestana, y el mundo toma ese lugar
+  const sitios = soloSitios(h);
+  if (document.body.classList.contains('solo-sitios') !== sitios) {
+    document.body.classList.toggle('solo-sitios', sitios);
+    if (sitios && document.body.dataset.sheet === 'left') openSheet('');
+    if (world) requestAnimationFrame(() => world.setInsets(insets()));
+  }
   $('maestroBtn').hidden = !h.maestro;
   $('version').textContent = `${h.title} v${h.version}`;
   // tras una actualizacion, las novedades se muestran una vez
@@ -525,13 +539,17 @@ async function openThemes() {
 }
 
 // ---------------------------------------------------------------- resumen de proyectos (panel derecho)
+// sin proyectos todavia: que conectar o, en un plan que solo vigila sitios, cuando aparece el suyo
+function projVacio() {
+  return `<span class="dmuted">${soloSitios(hello) ? 'Su sitio aparece aquí apenas termine su primera revisión, en unos minutos. Se cambia desde el menú › Vigilar sitios.' : 'Conecte GitHub o Vercel para armar el mapa.'}</span>`;
+}
 // auto=1: es la pantalla la que pide, no una persona que abre la ficha (el seguimiento de la nube no lo anota)
 async function refreshProjects() {
   const r = await fetch('api/detail?kind=projects&id=all&auto=1').then(x => x.ok ? x.json() : null).catch(() => null);
   if (!r || !r.projects) return;
   const n = r.projects.length, bad = r.projects.filter(x => x.bad || x.down).length, warn = r.projects.filter(x => !x.bad && !x.down && x.warn).length;
   $('projSub').textContent = n ? `${n} · promedio ${r.avg}` : '';
-  if (!n) return;
+  if (!n) { $('proj').innerHTML = projVacio(); return; }
   const worst = r.projects.slice(0, 3);
   $('proj').innerHTML = `<div class="projsum"><b class="${bad ? 'bad' : warn ? 'warn' : 'ok'}">${bad ? `${px('dotR')} ${bad} con problemas` : warn ? `${px('dotY')} ${warn} para revisar` : `${px('dotG')} todo en orden`}</b></div>
     ${worst.map(x => `<div class="projrow"><span class="score s${x.score >= 85 ? 'ok' : x.score >= 60 ? 'warn' : 'bad'}">${x.score}</span><span class="grow">${ie(x.name)}</span></div>`).join('')}`;
@@ -820,6 +838,8 @@ function connect() {
 // (agentes, metricas y novedades) se abren como hojas desde la barra de pestanas de abajo.
 const compactMQ = matchMedia('(max-width: 1100px), (max-height: 560px)');
 function openSheet(id) {
+  // un plan sin agentes no tiene esa hoja
+  if (id === 'left' && document.body.classList.contains('solo-sitios')) id = '';
   document.body.dataset.sheet = id || '';
   document.querySelectorAll('#tabs [data-sheet]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sheet === (id || ''))));
   if (id === 'right') rethemeCharts(); // las graficas se miden al abrirse la hoja

@@ -11,6 +11,7 @@
 //    la pantalla.
 import { PASOS, VERSION } from './tourpasos.js';
 import { forEdition } from './accounts.js';
+import { soloSitios } from './plan.js';
 
 const VISTA = 'atalaya_visita_v' + VERSION; // 'completa' | 'salida' | 'ofrecida'
 const CURSO = 'atalaya_visita_paso'; // para seguir donde iba si la pagina se recarga (una actualizacion)
@@ -34,6 +35,7 @@ export class Tour {
     if (s.ediciones && !s.ediciones.includes(h.edition || 'vps')) return false;
     if (s.rol && s.rol !== (h.role || 'viewer')) return false;
     if (s.modo && s.modo !== (compacto() ? 'compacto' : 'amplio')) return false;
+    if (s.plan && s.plan !== (soloSitios(h) ? 'sitios' : 'completo')) return false;
     return true;
   }
   destino(p) { return (compacto() && p.compacto) || p.en || null; }

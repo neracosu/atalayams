@@ -14,6 +14,11 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.88.0] - 2026-09-29
+
+### Agregado
+- **Edición VPS: totales de la noche para publicar.** Con `publicTotals.on` en `config.json`, cada mañana pasadas las 06:00 de Venezuela Atalaya escribe un `anoche.json` con los intentos de entrada, los robots frenados y las visitas del día anterior, redondeados y sin nada que identifique al servidor. `publicTotals.dir` elige la carpeta. Viene apagado.
+
 ## [0.87.0] - 2026-09-28
 
 ### Agregado
@@ -1616,7 +1621,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.87.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.0...HEAD
+[0.88.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.87.0...v0.88.0
 [0.87.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.86.1...v0.87.0
 [0.86.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.86.0...v0.86.1
 [0.86.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.85.2...v0.86.0

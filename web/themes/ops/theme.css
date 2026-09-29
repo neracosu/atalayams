@@ -117,3 +117,6 @@ body[data-theme="ops"] .ops-cell b, body[data-theme="ops"] .ops-mast b { display
 body[data-theme="ops"] .ops-cell b { color: var(--bad); }
 body[data-theme="ops"] .ops-mast b { color: var(--ink); }
 body[data-theme="ops"] .ops-cell small, body[data-theme="ops"] .ops-mast small { display: block; font-family: var(--pixel); font-size: .9rem; letter-spacing: .08em; color: var(--ink-3); }
+
+/* plan que solo vigila sitios: sin la columna de los agentes (body.solo-sitios, ver app.css) */
+body[data-theme="ops"].solo-sitios #worldArea { left: 2rem; }

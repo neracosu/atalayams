@@ -11,6 +11,8 @@ const DEFAULTS = {
   title: 'Atalaya', subtitle: '', host: '127.0.0.1', port: 3950, stateDir: '/var/lib/atalaya', trustProxy: true, sessionDays: 30,
   privateOptions: [15, 60, 240, 0], public: { showAccountNames: false, showAppNames: false }, publicUrl: '', promo: true,
   accounts: {}, apps: {}, sites: {}, claude: { idleMinutes: 8, goneMinutes: 45, subagentGoneSeconds: 150 }, logs: {}, platform: { panel: 'auto' },
+  // totales publicos de anoche (server/publictotals.js): solo desde config.json, nunca desde el asistente
+  publicTotals: { on: false },
 };
 // lo que el asistente puede cambiar
 // promo: el enlace «Conozca Atalaya» de la pantalla de acceso (el dueno lo puede apagar)

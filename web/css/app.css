@@ -757,3 +757,12 @@ dialog.legend header .ltour:hover { background: var(--accent, #22d3ee); color: #
 /* y arriba, debajo de la version */
 .brand .tourlink { margin-left: .5rem; padding: 0 0 0 .55rem; border: 0; border-left: 1px solid var(--line-strong); background: none; color: var(--accent, #22d3ee); font: inherit; font-size: inherit; cursor: pointer; }
 .brand .tourlink:hover { text-decoration: underline; }
+
+/* ---------------- plan que solo vigila sitios (body.solo-sitios, web/js/plan.js): sin agentes de Claude Code
+   Ni el panel de agentes ni su pestana: el mundo y los demas paneles toman ese lugar. Cada tema que reserva la
+   columna de los agentes la devuelve en su theme.css (#worldArea, y el panel que compartia la columna). */
+html body.solo-sitios.solo-sitios #left, html body.solo-sitios #tabs [data-sheet="left"] { display: none !important; }
+html body.solo-sitios.compact #tabs { grid-template-columns: repeat(3, 1fr); }
+@media (max-height: 500px) and (orientation: landscape) {
+  html body.solo-sitios.compact #tabs { grid-template-columns: none; grid-template-rows: repeat(3, 1fr); }
+}

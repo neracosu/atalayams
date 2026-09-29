@@ -50,6 +50,19 @@ const WHY = { ENOTFOUND: 'el dominio no resuelve', EAI_AGAIN: 'el dominio no res
   CERT_HAS_EXPIRED: 'el certificado está vencido', DEPTH_ZERO_SELF_SIGNED_CERT: 'el certificado no es de confianza', ERR_TLS_CERT_ALTNAME_INVALID: 'el certificado es de otro dominio',
   EPRIVATE: 'dirección interna', ETIMEDOUT: 'no respondió a tiempo' };
 
+// el dominio como lo escribe la persona (con https://, www., un puerto o una ruta): dominio y ruta por separado.
+// Lo usa tambien el alta automatica de Atalaya Cloud, para validar el dominio igual que aqui.
+function cleanDomain(input) {
+  let domain = String(input || '').trim().toLowerCase().replace(/^https?:\/\//, '');
+  let p = '/';
+  const cut = domain.indexOf('/');
+  if (cut > 0) { p = domain.slice(cut); domain = domain.slice(0, cut); }
+  domain = domain.replace(/^www\./, '').replace(/:\d+$/, '');
+  return { domain, path: p };
+}
+const BAD_DOMAIN = 'Escriba el dominio como lo ve en el navegador, por ejemplo mitienda.com';
+const siteIdOf = domain => domain.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 31);
+
 const textOf = html => String(html || '').replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ');
 
 // la medida contra lo que el dueno declaro: null si esta bien, o el motivo en palabras
@@ -89,15 +102,13 @@ class WebSites {
   idOfDomain(host) { const h = String(host || '').toLowerCase().replace(/^www\./, ''); return this.ids().find(id => h === this.sites[id].domain || h.endsWith('.' + this.sites[id].domain)) || null; }
 
   add(input) {
-    let domain = String(input.domain || '').trim().toLowerCase().replace(/^https?:\/\//, '');
-    let p = '/';
-    const cut = domain.indexOf('/');
-    if (cut > 0) { p = domain.slice(cut); domain = domain.slice(0, cut); }
-    domain = domain.replace(/^www\./, '').replace(/:\d+$/, '');
+    const c = cleanDomain(input.domain);
+    const domain = c.domain;
+    let p = c.path;
     if (input.path) p = String(input.path);
-    if (!DOMAIN.test(domain)) throw new Error('Escriba el dominio como lo ve en el navegador, por ejemplo mitienda.com');
+    if (!DOMAIN.test(domain)) throw new Error(BAD_DOMAIN);
     if (!p.startsWith('/') || p.length > 200 || /\s/.test(p)) throw new Error('La dirección dentro del sitio debe empezar con / y no llevar espacios');
-    const id = String(input.id || domain.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 31)).toLowerCase();
+    const id = String(input.id || siteIdOf(domain)).toLowerCase();
     if (!SLUG.test(id)) throw new Error('Nombre inválido: minúsculas, números y guiones (hasta 31)');
     if (input.edit && !this.sites[id]) throw new Error('No vigila ese sitio');
     const editing = !!input.edit && !!this.sites[id];
@@ -169,4 +180,4 @@ class WebSites {
   list() { return this.ids().map(id => { const st = this.state[id] || {}; return { id, ...this.sites[id], ok: st.ok, since: st.since || null, last: st.last || null, why: st.ok === false ? st.why : null, note: st.note || null, ms: st.ms || null }; }); }
 }
 
-module.exports = { WebSites, verdict, visit, ACCOUNT, EXPECT };
+module.exports = { WebSites, verdict, visit, cleanDomain, siteIdOf, DOMAIN, BAD_DOMAIN, ACCOUNT, EXPECT };

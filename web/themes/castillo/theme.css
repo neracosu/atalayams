@@ -95,3 +95,6 @@ body[data-theme="castillo"] { --bg: #0c0816; --bg-2: #160f24; --panel: rgba(22, 
 body[data-theme="castillo"] .w3-plaque { background: #1c1428; color: #f4e8c8; box-shadow: 0 0 0 2px #0a0610, 0 0 0 4px #d8b24a; }
 body[data-theme="castillo"] .w3-plaque > b, body[data-theme="castillo"] .w3-plaque .fishlist span { color: #f4e8c8; }
 body[data-theme="castillo"] .w3-plaque > small { color: #c8b8d8; }
+
+/* plan que solo vigila sitios: sin la columna de los agentes (body.solo-sitios, ver app.css) */
+body[data-theme="castillo"].solo-sitios #ticker { top: 6.8rem; height: auto; }

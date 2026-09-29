@@ -86,3 +86,6 @@ body[data-theme="villa"] .cc { font-family: var(--font); background: #3a2a1a; bo
 body[data-theme="villa"] #log { align-items: stretch; width: 100%; min-width: 0; white-space: normal; }
 body[data-theme="villa"] #log .ev, body[data-theme="villa"] #log .ev.link { display: block; width: 100%; max-width: none; text-align: left; white-space: normal; overflow-wrap: anywhere; overflow: visible; }
 body[data-theme="villa"] #log .ev .ic { display: inline-block; vertical-align: -2px; }
+
+/* plan que solo vigila sitios: sin la columna de los agentes (body.solo-sitios, ver app.css) */
+body[data-theme="villa"].solo-sitios #ticker { top: 6.8rem; height: auto; }

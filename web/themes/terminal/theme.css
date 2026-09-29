@@ -89,3 +89,6 @@ body[data-theme="terminal"] .term-watch { color: var(--warn); }
 .term-line em.w { color: var(--warn); }
 body[data-theme="terminal"] .term-sat { background: rgba(255, 77, 77, .12); }
 body[data-theme="terminal"] .term-sat i::after { content: '_'; animation: termBlink 1s steps(1) infinite; }
+
+/* plan que solo vigila sitios: sin la columna de los agentes (body.solo-sitios, ver app.css) */
+body[data-theme="terminal"].solo-sitios #worldArea { left: 1.6rem; }

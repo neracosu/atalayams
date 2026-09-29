@@ -85,3 +85,6 @@ body[data-theme="raid"] .cc { font-family: var(--font); background: #1d1916; bor
 body[data-theme="raid"] #log { align-items: stretch; width: 100%; min-width: 0; white-space: normal; }
 body[data-theme="raid"] #log .ev, body[data-theme="raid"] #log .ev.link { display: block; width: 100%; max-width: none; text-align: left; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; }
 body[data-theme="raid"] #log .ev .ic { display: inline-block; vertical-align: -2px; }
+
+/* plan que solo vigila sitios: sin la columna de los agentes (body.solo-sitios, ver app.css) */
+body[data-theme="raid"].solo-sitios #ticker { top: 1rem; height: auto; }
