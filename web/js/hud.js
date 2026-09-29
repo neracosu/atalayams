@@ -241,6 +241,7 @@ export function tickerEvent(e, accounts, priv) {
     case 'http': {
       if (e.status < 500) return;
       // se juntan por sitio: el aviso dice cual fue, con que codigo, y lleva a su ficha
+      const st = window.atalaya && window.atalaya.state;
       const it = e.app ? st && st.apps.find(x => x.id === e.app) : e.site ? st && st.sites.find(x => x.id === e.site) : null;
       const k = e.app ? 'app:' + e.app : e.site ? 'site:' + e.site : '';
       const x = pending.http5.get(k) || { n: 0, codes: new Set(), name: (priv && e.appName) || (it && it.name) || '', go: k || 'system:root', path: '' };

@@ -14,6 +14,11 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.88.1] - 2026-09-29
+
+### Corregido
+- Los avisos de errores del servidor por sitio (los de Cloudflare de la 0.87.0) no aparecían: la pantalla fallaba al recibirlos. Ahora salen con el sitio, el código y el enlace a su ficha.
+
 ## [0.88.0] - 2026-09-29
 
 ### Agregado
@@ -1621,7 +1626,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.0...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.1...HEAD
+[0.88.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.0...v0.88.1
 [0.88.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.87.0...v0.88.0
 [0.87.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.86.1...v0.87.0
 [0.86.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.86.0...v0.86.1
