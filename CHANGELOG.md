@@ -14,6 +14,11 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.88.2] - 2026-09-29
+
+### Cambiado
+- El candado de red estricto (`server/netguard.js`) acepta la opción `allowOwn` para dejar pasar las IPs públicas del propio servidor. Lo interno y lo reservado se bloquea igual.
+
 ## [0.88.1] - 2026-09-29
 
 ### Corregido
@@ -1626,7 +1631,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.1...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.2...HEAD
+[0.88.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.1...v0.88.2
 [0.88.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.0...v0.88.1
 [0.88.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.87.0...v0.88.0
 [0.87.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.86.1...v0.87.0

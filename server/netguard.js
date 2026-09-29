@@ -90,11 +90,12 @@ function ownIps(extra = []) {
   return new Set([...env, ...ifCache.list, ...(typeof extra === 'function' ? extra() : extra || [])].map(normIp).filter(Boolean));
 }
 
-// true si la IP no se puede visitar desde una revision publica
-function blockedIpStrict(ip, own = []) {
+// true si la IP no se puede visitar desde una revision publica. allowOwn deja pasar las IPs publicas de este
+// servidor (los sitios alojados aqui); lo interno y lo reservado se bloquea igual.
+function blockedIpStrict(ip, own = [], { allowOwn = false } = {}) {
   const n = normIp(ip);
   if (!n) return true; // lo que no es una IP valida tampoco pasa
-  if (ownIps(own).has(n)) return true;
+  if (!allowOwn && ownIps(own).has(n)) return true;
   if (net.isIPv4(n)) return v4blocked(n);
   const w = v6words(n); // las ::ffff:a.b.c.d ya llegan como IPv4 (normIp)
   // solo el unicast global (2000::/3) sale a Internet: fuera queda ::, ::1, las IPv4 compatibles y traducidas,
@@ -114,14 +115,16 @@ function blockedHostStrict(host, own = []) {
 }
 
 // mismo contrato que dns.lookup, siempre estricto: falla si CUALQUIERA de las direcciones esta bloqueada.
-// `base` permite inyectar la resolucion en las pruebas; `own` agrega IPs propias (lista o funcion).
-function makeStrictLookup({ base = dns.lookup, own = [] } = {}) {
+// `base` permite inyectar la resolucion en las pruebas; `own` agrega IPs propias (lista o funcion); `allowOwn`
+// (booleano o funcion) deja pasar las propias.
+function makeStrictLookup({ base = dns.lookup, own = [], allowOwn = false } = {}) {
+  const ao = () => !!(typeof allowOwn === 'function' ? allowOwn() : allowOwn);
   return function strictLookupFn(host, opts, cb) {
     if (typeof opts === 'function') { cb = opts; opts = {}; }
     if (typeof opts === 'number') opts = { family: opts };
     base(host, { ...opts, all: true }, (err, list) => {
       if (err) return cb(err);
-      if (!Array.isArray(list) || !list.length || list.some(x => blockedIpStrict(x.address, own))) return cb(Object.assign(new Error('direccion interna o reservada'), { code: 'EPRIVATE' }));
+      if (!Array.isArray(list) || !list.length || list.some(x => blockedIpStrict(x.address, own, { allowOwn: ao() }))) return cb(Object.assign(new Error('direccion interna o reservada'), { code: 'EPRIVATE' }));
       if (opts.all) return cb(null, list);
       cb(null, list[0].address, list[0].family);
     });

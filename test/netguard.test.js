@@ -21,6 +21,8 @@ console.log('ok   netguard estricto: internas, reservadas, documentación, NAT64
 assert.strictEqual(ng.blockedIpStrict('8.8.4.4', ['8.8.4.4']), true, 'la IP propia pasada por quien llama');
 assert.strictEqual(ng.blockedIpStrict('::ffff:8.8.4.4', ['8.8.4.4']), true, 'la propia tambien en forma IPv6');
 assert.strictEqual(ng.blockedIpStrict('2a00:1450:4001:0:0:0:0:1', ['2a00:1450:4001::1']), true, 'IPv6 propia escrita de otra forma');
+assert.strictEqual(ng.blockedIpStrict('8.8.4.4', ['8.8.4.4'], { allowOwn: true }), false, 'allowOwn deja pasar la IP propia publica');
+for (const ip of bloqueadas) assert.strictEqual(ng.blockedIpStrict(ip, [], { allowOwn: true }), true, `allowOwn no deja pasar ${ip}`);
 assert.strictEqual(ng.blockedIpStrict('8.8.4.4', () => ['8.8.4.4']), true, 'la lista puede ser una funcion');
 process.env.ATALAYA_OWN_IPS = '9.9.9.9, 149.112.112.112';
 assert.strictEqual(ng.blockedIpStrict('149.112.112.112'), true, 'ATALAYA_OWN_IPS');
