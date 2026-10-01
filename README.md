@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.88.2-22d3ee?style=flat-square&labelColor=0b1530">
+  <img alt="Versión" src="https://img.shields.io/badge/versi%C3%B3n-0.89.0-22d3ee?style=flat-square&labelColor=0b1530">
   <img alt="Node 20+" src="https://img.shields.io/badge/node-20%2B-34d399?style=flat-square&labelColor=0b1530">
   <img alt="Sin dependencias" src="https://img.shields.io/badge/servidor-sin%20dependencias-a78bfa?style=flat-square&labelColor=0b1530">
   <img alt="Lee todo, actúa a pedido" src="https://img.shields.io/badge/acceso-lee%20todo%20%C2%B7%20act%C3%BAa%20a%20pedido-fbbf24?style=flat-square&labelColor=0b1530">
@@ -388,7 +388,8 @@ Un solo archivo con Node adentro (Node SEA): se descomprime y se abre. El dueño
 en la caché del usuario, elige un puerto libre desde el 3950, abre el navegador en el asistente con el
 código ya puesto, y queda escuchando **solo en 127.0.0.1**. Muestra esa computadora (CPU, memoria y
 disco; en Linux también red y procesos), sus sesiones de Claude Code (en Windows, las de VS Code y otros IDE y
-las que corren dentro de **WSL**, cada distribución como su distrito) y los conectores de nube. Los
+las que corren dentro de **WSL**, cada distribución como su distrito) y los conectores de nube. En Linux muestra
+además los servicios de systemd y los contenedores Docker de ese equipo como edificios. Los
 hostings y WordPress necesitan una dirección pública: para eso están Cloud y VPS.
 
 **Se actualiza sola.** El ejecutable es Node más la aplicación empaquetada. Para actualizarse no se reemplaza el

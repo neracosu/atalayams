@@ -24,6 +24,25 @@ const { appUnits, keyUnits, parseShow, ServicesCollector } = require('../server/
 assert.deepStrictEqual(appUnits().map(u => u.name).sort(), ['miapi', 'worker'], 'solo apps de larga vida, sin oneshot, pm2 ni daemons');
 assert.deepStrictEqual(appUnits({ services: { include: ['backup'], exclude: ['worker'] } }).map(u => u.name).sort(), ['backup', 'miapi']);
 assert.ok(keyUnits().some(k => k.label === 'MariaDB') && keyUnits().some(k => k.label === 'Nginx'));
+// VPN, archivos compartidos y PostgreSQL de Debian: instancias de plantilla encendidas (enlaces en *.wants)
+assert.ok(!keyUnits().some(k => /WireGuard|OpenVPN|Samba/.test(k.label)), 'lo que no esta instalado no aparece');
+w('/usr/lib/systemd/system/smbd.service', '[Service]\nExecStart=/usr/sbin/smbd\n');
+w('/usr/lib/systemd/system/postgresql.service', '[Service]\nType=oneshot\nExecStart=/bin/true\n');
+w('/etc/systemd/system/multi-user.target.wants/wg-quick@wg0.service', '');
+w('/etc/systemd/system/multi-user.target.wants/openvpn-server@oficina.service', '');
+w('/etc/systemd/system/multi-user.target.wants/postgresql@16-main.service', '');
+w('/etc/systemd/system/multi-user.target.wants/getty@tty1.service', '');
+{
+  const k = keyUnits();
+  assert.ok(k.some(x => x.unit === 'smbd.service' && x.label === 'Samba'));
+  assert.ok(k.some(x => x.unit === 'wg-quick@wg0.service' && x.label === 'WireGuard wg0'));
+  assert.ok(k.some(x => x.unit === 'openvpn-server@oficina.service' && x.label === 'OpenVPN oficina'));
+  assert.ok(k.some(x => x.unit === 'postgresql@16-main.service' && x.label === 'PostgreSQL 16-main') && !k.some(x => x.unit === 'postgresql.service'), 'la base real reemplaza al envoltorio');
+  assert.ok(!k.some(x => /getty/.test(x.unit)), 'otras plantillas no cuentan');
+}
+for (const f of ['multi-user.target.wants/wg-quick@wg0.service', 'multi-user.target.wants/openvpn-server@oficina.service', 'multi-user.target.wants/postgresql@16-main.service', 'multi-user.target.wants/getty@tty1.service'])
+  fs.rmSync(path.join(root, '/etc/systemd/system', f));
+fs.rmSync(path.join(root, '/usr/lib/systemd/system/smbd.service')); fs.rmSync(path.join(root, '/usr/lib/systemd/system/postgresql.service'));
 
 w('/proc/uptime', '1000.00 900.00\n');
 w('/sys/fs/cgroup/system.slice/miapi.service/memory.current', '52428800\n');

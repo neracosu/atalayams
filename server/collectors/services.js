@@ -13,7 +13,13 @@ const KEY = [
   ['sshd', 'SSH'], ['ssh', 'SSH'], ['crond', 'Cron'], ['cron', 'Cron'], ['fail2ban', 'fail2ban'], ['csf', 'CSF'], ['lfd', 'LFD'],
   ['cpanel', 'cPanel'], ['cphulkd', 'cPHulk'], ['imunify360', 'Imunify360'], ['psa', 'Plesk'], ['directadmin', 'DirectAdmin'],
   ['lscpd', 'CyberPanel'], ['pdns', 'PowerDNS'], ['named', 'BIND DNS'], ['docker', 'Docker'], ['php-fpm', 'PHP-FPM'],
+  ['mongod', 'MongoDB'], ['smbd', 'Samba'], ['smb', 'Samba'], ['nfs-server', 'NFS'], ['nfs-kernel-server', 'NFS'],
+  ['tailscaled', 'Tailscale'], ['zerotier-one', 'ZeroTier'], ['strongswan', 'IPsec'], ['strongswan-starter', 'IPsec'],
 ];
+// servicios clave que viven como instancias de una plantilla (wg-quick@wg0, openvpn-server@oficina, postgresql@16-main):
+// no tienen archivo propio; las instancias encendidas son enlaces en las carpetas *.wants
+const KEY_TEMPLATES = [['wg-quick', 'WireGuard'], ['openvpn-server', 'OpenVPN'], ['openvpn-client', 'OpenVPN cliente'], ['openvpn', 'OpenVPN'], ['postgresql', 'PostgreSQL']];
+const MAX_INSTANCES = 6;
 const UNIT_DIRS = ['/etc/systemd/system', '/usr/lib/systemd/system', '/lib/systemd/system'];
 const APP_EXEC = /^(?:\/opt\/|\/home\/|\/srv\/|\/var\/www\/|\/usr\/local\/bin\/|\S*\b(?:node|nodejs|bun|deno|python\d?(?:\.\d+)?|uvicorn|gunicorn|java|php|dotnet|ruby|go)\b)/;
 const PROPS = ['Id', 'LoadState', 'ActiveState', 'SubState', 'MainPID', 'NRestarts', 'ExecMainStartTimestampMonotonic', 'User', 'Description', 'WorkingDirectory', 'ControlGroup', 'Type'];
@@ -50,7 +56,25 @@ function keyUnits() {
     if (seen.has(label)) continue;
     if (UNIT_DIRS.some(d => fx.exists(`${d}/${id}.service`))) { out.push({ unit: id + '.service', label }); seen.add(label); }
   }
+  // instancias de plantillas: en Debian «postgresql.service» es solo un envoltorio que siempre dice activo; la base real
+  // es postgresql@<version>-<cluster>, asi que la instancia reemplaza al envoltorio
+  const inst = templateInstances();
+  for (const [tpl, label] of KEY_TEMPLATES) {
+    const mine = inst.filter(u => u.startsWith(tpl + '@')).slice(0, MAX_INSTANCES);
+    if (!mine.length) continue;
+    const i = out.findIndex(k => k.unit === tpl + '.service');
+    if (i >= 0) out.splice(i, 1);
+    for (const u of mine) out.push({ unit: u, label: `${label} ${u.slice(tpl.length + 1, -8)}` });
+  }
   return out;
+}
+function templateInstances() {
+  const found = new Set();
+  for (const d of fx.ls('/etc/systemd/system')) {
+    if (!d.endsWith('.wants')) continue;
+    for (const f of fx.ls('/etc/systemd/system/' + d)) if (/^[A-Za-z0-9_.-]+@[A-Za-z0-9_.:-]+\.service$/.test(f)) found.add(f);
+  }
+  return [...found].sort();
 }
 
 // salida de `systemctl show a b -p ...`: bloques separados por linea en blanco

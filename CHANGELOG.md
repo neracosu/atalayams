@@ -14,6 +14,15 @@ instalación; se indican siempre en **Requiere acción**.
 
 ## [Sin publicar]
 
+## [0.89.0] - 2026-10-01
+
+### Añadido
+- **VPN y archivos compartidos entre los servicios del servidor:** WireGuard, OpenVPN, Samba, NFS, Tailscale, ZeroTier, IPsec y MongoDB aparecen en el tablero de servicios de la Torre de control cuando están instalados, con aviso si uno cae. Cada túnel de WireGuard u OpenVPN sale con su nombre (por ejemplo «WireGuard wg0»).
+- **Atalaya en una computadora con Linux muestra sus servicios y contenedores:** los servicios de systemd y los contenedores Docker de ese equipo salen como edificios, igual que en un servidor. Sirve para la PC con Docker y para el servidor que tiene en casa. En Windows y macOS no cambia nada.
+
+### Corregido
+- **PostgreSQL en Debian y Ubuntu:** el tablero miraba un servicio envoltorio que siempre dice «activo», aunque la base estuviera caída. Ahora mira la base real (por ejemplo «PostgreSQL 16-main»).
+
 ## [0.88.2] - 2026-09-29
 
 ### Cambiado
@@ -1631,7 +1640,8 @@ instalación; se indican siempre en **Requiere acción**.
   cPHulk, Exim), mundo isométrico en PixiJS, HUD con uPlot y anime.js, acceso con usuario y
   PIN de 6 dígitos y modo público/privado aplicado en el servidor.
 
-[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.2...HEAD
+[Sin publicar]: https://github.com/neracosu/atalaya-monitor/compare/v0.89.0...HEAD
+[0.89.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.2...v0.89.0
 [0.88.2]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.1...v0.88.2
 [0.88.1]: https://github.com/neracosu/atalaya-monitor/compare/v0.88.0...v0.88.1
 [0.88.0]: https://github.com/neracosu/atalaya-monitor/compare/v0.87.0...v0.88.0

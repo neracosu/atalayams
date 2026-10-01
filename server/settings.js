@@ -46,14 +46,16 @@ function cloudDefaults() {
 }
 
 // Atalaya Equipo: el ejecutable unico en la computadora de la persona (Windows, macOS o Linux). Solo
-// escucha en 127.0.0.1; ve este equipo, sus sesiones de Claude Code y los conectores de nube.
+// escucha en 127.0.0.1; ve este equipo, sus sesiones de Claude Code y los conectores de nube. En Linux muestra tambien
+// los servicios de systemd y los contenedores (un servidor en casa, una PC con Docker); en Windows y macOS no.
 function equipoDefaults() {
   const E = process.env;
   const home = os.homedir();
   const data = E.ATALAYA_STATE || (process.platform === 'win32' ? path.join(E.APPDATA || path.join(home, 'AppData', 'Roaming'), 'Atalaya')
     : process.platform === 'darwin' ? path.join(home, 'Library', 'Application Support', 'Atalaya') : path.join(E.XDG_DATA_HOME || path.join(home, '.local', 'share'), 'atalaya'));
+  const off = process.platform !== 'linux' || E.ATALAYA_FORCE_LITE === '1';
   return { stateDir: data, host: '127.0.0.1', port: Number(E.PORT) || 3950, setupPort: 0, hookPort: 0, trustProxy: false, subtitle: os.hostname(),
-    platform: { panel: 'none' }, services: { disabled: true }, docker: { disabled: true }, diskmap: { disabled: true } };
+    platform: { panel: 'none' }, services: { disabled: off }, docker: { disabled: off }, diskmap: { disabled: true } };
 }
 
 function load(root) {
